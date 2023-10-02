@@ -150,17 +150,6 @@ export default function UserPage({ userInformation }: Props) {
 }
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
-  const cron = context.req.headers.cron as string;
-  if (cron === process.env.NEXT_PUBLIC_CRON_HEADER_KEY) {
-    console.log("Warm-Up Request");
-    return {
-      props: {
-        userInformation: null,
-        postItemDatas: [],
-      },
-    };
-  }
-
   const username = context.query.username;
 
   let userInformation: UserInServer | null = null;

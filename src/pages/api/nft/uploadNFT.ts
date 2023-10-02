@@ -6,7 +6,10 @@ import AsyncLock from "async-lock";
 import { TransactionReceipt } from "ethers";
 import { NextApiRequest, NextApiResponse } from "next";
 import { bucket, fieldValue, firestore } from "../../../firebase/adminApp";
-import { apidonNFT, apidonNFTMumbaiContractAddress } from "@/web3/NFT/ApidonNFTApp";
+import {
+  apidonNFT,
+  apidonNFTMumbaiContractAddress,
+} from "@/web3/NFT/ApidonNFTApp";
 
 const lock = new AsyncLock();
 
@@ -14,13 +17,8 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  const { cron, authorization } = req.headers;
+  const { authorization } = req.headers;
   const { postDocId, name, description } = req.body;
-
-  if (cron === process.env.NEXT_PUBLIC_CRON_HEADER_KEY) {
-    console.log("Warm-Up Request");
-    return res.status(200).json({ status: "Request by Server-Warmer" });
-  }
 
   const operationFromUsername = await getDisplayName(authorization as string);
   if (!operationFromUsername)

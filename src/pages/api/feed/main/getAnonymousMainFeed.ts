@@ -6,12 +6,7 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  const { cron, authorization } = req.headers;
-
-  if (cron === process.env.NEXT_PUBLIC_CRON_HEADER_KEY) {
-    console.log("Warm-Up Request");
-    return res.status(200).json({ status: "Request by Server-Warmer" });
-  }
+  const { authorization } = req.headers;
 
   if (
     authorization !==

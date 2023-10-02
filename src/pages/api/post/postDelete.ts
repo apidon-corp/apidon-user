@@ -11,22 +11,16 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  const { cron, authorization } = req.headers;
+  const { authorization } = req.headers;
   const { postDocId } = req.body;
 
-  console.log("postDocId: ", postDocId)
-
-  if (cron === process.env.NEXT_PUBLIC_CRON_HEADER_KEY) {
-    console.log("Warm-Up Request");
-    return res.status(200).json({ status: "Request by Server-Warmer" });
-  }
+  console.log("postDocId: ", postDocId);
 
   const operationFromUsername = await getDisplayName(authorization as string);
   if (!operationFromUsername)
     return res.status(401).json({ error: "unauthorized" });
 
-  if (req.method !== "POST")
-    return res.status(405).json("Method not allowed");
+  if (req.method !== "POST") return res.status(405).json("Method not allowed");
 
   if (!postDocId) {
     return res.status(422).json({ error: "Invalid prop or props" });
@@ -104,8 +98,6 @@ export default async function handler(
     return res.status(200).json({});
   });
 }
-
-
 
 async function deleteCollection(collectionPath: string) {
   const limit = 50;
