@@ -63,7 +63,7 @@ To execute this project on your local machine or system, you are required to con
           "base64-converted-service-account";
         ```
 
-  - **Web3**
+  - **Web3 Section**
 
     - You need to have an[ **web3 account/wallet**](https://metamask.io/) on [Polygon Mumbai](https://mumbai.polygonscan.com/) network.
 
@@ -82,7 +82,7 @@ To execute this project on your local machine or system, you are required to con
         NEXT_PUBLIC_MUMBAI_API = "mumbai-api";
         ```
 
-  - **Recoil**
+  - **Recoil Section**
 
     - "To ignore false duplication errors in Recoil when working in development environments, you can disable duplicate checking in the ".env" or ".env.local" file."
 
@@ -92,7 +92,7 @@ To execute this project on your local machine or system, you are required to con
       RECOIL_DUPLICATE_ATOM_KEY_CHECKING_ENABLED = false;
       ```
 
-  - **Status Page**
+  - **Status Page Section**
 
     - Create new status page for your project from [Atlassian Status Page Service (free)](https://www.atlassian.com/software/statuspage).
     - **Then find **"embed code"** for your status page on Atlassian and add the enviroment variable to ".env" or ".env.local" file as below.**
@@ -101,7 +101,7 @@ To execute this project on your local machine or system, you are required to con
         "https://---.statuspage.io/embed/script.js";
       ```
 
-  - **ReCaptcha**
+  - **ReCaptcha Section**
 
     - Because project has **human verification** process on  **sign up** , we should set up **reCaptcha v3 with "challange v2" and "I am not robot checkbox" method.**
     - **Register new website on [Google Recaptcha V3](https://www.google.com/recaptcha) and add enviroment variables to ".env" or ".env.local" file as below.**
@@ -111,13 +111,13 @@ To execute this project on your local machine or system, you are required to con
       NEXT_PUBLIC_RECAPTCHA_SECRET_KEY = "secret-key";
       ```
 
-  - **Anonymous Access**
+  - **Anonymous Access Section**
     - To show contents to **unsigned** users, project (server) checks if the request comes from the verified website. So project needs a key for validitaion. You can set any value.
     - **Add an enviroment variable to ".env" or ".env.local" file as below.**
       ```ts
       NEXT_PUBLIC_ANONYMOUS_ENTERANCE_KEY = "your-preffered-key";
       ```
-  - **Inter Projects Validation**
+  - **Inter Projects Validation Section**
 
     - Because _"apidon-user"_ depends _"apidon-provider"_, project uses **"common"** key for validation if request comes from one of Apidon projects. **You can set any value you want.**
     - **Add an enviroment variable to ".env" or ".env.local" file as below.**
@@ -125,7 +125,7 @@ To execute this project on your local machine or system, you are required to con
       NEXT_PUBLIC_API_KEY_BETWEEN_SERVICES = "your-preffered-key";
       ```
 
-  - **apidon-provider-api-address**
+  - **apidon-provider-api-address Section**
 
     - Because _"apidon-user"_ depends _"apidon-provider"_ and they should communicate, we should tell to "apidon-user" where "apidon-provider" are running at.
 
