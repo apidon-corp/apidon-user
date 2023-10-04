@@ -41,11 +41,11 @@ To execute this project on your local machine or system, you are required to con
       ```
 
     - Find your **main "folder-path"** in **Firebase Storage** section. It is something like: _"gs://---.appspot.com"_.
-    - **Then add these enviroment variables to ".env" or ".env.local" file as below.**
+      - **Then add these enviroment variables to ".env" or ".env.local" file as below.**
 
-      ```ts
-      NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET_ID = "gs://...-...appspot.com";
-      ```
+        ```ts
+        NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET_ID = "gs://...-...appspot.com";
+        ```
 
     - You need to set "cors" policy from Google Cloud Console for **Firebase Storage**.
 
