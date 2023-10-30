@@ -11,7 +11,6 @@ export default function useFollow() {
   const router = useRouter();
 
   /**
-   *
    * @param operateToUserName Who will we follow or unfollow
    * @param opCode For follow operations use "1" otherwise (unfollow) use "-1"
    * @returns if there is a success true otherwise false.
