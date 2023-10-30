@@ -1,7 +1,6 @@
-import { fakeWaiting } from "@/components/utils/FakeWaiting";
 import useRateProvider from "@/hooks/providerHooks/useRateProvider";
 import { Flex, Icon, Spinner } from "@chakra-ui/react";
-import React, { useState } from "react";
+import { useState } from "react";
 
 type Props = {
   value: 0 | 1 | 2 | 3 | 4 | 5;

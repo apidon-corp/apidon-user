@@ -5,7 +5,7 @@ import { IoMdNotificationsOutline } from "react-icons/io";
 
 import { useRecoilState, useRecoilValue } from "recoil";
 
-import { GoPrimitiveDot } from "react-icons/go";
+import { GoDotFill } from "react-icons/go";
 import { currentUserStateAtom } from "@/components/atoms/currentUserAtom";
 
 export default function NotificationButton() {
@@ -37,7 +37,7 @@ export default function NotificationButton() {
       ) : (
         !notificationState.allNotificationsRead && (
           <Icon
-            as={GoPrimitiveDot}
+            as={GoDotFill}
             color="red"
             position="absolute"
             width="14px"

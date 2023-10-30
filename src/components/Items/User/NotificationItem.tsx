@@ -8,7 +8,7 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { BsDot } from "react-icons/bs";
 import { CgProfile } from "react-icons/cg";
-import { GoPrimitiveDot } from "react-icons/go";
+import { GoDotFill } from "react-icons/go";
 import { useSetRecoilState } from "recoil";
 
 interface NotificationItemData {
@@ -139,7 +139,7 @@ export default function NotificationItem({
 
       {!seen && (
         <Icon
-          as={GoPrimitiveDot}
+          as={GoDotFill}
           color="red"
           fontSize="11pt"
           position="absolute"
