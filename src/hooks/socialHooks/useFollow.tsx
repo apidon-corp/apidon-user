@@ -53,9 +53,11 @@ export default function useFollow() {
       return false;
     }
 
-    // update "header" locally
-    // 1-) If we are in our page => we can just "follow" people so we should just update our "following" count
-    // 2-) If we are in someone else page => we can follow that user or one of it follows or followers so we just need update its "follower count" (If we are in that user page.)
+    /** Update "header" locally...
+     * If we are in our page => we can just "follow" people so we should just update our "following" count
+     * If we are in someone else page => we can follow that user or one of it follows or followers so we just need update its "follower count" (If we are in that user page.)
+     */
+
     if (router.asPath.includes(currentUserState.username)) {
       setHeaderAtView((prev) => ({
         ...prev,
