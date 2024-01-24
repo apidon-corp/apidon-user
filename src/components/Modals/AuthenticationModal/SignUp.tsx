@@ -8,6 +8,7 @@ import {
   Input,
   InputGroup,
   InputRightElement,
+  Select,
   Spinner,
   Text,
 } from "@chakra-ui/react";
@@ -21,16 +22,28 @@ import { doc, getDoc } from "firebase/firestore";
 import { AiOutlineCheckCircle } from "react-icons/ai";
 import { BiError, BiErrorCircle } from "react-icons/bi";
 
-import { InitialSignUpForm } from "@/components/types/User";
+import {
+  Countries,
+  Genders,
+  InitialSignUpForm,
+  country_list,
+  genders_list,
+} from "@/components/types/User";
 import useSignUp from "@/hooks/authHooks/useSignUp";
 import ReCAPTCHA from "react-google-recaptcha";
 
 export default function SignUp() {
+  const age_input = useRef<HTMLInputElement>(null);
+  const [age, setAge] = useState(18); // To fix negative integer problem.....
+
   const [signUpForm, setSignUpForm] = useState<InitialSignUpForm>({
     email: "",
     fullname: "",
     password: "",
     username: "",
+    age: 18,
+    gender: "male",
+    country: "Turkey",
   });
 
   const setAuthModalState = useSetRecoilState(authModalStateAtom);
@@ -88,6 +101,8 @@ export default function SignUp() {
     setSignUpLoading(true);
     setError("");
 
+    console.log(signUpForm);
+
     const captchaToken = await handleCaptcha();
 
     if (!captchaToken) {
@@ -137,8 +152,22 @@ export default function SignUp() {
     if (!passwordRegex.test(signUpForm.password)) {
       setPassordStrong(false);
       setSignUpLoading(false);
-      setError("Password is invalid");
+      setError("Invalid Password");
       return;
+    }
+
+    if (typeof signUpForm.age !== "number") {
+      setSignUpLoading(false);
+      return setError("Invalid Age");
+    }
+    if (signUpForm.age < 0) return setError("Invalid Age");
+
+    if (!genders_list.includes(signUpForm.gender)) {
+      return setError("Invalid Gender");
+    }
+
+    if (!country_list.includes(signUpForm.country)) {
+      return setError("Invalid Country");
     }
 
     const operationResult = await initiateSignUp(signUpForm, captchaToken);
@@ -248,6 +277,20 @@ export default function SignUp() {
           setPassordStrong(false);
         } else setPassordStrong(true);
       }
+    }
+
+    if (event.target.name === "age") {
+      const inputValueNumber = Number(event.target.value);
+      const flooredNumber = Math.floor(inputValueNumber);
+
+      if (age_input.current) age_input.current.value = flooredNumber.toString();
+
+      setAge(flooredNumber);
+
+      return setSignUpForm((prev) => ({
+        ...prev,
+        [event.target.name]: flooredNumber,
+      }));
     }
 
     setSignUpForm((prev) => ({
@@ -419,6 +462,88 @@ export default function SignUp() {
               </Flex>
             </InputRightElement>
           </InputGroup>
+
+          <InputGroup>
+            <FormControl variant="floating">
+              <Input
+                ref={age_input}
+                required
+                name="age"
+                type="number"
+                autoComplete="new-password"
+                mb={2}
+                onChange={onChange}
+                _hover={{
+                  border: "1px solid",
+                  borderColor: "blue.500",
+                }}
+                bg="gray.50"
+                placeholder=" "
+                value={age}
+              />
+              <FormLabel
+                bg="rgba(248,250,252,1)"
+                textColor="gray.500"
+                fontSize="10pt"
+                my="2.5"
+              >
+                Age
+              </FormLabel>
+            </FormControl>
+          </InputGroup>
+
+          <InputGroup>
+            <FormControl variant="floating">
+              <Select
+                bg="gray.50"
+                onChange={(e) => {
+                  console.log(e.target.value);
+                  setSignUpForm((prev) => ({
+                    ...prev,
+                    gender: e.target.value as Genders,
+                  }));
+                }}
+              >
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+              </Select>
+              <FormLabel
+                bg="rgba(248,250,252,1)"
+                textColor="gray.500"
+                fontSize="10pt"
+                my="2.5"
+              >
+                Gender
+              </FormLabel>
+            </FormControl>
+          </InputGroup>
+
+          <InputGroup mt={2}>
+            <FormControl variant="floating">
+              <Select
+                bg="gray.50"
+                onChange={(e) => {
+                  setSignUpForm((prev) => ({
+                    ...prev,
+                    country: e.target.value as Countries,
+                  }));
+                }}
+              >
+                {country_list.map((value, i) => (
+                  <option key={i}>{value}</option>
+                ))}
+              </Select>
+              <FormLabel
+                bg="rgba(248,250,252,1)"
+                textColor="gray.500"
+                fontSize="10pt"
+                my="2.5"
+              >
+                Country
+              </FormLabel>
+            </FormControl>
+          </InputGroup>
+
           <Flex
             id="password-requirements"
             direction="column"

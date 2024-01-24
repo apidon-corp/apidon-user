@@ -1,4 +1,4 @@
-import { InitialSignUpForm } from "@/components/types/User";
+import { InitialSignUpForm, SignUpRequestBody } from "@/components/types/User";
 import useLogin from "./useLogin";
 
 export default function useSignUp() {
@@ -35,7 +35,7 @@ export default function useSignUp() {
         body: JSON.stringify({
           ...initSignUpForm,
           captchaToken: captchaToken,
-        }),
+        } as SignUpRequestBody),
       });
     } catch (error) {
       console.error("Error while fetching to 'signUp' API", error);
