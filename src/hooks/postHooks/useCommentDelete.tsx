@@ -5,16 +5,17 @@ export default function useCommentDelete() {
   const [commentDeletionLoading, setCommentDeletionLoading] = useState(false);
 
   /**
-   * @param userCommentDocPath
-   * @returns true if operation is successfull, otherwise false
+   * 
+   * @param commentDocPathOnPost 
+   * @returns 
    */
-  const commentDelete = async (userCommentDocPath: string) => {
-    if (!userCommentDocPath) {
+  const commentDelete = async (commentDocPathOnPost: string) => {
+    if (!commentDocPathOnPost) {
       return false;
     }
     setCommentDeletionLoading(true);
 
-    const fullPath = userCommentDocPath;
+    const fullPath = commentDocPathOnPost;
     const subStringtoDeleteIndex = fullPath.indexOf("comments");
     const postDocPath = fullPath.substring(0, subStringtoDeleteIndex);
 
@@ -39,7 +40,7 @@ export default function useCommentDelete() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          commentDocPath: userCommentDocPath,
+          commentDocPathOnPost: commentDocPathOnPost,
           postDocPath: postDocPath,
         }),
       });

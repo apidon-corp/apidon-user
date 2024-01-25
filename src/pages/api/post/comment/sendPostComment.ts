@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 
-import { CommentData } from "@/components/types/Post";
+import { CommentData, CommentInteractionData } from "@/components/types/Post";
 
 import { fieldValue, firestore } from "../../../../firebase/adminApp";
 
@@ -8,6 +8,8 @@ import getDisplayName from "@/apiUtils";
 import { INotificationServerData } from "@/components/types/User";
 import AsyncLock from "async-lock";
 import { v4 as uuidv4 } from "uuid";
+import { sendEmailVerification } from "firebase/auth";
+import { collection, increment } from "firebase/firestore";
 
 const lock = new AsyncLock();
 
@@ -29,52 +31,64 @@ export default async function handler(
   }
 
   await lock.acquire(`postCommentAPI-${operationFromUsername}`, async () => {
-    const commentTimeStamp = Date.now();
-    const newCommentData: CommentData = {
-      comment: comment,
-      commentSenderUsername: operationFromUsername,
-      creationTime: commentTimeStamp,
-    };
+    /**
+     * Comment Object to use in Database on Post.
+     */
+    const commentObject = createCommentObject(comment, operationFromUsername);
 
-    let newCommentDocPath = `${postDocPath}/comments/${operationFromUsername}${Date.now()}${uuidv4()
-      .replace(/-/g, "")
-      .toUpperCase()}`;
-    while ((await firestore.doc(newCommentDocPath).get()).exists) {
-      newCommentDocPath = `${postDocPath}/comments/${operationFromUsername}${Date.now()}${uuidv4().replace(
-        /-/g,
-        ""
-      )}`;
-    }
+    // Creating Path For Comment To Use on Post, in Database.
+    const commentCollectionForUserOnPost = firestore.collection(
+      `${postDocPath}/comments/${operationFromUsername}/comments`
+    );
 
-    try {
-      await Promise.all([
-        sendComment(newCommentDocPath, newCommentData),
-        increaseCommentCount(postDocPath),
-      ]);
-    } catch (error) {
-      console.error("Error while commenting:", error);
-      return res.status(503).json({ error: "Firebase error" });
-    }
+    const result = await commentCollectionForUserOnPost.add({
+      ...commentObject,
+    });
 
-    try {
-      const unSlashedPostCommentDocPath = newCommentDocPath.replace(/\//g, "-");
+    // To Make Main Doc (username) avaliable...
+    await firestore
+      .doc(`${postDocPath}/comments/${operationFromUsername}`)
+      .set({
+        count: fieldValue.increment(1),
+      });
 
-      const newCommentActivityObject = {
-        commentTime: commentTimeStamp,
-        comment: comment,
-        commentedPostDocPath: postDocPath,
-      };
-      await firestore
-        .doc(
-          `users/${operationFromUsername}/activities/postActivities/postComments/${unSlashedPostCommentDocPath}`
-        )
-        .set({ ...newCommentActivityObject });
-    } catch (error) {
-      console.error(
-        "Error while sending comment. (We were updating activities.)",
-        error
-      );
-    }
+    const createdDocumentIdForCommentOnPost = result.id;
+    const createdCommentPathForPost = result.path;
+
+    // Increase Comment Count
+    await increaseCommentCount(postDocPath);
+
+    // -----------------
+
+    // Updating User Interactions
+
+    // Getting Post Doc Id from Post Doc Path
+
+    const postDocPathSeperated = (postDocPath as string).split("/");
+    const postDocId = postDocPathSeperated[postDocPathSeperated.length - 1];
+
+    console.log(postDocId);
+
+    const commentDocPathForUserOnUser = firestore.doc(
+      `users/${operationFromUsername}/personal/postInteractions/commentedPosts/${postDocId}/comments/${createdDocumentIdForCommentOnPost}`
+    );
+
+    // Create comment object to use on User
+    const commentObjectForUserInteractions =
+      createCommentObjectForInteraction(postDocPath);
+
+    await commentDocPathForUserOnUser.set({
+      ...commentObjectForUserInteractions,
+    });
+
+    // To make parent visible...
+    await firestore
+      .doc(
+        `users/${operationFromUsername}/personal/postInteractions/commentedPosts/${postDocId}`
+      )
+      .set({
+        count: fieldValue.increment(1),
+      });
 
     // send notification
     let postSenderUsername = "";
@@ -93,7 +107,7 @@ export default async function handler(
             notificationTime: Date.now(),
             seen: false,
             sender: operationFromUsername,
-            commentDocPath: newCommentDocPath,
+            commentDocPath: createdCommentPathForPost,
           };
           await firestore
             .collection(`users/${postSenderUsername}/notifications`)
@@ -108,21 +122,10 @@ export default async function handler(
           return res.status(503).json({ error: "Firebase error" });
         }
 
-    return res.status(200).json({ newCommentDocPath: newCommentDocPath });
+    return res
+      .status(200)
+      .json({ newCommentDocPath: createdCommentPathForPost });
   });
-}
-
-async function sendComment(
-  newCommentDocPath: string,
-  newCommentData: CommentData
-) {
-  try {
-    await firestore.doc(newCommentDocPath).set(newCommentData);
-  } catch (error) {
-    throw new Error(
-      `Error while commenting from sendComment function: ${error}`
-    );
-  }
 }
 
 async function increaseCommentCount(postDocPath: string) {
@@ -135,4 +138,32 @@ async function increaseCommentCount(postDocPath: string) {
       `Error while commenting from increaseComment function: ${error}`
     );
   }
+}
+
+/**
+ * Creates Comment Object for 'Post'/Comments/...
+ * @param comment
+ * @param sender
+ * @returns
+ */
+function createCommentObject(comment: string, sender: string) {
+  const commentObjcet: CommentData = {
+    comment: comment,
+    commentSenderUsername: sender,
+    creationTime: Date.now(),
+  };
+  return commentObjcet;
+}
+
+/**
+ * Creates Comment Object for 'User'/Personal/Activities/Comments/...
+ * @param postDocPath
+ * @returns
+ */
+function createCommentObjectForInteraction(postDocPath: string) {
+  const commentObjcet: CommentInteractionData = {
+    postDocPath: postDocPath,
+    creationTime: Date.now(),
+  };
+  return commentObjcet;
 }

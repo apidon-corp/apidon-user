@@ -68,24 +68,32 @@ export default function PostComments({
       firestore,
       `${commentsInfo.postDocPath}/comments`
     );
-    const commentDocQuery = query(
-      postCommentsCollection,
-      orderBy("creationTime", "desc")
-    );
-    const postCommentsDocs = await getDocs(commentDocQuery);
+
+    const postCommentsDocs = await getDocs(postCommentsCollection);
 
     const commentDatasWithCommentDocPathArray: CommentDataWithCommentDocPath[] =
       [];
 
-    postCommentsDocs.forEach((doc) => {
-      const commentDataObject: CommentDataWithCommentDocPath = {
-        commentDocPath: `${commentsInfo.postDocPath}/comments/${doc.id}`,
-        commentSenderUsername: doc.data().commentSenderUsername,
-        comment: doc.data().comment,
-        creationTime: doc.data().creationTime,
-      };
+    for (const doc of postCommentsDocs.docs) {
+      const subCommentCollectionPath = `${doc.ref.path}/comments`;
 
-      commentDatasWithCommentDocPathArray.push(commentDataObject);
+      const subCommentDocs = await getDocs(
+        collection(firestore, subCommentCollectionPath)
+      );
+
+      for (const doc of subCommentDocs.docs) {
+        const commentDataObject: CommentDataWithCommentDocPath = {
+          commentDocPath: doc.ref.path,
+          commentSenderUsername: doc.data().commentSenderUsername,
+          comment: doc.data().comment,
+          creationTime: doc.data().creationTime,
+        };
+        commentDatasWithCommentDocPathArray.push(commentDataObject);
+      }
+    }
+
+    commentDatasWithCommentDocPathArray.sort((a, b) => {
+      return a.creationTime - b.creationTime;
     });
 
     let finalCommentDatasWithCommentDocPathArray: CommentDataWithCommentDocPath[] =

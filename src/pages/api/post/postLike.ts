@@ -11,6 +11,8 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  console.log("LIKE API CALLED");
+
   const { authorization } = req.headers;
   const { opCode, postDocPath } = req.body;
 
@@ -29,24 +31,29 @@ export default async function handler(
   }
 
   await lock.acquire(`postLikeApi-${operationFromUsername}`, async () => {
+    // Checks if user already liked this post.. With first getting information like below.
+    // But this method checks from post likes. Not from user's likes.
+
     const operationFromHaveLikeAlready: boolean = (
       await firestore.doc(`${postDocPath}/likes/${operationFromUsername}`).get()
     ).exists;
 
+    // If like request came... we want to make sure we didn't like before.
     if (opCode === 1) {
       if (operationFromHaveLikeAlready) {
         console.error("Error while like operation. (Detected already liked.)");
         return res.status(422).json({ error: "Invalid prop or props" });
       }
-    } else {
+    }
+    // If de-like request came, we want to make sure if we liked.
+    else {
       if (!operationFromHaveLikeAlready) {
-        console.error(
-          "Error while follow operation. (Detected already not-liked.)"
-        );
+        console.error("Error on like operation. (Detected already not-liked.)");
         return res.status(422).json({ error: "Invalid prop or props" });
       }
     }
 
+    // Increases or decreases post like count...
     try {
       await firestore.doc(postDocPath).update({
         likeCount: fieldValue.increment(opCode as number),
@@ -56,34 +63,48 @@ export default async function handler(
       return res.status(503).json({ error: "Firebase error" });
     }
 
+    // Getting Like Timestamp
     const likeTimestamp = Date.now();
 
+    // Because we can not make doc names with slashes (/) we are replacing slashes (/) with this short-mf (-).
+    // At this part, we are adding like activity to like acitivities.
+
+    /**
+     * THIS PART WILL BE CHANGED
+     */
     try {
-      const unSlashedPostDocPath = postDocPath.replace(/\//g, "-");
       if (opCode === 1) {
-        const newLikeObjectForLikeActivity = {
-          likeTime: likeTimestamp,
-          likedPostDocPath: postDocPath,
+        const likeObject = {
+          ts: likeTimestamp,
+          postId: postDocPath,
         };
         await firestore
-          .doc(
-            `users/${operationFromUsername}/activities/postActivities/postLikes/${unSlashedPostDocPath}`
+          .collection(
+            `users/${operationFromUsername}/personal/postInteractions/likedPosts`
           )
-          .set({
-            ...newLikeObjectForLikeActivity,
-          });
+          .add({ ...likeObject });
       } else {
-        await firestore
-          .doc(
-            `users/${operationFromUsername}/activities/postActivities/postLikes/${unSlashedPostDocPath}`
+        const query = firestore
+          .collection(
+            `users/${operationFromUsername}/personal/postInteractions/likedPosts`
           )
-          .delete();
+          .where("postId", "==", postDocPath);
+
+        const queryResult = await query.get();
+
+        for (const doc of queryResult.docs) {
+          await doc.ref.delete();
+        }
       }
     } catch (error) {
-      console.error("Error while updating activities of user", error);
+      console.error(
+        "Error while updating personal/postActivities of user.",
+        error
+      );
       return res.status(503).json({ error: "Firebase error" });
     }
 
+    // At this part, we are adding like data to post. Info is who liked and when.
     try {
       if (opCode === 1) {
         await firestore
@@ -104,6 +125,8 @@ export default async function handler(
       return res.status(503).json({ error: "Firebase error" });
     }
 
+    // Notification part....
+    // In below, we are getting post sender to send notifitcation.
     let postSenderUsername = "";
     try {
       postSenderUsername = (await firestore.doc(postDocPath).get()).data()
@@ -112,7 +135,7 @@ export default async function handler(
       console.error("Error while like. (We were getting post sender username");
     }
 
-    // send notification
+    // Send Notification
     if (postSenderUsername)
       if (operationFromUsername !== postSenderUsername)
         try {

@@ -1,4 +1,9 @@
 import { auth } from "@/firebase/clientApp";
+import AsyncLock from "async-lock";
+
+import { v4 as uuidv4 } from "uuid";
+
+const lock = new AsyncLock();
 
 const usePostLike = () => {
   /**
@@ -7,9 +12,14 @@ const usePostLike = () => {
    * @returns true if operation is successfull, otherwise false.
    */
   const like = async (postDocPath: string, opCode: number) => {
+    console.log("useLike CALLED!");
+
+    // const lockKey = `like-${postDocPath}-${uuidv4()}`;
+    // console.log(lockKey);
+
     let idToken = "";
     try {
-      idToken = (await auth.currentUser?.getIdToken()) as string;
+      idToken = (await auth.currentUser?.getIdToken(true)) as string;
     } catch (error) {
       console.error("Error while liking. Couln't be got idToken", error);
       return false;
