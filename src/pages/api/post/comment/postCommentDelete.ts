@@ -51,7 +51,7 @@ export default async function handler(
       console.error("ERROR-1", error);
     }
 
-    // Decremeant Comment Count on Post
+    // Decrease direct comment count on post.
     try {
       await firestore.doc(postDocPath).update({
         commentCount: fieldValue.increment(-1),
@@ -60,20 +60,46 @@ export default async function handler(
       console.error("ERROR-2", error);
     }
 
+    // Decrease sub-commect count (like user1 has 2 comments)
     try {
       await firestore
         .doc(
           `${(commentDocPathOnPost as string).split("/").slice(0, 6).join("/")}`
         )
-        .set({
+        .update({
           count: fieldValue.increment(-1),
         });
     } catch (error) {
       console.error("ERROR-3", error);
     }
 
-    // Decremant Sub Comment Count (On Post)
+    // Delete user doc on post for comment if user has no comments on that post...
 
+    try {
+      const commentCountOnThatPostByUserOnPostDoc = await firestore
+        .doc(
+          `${(commentDocPathOnPost as string).split("/").slice(0, 6).join("/")}`
+        )
+        .get();
+      const commentCountOnThatPostByUserOnPostDocData =
+        commentCountOnThatPostByUserOnPostDoc.data();
+
+      if (!commentCountOnThatPostByUserOnPostDocData)
+        throw new Error(
+          "commentCountOnThatPostByUserOnPostDocData is undefined"
+        );
+
+      const commentCountOnThatPostByUserOnPost =
+        commentCountOnThatPostByUserOnPostDocData.count;
+
+      if (commentCountOnThatPostByUserOnPost === 0) {
+        await commentCountOnThatPostByUserOnPostDoc.ref.delete();
+      }
+    } catch (error) {
+      console.error("ERROR-7", error);
+    }
+
+    // Prepare Variables...
     const postDocId = (postDocPath as string).split("/")[
       (postDocPath as string).split("/").length - 2
     ];
@@ -81,24 +107,49 @@ export default async function handler(
       (commentDocPathOnPost as string).split("/").length - 1
     ];
 
+    // Delete Comment On User
     const commentPathOnUser = `users/${operationFromUsername}/personal/postInteractions/commentedPosts/${postDocId}/comments/${commentDocId}`;
-
     try {
       await firestore.doc(commentPathOnUser).delete();
     } catch (error) {
       console.error("ERROR-4", error);
     }
 
+    // Decrease personal comment count on that post again interaction part...
     try {
       await firestore
         .doc(
           `users/${operationFromUsername}/personal/postInteractions/commentedPosts/${postDocId}`
         )
-        .set({
+        .update({
           count: fieldValue.increment(-1),
         });
     } catch (error) {
       console.error("Error-5", error);
+    }
+
+    // Delete doc if there is no comment made by user...
+    try {
+      const commentCountMadeByUserOnAPostAtInteractionsDoc = await firestore
+        .doc(
+          `users/${operationFromUsername}/personal/postInteractions/commentedPosts/${postDocId}`
+        )
+        .get();
+
+      const commentCountMadeByUserOnAPostAtInteractionsDocData =
+        commentCountMadeByUserOnAPostAtInteractionsDoc.data();
+      if (!commentCountMadeByUserOnAPostAtInteractionsDocData)
+        throw new Error(
+          "Comment Count Mde By User On A Post At Interactions Doc Data is undefined."
+        );
+      const commentCountMadeByUserOnAPostAtInteraction =
+        commentCountMadeByUserOnAPostAtInteractionsDocData.count;
+
+      if (commentCountMadeByUserOnAPostAtInteraction === 0) {
+        await commentCountMadeByUserOnAPostAtInteractionsDoc.ref.delete();
+      }
+    } catch (error) {
+      console.error("Error-6", error);
     }
 
     // send notification

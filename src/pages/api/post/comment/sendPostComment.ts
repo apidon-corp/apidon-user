@@ -7,9 +7,6 @@ import { fieldValue, firestore } from "../../../../firebase/adminApp";
 import getDisplayName from "@/apiUtils";
 import { INotificationServerData } from "@/components/types/User";
 import AsyncLock from "async-lock";
-import { v4 as uuidv4 } from "uuid";
-import { sendEmailVerification } from "firebase/auth";
-import { collection, increment } from "firebase/firestore";
 
 const lock = new AsyncLock();
 
@@ -46,17 +43,33 @@ export default async function handler(
     });
 
     // To Make Main Doc (username) avaliable...
-    await firestore
-      .doc(`${postDocPath}/comments/${operationFromUsername}`)
-      .set({
-        count: fieldValue.increment(1),
-      });
 
     const createdDocumentIdForCommentOnPost = result.id;
     const createdCommentPathForPost = result.path;
 
-    // Increase Comment Count
+    // Increase Comment Count on Post Directly
     await increaseCommentCount(postDocPath);
+
+    // Increae sub-Comment Count on Post
+    const subCommentDoc = await firestore
+      .doc(`${postDocPath}/comments/${operationFromUsername}`)
+      .get();
+
+    const subCommentDocExist = subCommentDoc.exists;
+
+    if (subCommentDocExist) {
+      await firestore
+        .doc(`${postDocPath}/comments/${operationFromUsername}`)
+        .update({
+          count: fieldValue.increment(1),
+        });
+    } else {
+      await firestore
+        .doc(`${postDocPath}/comments/${operationFromUsername}`)
+        .set({
+          count: fieldValue.increment(1),
+        });
+    }
 
     // -----------------
 
@@ -66,8 +79,6 @@ export default async function handler(
 
     const postDocPathSeperated = (postDocPath as string).split("/");
     const postDocId = postDocPathSeperated[postDocPathSeperated.length - 1];
-
-    console.log(postDocId);
 
     const commentDocPathForUserOnUser = firestore.doc(
       `users/${operationFromUsername}/personal/postInteractions/commentedPosts/${postDocId}/comments/${createdDocumentIdForCommentOnPost}`
@@ -82,13 +93,32 @@ export default async function handler(
     });
 
     // To make parent visible...
-    await firestore
-      .doc(
-        `users/${operationFromUsername}/personal/postInteractions/commentedPosts/${postDocId}`
-      )
-      .set({
-        count: fieldValue.increment(1),
-      });
+
+    const mainCommentDocOnUserForInteractionExists = (
+      await firestore
+        .doc(
+          `users/${operationFromUsername}/personal/postInteractions/commentedPosts/${postDocId}`
+        )
+        .get()
+    ).exists;
+
+    if (mainCommentDocOnUserForInteractionExists) {
+      await firestore
+        .doc(
+          `users/${operationFromUsername}/personal/postInteractions/commentedPosts/${postDocId}`
+        )
+        .update({
+          count: fieldValue.increment(1),
+        });
+    } else {
+      await firestore
+        .doc(
+          `users/${operationFromUsername}/personal/postInteractions/commentedPosts/${postDocId}`
+        )
+        .set({
+          count: fieldValue.increment(1),
+        });
+    }
 
     // send notification
     let postSenderUsername = "";
