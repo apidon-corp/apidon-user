@@ -324,7 +324,7 @@ export const country_list = [
   "Yemen",
   "Zambia",
   "Zimbabwe",
-] as const;
+];
 
 export type Countries =
   | "Afghanistan"
@@ -551,4 +551,17 @@ export type PersonalDataInServer = {
   age: number;
   gender: Genders;
   country: Countries;
+};
+
+export type DataAnalysisPreferencesInServer = {
+  likeAnalysis: boolean;
+  commentAnalysis: boolean;
+};
+
+/**
+ * For State Management in DataAnalysisSettingsModal
+ */
+export type DataAnalysisPreferencesState = {
+  likeAnalysis: boolean;
+  commentAnalysis: boolean;
 };

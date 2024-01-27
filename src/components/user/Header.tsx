@@ -45,6 +45,7 @@ import { doc, getDoc } from "firebase/firestore";
 import { AiFillEdit } from "react-icons/ai";
 import { headerAtViewAtom } from "../atoms/headerAtViewAtom";
 import { providerModalStateAtom } from "../atoms/providerModalAtom";
+import { dataAnalysisPreferencesModalAtom } from "../atoms/dataAnalysisPreferencesModalAtom";
 
 type Props = {
   userInformation: UserInServer;
@@ -123,6 +124,10 @@ export default function Header({ userInformation }: Props) {
   const [fullnameUpdateLoading, setFullnameUpdateLoading] = useState(false);
 
   const setProviderModalState = useSetRecoilState(providerModalStateAtom);
+
+  const setDataAnalysisPreferencesModalState = useSetRecoilState(
+    dataAnalysisPreferencesModalAtom
+  );
 
   useEffect(() => {
     // after updating photo, we are using raw base64 selected photo as pp until refresh.
@@ -719,6 +724,16 @@ export default function Header({ userInformation }: Props) {
                 }}
               >
                 Data Ownership
+              </Button>
+              <Button
+                colorScheme="blue"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setDataAnalysisPreferencesModalState(true);
+                }}
+              >
+                Data Analysis Preferences
               </Button>
             </Flex>
           </Flex>
