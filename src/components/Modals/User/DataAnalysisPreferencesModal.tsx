@@ -64,7 +64,7 @@ export default function DataAnalysisPreferencesModal() {
 
     if (opResult) setModalOpenState(false);
     else {
-      console.error("Error while changing preferences...");
+      console.error("Error on Preference Changing...");
     }
   };
 
