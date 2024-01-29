@@ -1,5 +1,8 @@
 import getDisplayName from "@/apiUtils";
-import { INotificationServerData } from "@/components/types/User";
+import {
+  INotificationServerData,
+  LikeDataForUsersPersonal,
+} from "@/components/types/User";
 import AsyncLock from "async-lock";
 import { NextApiRequest, NextApiResponse } from "next";
 
@@ -74,9 +77,9 @@ export default async function handler(
      */
     try {
       if (opCode === 1) {
-        const likeObject = {
+        const likeObject: LikeDataForUsersPersonal = {
           ts: likeTimestamp,
-          postId: postDocPath,
+          postPath: postDocPath,
         };
         await firestore
           .collection(
@@ -88,7 +91,7 @@ export default async function handler(
           .collection(
             `users/${operationFromUsername}/personal/postInteractions/likedPosts`
           )
-          .where("postId", "==", postDocPath);
+          .where("postPath", "==", postDocPath);
 
         const queryResult = await query.get();
 

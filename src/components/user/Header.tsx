@@ -46,6 +46,7 @@ import { AiFillEdit } from "react-icons/ai";
 import { headerAtViewAtom } from "../atoms/headerAtViewAtom";
 import { providerModalStateAtom } from "../atoms/providerModalAtom";
 import { dataAnalysisPreferencesModalAtom } from "../atoms/dataAnalysisPreferencesModalAtom";
+import { collectedDataInformationModalAtom } from "../atoms/CollectedDataInformationModalAtom";
 
 type Props = {
   userInformation: UserInServer;
@@ -127,6 +128,9 @@ export default function Header({ userInformation }: Props) {
 
   const setDataAnalysisPreferencesModalState = useSetRecoilState(
     dataAnalysisPreferencesModalAtom
+  );
+  const setCollectedDAtaInformationModalState = useSetRecoilState(
+    collectedDataInformationModalAtom
   );
 
   useEffect(() => {
@@ -734,6 +738,16 @@ export default function Header({ userInformation }: Props) {
                 }}
               >
                 Data Analysis Preferences
+              </Button>
+              <Button
+                colorScheme="blue"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setCollectedDAtaInformationModalState(true);
+                }}
+              >
+                Collected Datas
               </Button>
             </Flex>
           </Flex>

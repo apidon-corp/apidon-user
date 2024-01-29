@@ -93,6 +93,9 @@ export type LikeDatasArrayType = {
   likedPostDocPath: string;
 }[];
 
+/**
+ * Comment Data in Firebase on Post.
+ */
 export type CommentData = {
   commentSenderUsername: string;
   comment: string;

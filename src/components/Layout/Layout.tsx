@@ -11,6 +11,7 @@ import Navbar from "../Navbar/Navbar";
 import SystemStatus from "../system-status/SystemStatus";
 import useLogin from "@/hooks/authHooks/useLogin";
 import DataAnalysisPreferencesModal from "../Modals/User/DataAnalysisPreferencesModal";
+import CollectedDataInformationModal from "../Modals/User/CollectedDataInformationModal";
 
 type Props = {
   children: ReactNode;
@@ -63,6 +64,7 @@ export default function Layout({ children }: Props) {
           <ChooseProviderModal />
           <CurrentProviderModal />
           <DataAnalysisPreferencesModal />
+          <CollectedDataInformationModal />
           <Footer />
           <SystemStatus />
         </Box>

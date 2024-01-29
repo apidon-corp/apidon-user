@@ -219,7 +219,7 @@ export default function PostFront({
     setTaggedDescription(tempTaggedDescription);
   };
 
-  const handleLike = async (opCode: number) => {
+  const handleLike = async (opCode: -1 | 1) => {
     if (!currentUserState.username) {
       console.log("Only Users can like");
       setAuthModalState((prev) => ({

@@ -565,3 +565,32 @@ export type DataAnalysisPreferencesState = {
   likeAnalysis: boolean;
   commentAnalysis: boolean;
 };
+
+/**
+ * This Type can be used for both in database (Firebase) and state management.
+ */
+export type LikeDataForUsersPersonal = {
+  postPath: string;
+  ts: number;
+};
+
+/**
+ * To show user what he/she liked.
+ */
+export type LikedItemData = {
+  timestamp: number;
+  postSenderUsername: string;
+  postURL: string;
+  postDocPath: string;
+};
+
+/**
+ * To show user what he/she commented.
+ */
+export type CommentedItemData = {
+  timestamp: number;
+  postSenderUsername: string;
+  postURL: string;
+  commentDocPathOnPost : string
+  comment: string;
+};

@@ -11,12 +11,7 @@ const usePostLike = () => {
    * @param opCode "1" for like "-1" for like-remove
    * @returns true if operation is successfull, otherwise false.
    */
-  const like = async (postDocPath: string, opCode: number) => {
-    console.log("useLike CALLED!");
-
-    // const lockKey = `like-${postDocPath}-${uuidv4()}`;
-    // console.log(lockKey);
-
+  const like = async (postDocPath: string, opCode: -1 | 1) => {
     let idToken = "";
     try {
       idToken = (await auth.currentUser?.getIdToken(true)) as string;
