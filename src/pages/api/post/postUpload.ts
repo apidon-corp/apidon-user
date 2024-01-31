@@ -4,7 +4,7 @@ import { bucket, firestore } from "../../../firebase/adminApp";
 
 import getDisplayName from "@/apiUtils";
 import AsyncLock from "async-lock";
-import { v4 as uuidv4 } from "uuid";
+import { PostClassifyBody } from "@/components/types/User";
 
 const lock = new AsyncLock();
 
@@ -29,44 +29,11 @@ export default async function handler(
     /**
      * Both for image and post.
      */
-    let generalPostId = uuidv4().replace(/-/g, "");
-    while (
-      (
-        await firestore
-          .doc(`users/${operationFromUsername}/posts/${generalPostId}`)
-          .get()
-      ).exists
-    ) {
-      generalPostId = uuidv4().replace(/-/g, "");
-    }
 
-    let postImagePublicURL = "";
-    if (imageDataURL) {
-      try {
-        const file = bucket.file(
-          `users/${operationFromUsername}/postsFiles/${generalPostId}/image`
-        );
-        const buffer = Buffer.from(imageDataURL.split(",")[1], "base64");
-        await file.save(buffer, {
-          metadata: {
-            contentType: "image/jpeg",
-          },
-        });
-        await file.makePublic();
-        postImagePublicURL = file.publicUrl();
-      } catch (error) {
-        console.error(
-          "Error while uploading post. We were on uploading image",
-          error
-        );
-        return res.status(503).json({ error: "Firebase error" });
-      }
-    }
-
-    const newPostData: PostServerData = {
+    let newPostData: PostServerData = {
       senderUsername: operationFromUsername,
       description: description,
-      image: postImagePublicURL,
+      image: "",
       likeCount: 0,
       commentCount: 0,
       nftStatus: {
@@ -84,10 +51,11 @@ export default async function handler(
       creationTime: Date.now(),
     };
 
+    let createdPostDoc;
     try {
-      await firestore
-        .doc(`users/${operationFromUsername}/posts/${generalPostId}`)
-        .set(newPostData);
+      createdPostDoc = await firestore
+        .collection(`users/${operationFromUsername}/posts`)
+        .add({ ...newPostData });
     } catch (error) {
       console.error(
         "Error while uploadingPost. (We were on creating doc for new post)",
@@ -95,8 +63,97 @@ export default async function handler(
       );
       return res.status(503).json({ error: "Firebase error" });
     }
-    return res
-      .status(200)
-      .json({ newPostData: newPostData, newPostDocId: generalPostId });
+
+    let postImagePublicURL = "";
+    if (imageDataURL) {
+      try {
+        const file = bucket.file(
+          `users/${operationFromUsername}/postsFiles/${createdPostDoc.id}/image`
+        );
+        const buffer = Buffer.from(imageDataURL.split(",")[1], "base64");
+        await file.save(buffer, {
+          metadata: {
+            contentType: "image/jpeg",
+          },
+        });
+        await file.makePublic();
+        postImagePublicURL = file.publicUrl();
+      } catch (error) {
+        console.error(
+          "Error while uploading post. We were on uploading image",
+          error
+        );
+        return res.status(503).json({ error: "Firebase error" });
+      }
+
+      try {
+        await createdPostDoc.update({
+          image: postImagePublicURL,
+        });
+      } catch (error) {
+        console.error(
+          "Error while uploading post. We were on updating image source.",
+          error
+        );
+        return res.status(503).send("Internal Server Error.");
+      }
+    }
+
+    newPostData = { ...newPostData, image: postImagePublicURL };
+
+    // Post Classify Send......
+    let providerDoc;
+    try {
+      providerDoc = await firestore
+        .doc(`/users/${operationFromUsername}/provider/currentProvider`)
+        .get();
+
+      if (!providerDoc.exists) {
+        throw new Error("Provider Doc doesn't exist.");
+      }
+
+      if (providerDoc.data() === undefined) {
+        throw new Error("Provider Doc doesn't exist.");
+      }
+    } catch (error) {
+      console.error(
+        "Erron on post uploading. We were getting provider doc.",
+        error
+      );
+      return res.status(500).send("Internal Server Error");
+    }
+
+    // I don't care response.
+    const bodyContent: PostClassifyBody = {
+      imageURL: postImagePublicURL,
+      postDocPath: createdPostDoc.path,
+      providerId: providerDoc.data()!.name as string,
+      username: operationFromUsername,
+      startTime: providerDoc.data()!.startTime,
+    };
+    try {
+      await fetch(
+        `${process.env.NEXT_PUBLIC_API_ENDPOINT_TO_APIDON_PROVIDER_SERVER}/client/createdPostClassify`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            authorization: `${process.env.NEXT_PUBLIC_API_KEY_BETWEEN_SERVICES}`,
+          },
+          body: JSON.stringify({ ...bodyContent }),
+        }
+      );
+    } catch (error) {
+      console.error(
+        "Error while post uploading. We were sending request to 'createdPostClassify' API",
+        error
+      );
+      return res.status(500).send("Internal Server Error");
+    }
+
+    return res.status(200).json({
+      newPostData: newPostData,
+      newPostDocId: createdPostDoc.id,
+    });
   });
 }

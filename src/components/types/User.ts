@@ -591,6 +591,14 @@ export type CommentedItemData = {
   timestamp: number;
   postSenderUsername: string;
   postURL: string;
-  commentDocPathOnPost : string
+  commentDocPathOnPost: string;
   comment: string;
+};
+
+export type PostClassifyBody = {
+  postDocPath: string;
+  imageURL: string;
+  username: string;
+  providerId: string;
+  startTime: number;
 };
