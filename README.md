@@ -16,7 +16,7 @@ There are three technical repos for the Apidon project.
 
 ## Getting Started
 
-To execute this project on your local machine or system, you are required to configure three repositories.
+To execute this project on your local machine or system, you are required to configure three repositories:
 
 1.  **apdion-user (this)**
 2.  [apidon-provider](https://github.com/aboveStars/apidon-provider)
