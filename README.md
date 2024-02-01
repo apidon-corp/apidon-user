@@ -8,7 +8,7 @@
 
 ## Introduction
 
-There are three technical repos for the Apidon project.
+There are three technical repos for the Apidon project:
 
 - **apdion-user (this)**
 - [apidon-provider](https://github.com/aboveStars/apidon-provider)
