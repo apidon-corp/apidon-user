@@ -76,6 +76,7 @@ export default async function handler(
       // 3-)
 
       let provider = "";
+
       let currentProviderDocSnapshot: FirebaseFirestore.DocumentSnapshot<FirebaseFirestore.DocumentData>;
       try {
         currentProviderDocSnapshot = await firestore
@@ -88,6 +89,7 @@ export default async function handler(
       }
 
       provider = currentProviderDocSnapshot!.data()?.name as string;
+      const startTime = currentProviderDocSnapshot!.data()!.startTime as number;
 
       let response;
       try {
@@ -103,6 +105,7 @@ export default async function handler(
             body: JSON.stringify({
               username: operationFromUsername,
               provider: provider,
+              startTime: startTime,
             }),
           }
         );

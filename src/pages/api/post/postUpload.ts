@@ -1,10 +1,9 @@
 import { PostServerData } from "@/components/types/Post";
 import { NextApiRequest, NextApiResponse } from "next";
 import { bucket, firestore } from "../../../firebase/adminApp";
-
 import getDisplayName from "@/apiUtils";
-import AsyncLock from "async-lock";
 import { PostClassifyBody } from "@/components/types/User";
+import AsyncLock from "async-lock";
 
 const lock = new AsyncLock();
 
@@ -133,7 +132,7 @@ export default async function handler(
     };
     try {
       await fetch(
-        `${process.env.NEXT_PUBLIC_API_ENDPOINT_TO_APIDON_PROVIDER_SERVER}/client/createdPostClassify`,
+        `${process.env.NEXT_PUBLIC_API_ENDPOINT_TO_APIDON_PROVIDER_SERVER}/client/postClassification`,
         {
           method: "POST",
           headers: {

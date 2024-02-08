@@ -56,10 +56,11 @@ export default function CollectedDataInformationModal() {
       const postDoc = await getDoc(
         doc(firestore, likeInformationDoc.data().postPath)
       );
-
-      if (!postDoc.exists()) {
-        console.error("Post doc doesn't exist anymore....");
-        return;
+      if (postDoc.exists() === false) {
+        console.warn(
+          `${likeInformationDoc.data().postPath}, (post) doesn't exist anymore.`
+        );
+        continue;
       }
 
       const senderUsername = (postDoc.data() as PostServerData).senderUsername;
@@ -105,11 +106,9 @@ export default function CollectedDataInformationModal() {
           doc(firestore, commentDoc.data().postDocPath)
         );
 
-        if (!postDoc.exists) {
-          console.error(
-            "The post you commented before, does not exist anymore"
-          );
-          return;
+        if (postDoc.exists() === false) {
+          console.warn("The post you commented before, does not exist anymore");
+          continue;
         }
 
         const postDocData = postDoc.data() as PostServerData;
@@ -126,11 +125,11 @@ export default function CollectedDataInformationModal() {
             `${postDoc.ref.path}/comments/${auth.currentUser?.displayName}/comments/${commentDoc.id}`
           )
         );
-        if (!commentDocAtPost.exists()) {
-          console.error(
+        if (commentDocAtPost.exists() === false) {
+          console.warn(
             "Comment Doc at Post doesn't exist. Even it does exist at user personalities...."
           );
-          return;
+          continue;
         }
 
         const commentDataAtPost = commentDocAtPost.data() as CommentData;
@@ -219,16 +218,14 @@ export default function CollectedDataInformationModal() {
                 Your Likes
               </Text>
               <Stack height="17em" overflow="auto">
-                {collectedLikeInformationsArray.map((e, i) => (
-                  <>
-                    <LikedItem
-                      timestamp={e.timestamp}
-                      postSenderUsername={e.postSenderUsername}
-                      postURL={e.postURL}
-                      postDocPath={e.postDocPath}
-                      key={i}
-                    />
-                  </>
+                {collectedLikeInformationsArray.map((e) => (
+                  <LikedItem
+                    timestamp={e.timestamp}
+                    postSenderUsername={e.postSenderUsername}
+                    postURL={e.postURL}
+                    postDocPath={e.postDocPath}
+                    key={`${e.postDocPath}+${e.timestamp}`}
+                  />
                 ))}
                 {collectedLikeInformationsArray.length === 0 && (
                   <Text color="gray.400" fontSize="9pt" fontWeight="700">
@@ -243,17 +240,15 @@ export default function CollectedDataInformationModal() {
               </Text>
               <Stack>
                 <Stack maxHeight="20em" overflow="auto">
-                  {collectedCommentInformationsArray.map((e, i) => (
-                    <>
-                      <CommentedItem
-                        timestamp={e.timestamp}
-                        postSenderUsername={e.postSenderUsername}
-                        postURL={e.postURL}
-                        commentDocPathOnPost={e.commentDocPathOnPost}
-                        comment={e.comment}
-                        key={i}
-                      />
-                    </>
+                  {collectedCommentInformationsArray.map((e) => (
+                    <CommentedItem
+                      timestamp={e.timestamp}
+                      postSenderUsername={e.postSenderUsername}
+                      postURL={e.postURL}
+                      commentDocPathOnPost={e.commentDocPathOnPost}
+                      comment={e.comment}
+                      key={`${e.commentDocPathOnPost}+${e.timestamp}`}
+                    />
                   ))}
                   {collectedCommentInformationsArray.length === 0 && (
                     <Text color="gray.400" fontSize="9pt" fontWeight="700">
