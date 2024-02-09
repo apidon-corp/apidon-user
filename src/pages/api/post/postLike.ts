@@ -7,6 +7,7 @@ import AsyncLock from "async-lock";
 import { NextApiRequest, NextApiResponse } from "next";
 
 import { fieldValue, firestore } from "../../../firebase/adminApp";
+import { PostLikeActionAPIBody } from "@/components/types/API";
 
 const lock = new AsyncLock();
 
@@ -14,10 +15,8 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  console.log("LIKE API CALLED");
-
   const { authorization } = req.headers;
-  const { opCode, postDocPath } = req.body;
+  const { opCode, postDocPath, providerId, startTime } = req.body;
 
   const operationFromUsername = await getDisplayName(authorization as string);
   if (!operationFromUsername)
@@ -33,7 +32,7 @@ export default async function handler(
     return res.status(422).json({ error: "Invalid prop or props" });
   }
 
-  await lock.acquire(`postLikeApi-${operationFromUsername}`, async () => {
+  await lock.acquire(`postLikeApi-${operationFromUsername}}`, async () => {
     // Checks if user already liked this post.. With first getting information like below.
     // But this method checks from post likes. Not from user's likes.
 
@@ -69,12 +68,7 @@ export default async function handler(
     // Getting Like Timestamp
     const likeTimestamp = Date.now();
 
-    // Because we can not make doc names with slashes (/) we are replacing slashes (/) with this short-mf (-).
     // At this part, we are adding like activity to like acitivities.
-
-    /**
-     * THIS PART WILL BE CHANGED
-     */
     try {
       if (opCode === 1) {
         const likeObject: LikeDataForUsersPersonal = {
@@ -126,6 +120,57 @@ export default async function handler(
         error
       );
       return res.status(503).json({ error: "Firebase error" });
+    }
+
+    // Classification Part (If we liked)
+    if (opCode === 1) {
+      let startTime: number;
+      let providerId: string;
+      try {
+        const currentProviderDoc = await firestore
+          .doc(`users/${operationFromUsername}/provider/currentProvider`)
+          .get();
+        if (!currentProviderDoc.exists)
+          throw new Error("User's provider doc doesn't exist.");
+        startTime = currentProviderDoc.data()!.startTime;
+        providerId = currentProviderDoc.data()!.name;
+      } catch (error) {
+        console.error("Erron while getting currentProviderDoc: ", error);
+        return res.status(500).send("Internal Server Error");
+      }
+
+      const likeActionBody: PostLikeActionAPIBody = {
+        username: operationFromUsername,
+        providerId: providerId,
+        startTime: startTime,
+        postDocPath: postDocPath,
+      };
+
+      try {
+        let response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_ENDPOINT_TO_APIDON_PROVIDER_SERVER}/client/classification/likeAction`,
+          {
+            method: "POST",
+            headers: {
+              authorization: process.env
+                .NEXT_PUBLIC_API_KEY_BETWEEN_SERVICES as string,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ ...likeActionBody }),
+          }
+        );
+        if (!response.ok) {
+          throw new Error(
+            `likeAction from provider API side's response not okay: ${await response.text()} `
+          );
+        }
+      } catch (error) {
+        console.error(
+          "Error on fetch to likeAction API at Provider side: ",
+          error
+        );
+        return res.status(500).send("Internal Server Error.");
+      }
     }
 
     // Notification part....

@@ -132,7 +132,7 @@ export default async function handler(
     };
     try {
       await fetch(
-        `${process.env.NEXT_PUBLIC_API_ENDPOINT_TO_APIDON_PROVIDER_SERVER}/client/postClassification`,
+        `${process.env.NEXT_PUBLIC_API_ENDPOINT_TO_APIDON_PROVIDER_SERVER}/client/classification/postUploadAction`,
         {
           method: "POST",
           headers: {

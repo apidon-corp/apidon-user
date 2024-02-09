@@ -14,8 +14,6 @@ export default async function handler(
   const { authorization } = req.headers;
   const { postDocId } = req.body;
 
-  console.log("postDocId: ", postDocId);
-
   const operationFromUsername = await getDisplayName(authorization as string);
   if (!operationFromUsername)
     return res.status(401).json({ error: "unauthorized" });

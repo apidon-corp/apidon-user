@@ -1,9 +1,5 @@
+import { PostLikeAPIBody } from "@/components/types/API";
 import { auth } from "@/firebase/clientApp";
-import AsyncLock from "async-lock";
-
-import { v4 as uuidv4 } from "uuid";
-
-const lock = new AsyncLock();
 
 const usePostLike = () => {
   /**
@@ -21,6 +17,10 @@ const usePostLike = () => {
     }
 
     let response;
+    const postLikeAPIBody: PostLikeAPIBody = {
+      opCode: opCode,
+      postDocPath: postDocPath,
+    };
     try {
       response = await fetch("/api/post/postLike", {
         method: "POST",
@@ -28,10 +28,7 @@ const usePostLike = () => {
           "Content-Type": "application/json",
           authorization: `Bearer ${idToken}`,
         },
-        body: JSON.stringify({
-          opCode: opCode,
-          postDocPath: postDocPath,
-        }),
+        body: JSON.stringify({ ...postLikeAPIBody }),
       });
     } catch (error) {
       console.error("Error while fetching to 'postLike' API", error);
