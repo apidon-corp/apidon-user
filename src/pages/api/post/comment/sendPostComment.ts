@@ -5,6 +5,7 @@ import { CommentData, CommentInteractionData } from "@/components/types/Post";
 import { fieldValue, firestore } from "../../../../firebase/adminApp";
 
 import getDisplayName from "@/apiUtils";
+import { CommentActionAPIBody } from "@/components/types/API";
 import { INotificationServerData } from "@/components/types/User";
 import AsyncLock from "async-lock";
 
@@ -118,6 +119,57 @@ export default async function handler(
         .set({
           count: fieldValue.increment(1),
         });
+    }
+
+    /**
+     * Classificiaton Part
+     */
+
+    let startTime: number;
+    let providerId: string;
+    try {
+      const currentProviderDoc = await firestore
+        .doc(`users/${operationFromUsername}/provider/currentProvider`)
+        .get();
+      if (!currentProviderDoc.exists)
+        throw new Error("User's provider doc doesn't exist.");
+      startTime = currentProviderDoc.data()!.startTime;
+      providerId = currentProviderDoc.data()!.name;
+    } catch (error) {
+      console.error("Erron while getting currentProviderDoc: ", error);
+      return res.status(500).send("Internal Server Error");
+    }
+
+    const commentActionBody: CommentActionAPIBody = {
+      username: operationFromUsername,
+      providerId: providerId,
+      startTime: startTime,
+      postDocPath: postDocPath,
+    };
+
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_ENDPOINT_TO_APIDON_PROVIDER_SERVER}/client/classification/commentAction`,
+        {
+          method: "POST",
+          headers: {
+            authorization: process.env
+              .NEXT_PUBLIC_API_KEY_BETWEEN_SERVICES as string,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ ...commentActionBody }),
+        }
+      );
+      if (!response.ok)
+        throw new Error(
+          `Response from 'commentActionAPI' is NOT okey. Here is the message: ${await response.text()}`
+        );
+    } catch (error) {
+      console.error(
+        "Error on fetch to commentActionAPI at Provider side: ",
+        error
+      );
+      return res.status(500).send("Internal Server Error");
     }
 
     // send notification
