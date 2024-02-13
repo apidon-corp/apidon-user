@@ -2,6 +2,7 @@ import getDisplayName from "@/apiUtils";
 import {
   INotificationServerData,
   LikeDataForUsersPersonal,
+  LikedPostArrayObject,
 } from "@/components/types/User";
 import AsyncLock from "async-lock";
 import { NextApiRequest, NextApiResponse } from "next";
@@ -16,7 +17,7 @@ export default async function handler(
   res: NextApiResponse
 ) {
   const { authorization } = req.headers;
-  const { opCode, postDocPath, providerId, startTime } = req.body;
+  const { opCode, postDocPath } = req.body;
 
   const operationFromUsername = await getDisplayName(authorization as string);
   if (!operationFromUsername)
@@ -80,10 +81,41 @@ export default async function handler(
             `users/${operationFromUsername}/personal/postInteractions/likedPosts`
           )
           .add({ ...likeObject });
+
+        /**
+         * We are adding this like info to an array to analyze faster.
+         */
+        const likedPostsArrayObject: LikedPostArrayObject = {
+          timestamp: Date.now(),
+          postDocPath: postDocPath,
+        };
+
+        const postInteractionsDoc = await firestore
+          .doc(`users/${operationFromUsername}/personal/postInteractions`)
+          .get();
+        if (!postInteractionsDoc.exists) {
+          await firestore
+            .doc(`users/${operationFromUsername}/personal/postInteractions`)
+            .set({
+              likedPostsArray: fieldValue.arrayUnion(likedPostsArrayObject),
+            });
+        } else {
+          await firestore
+            .doc(`users/${operationFromUsername}/personal/postInteractions`)
+            .update({
+              likedPostsArray: fieldValue.arrayUnion(likedPostsArrayObject),
+            });
+        }
+
+        await firestore
+          .doc(`users/${operationFromUsername}/personal/postInteractions`)
+          .update({
+            likedPostsArray: fieldValue.arrayUnion(likedPostsArrayObject),
+          });
       } else {
         const query = firestore
           .collection(
-            `users/${operationFromUsername}/personal/postInteractions/likedPosts`
+            `users/${operationFromUsername}/personal/postInteractions`
           )
           .where("postPath", "==", postDocPath);
 

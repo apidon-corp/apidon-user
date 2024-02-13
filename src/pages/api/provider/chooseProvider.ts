@@ -1,4 +1,10 @@
 import getDisplayName from "@/apiUtils";
+import { DealAPIBody, InteractedPostObject } from "@/components/types/API";
+import {
+  CommentedPostArrayObject,
+  LikedPostArrayObject,
+  UploadedPostArrayObject,
+} from "@/components/types/User";
 
 import { firestore } from "@/firebase/adminApp";
 import AsyncLock from "async-lock";
@@ -25,6 +31,50 @@ export default async function handler(
 
   await lock.acquire(`chooseProvider-${operationFromUsername}`, async () => {
     let response;
+
+    /**
+     * We'll create interactedPostDocPathArray
+     * 1-) Getting like and comment informations from "commentedPostsArray" array, "likedPostsArray" array and "uploadedPostsArray"...
+     *                      ...from "user/personal/postInteractions" doc
+     * 2-) Then combine all thsese paths.
+     * 3-) Remove duplacitions
+     */
+    let interactedPostObjectsArray: InteractedPostObject[] = [];
+    try {
+      const postInteractionsDoc = await firestore
+        .doc(`users/${operationFromUsername}/personal/postInteractions`)
+        .get();
+      if (!postInteractionsDoc.exists) return (interactedPostObjectsArray = []);
+
+      const likedPostsArray = postInteractionsDoc.data()!
+        .likedPostsArray as LikedPostArrayObject[];
+      const commentedPostsArray = postInteractionsDoc.data()!
+        .commentedPostsArray as CommentedPostArrayObject[];
+      const uploadedPostsArray = postInteractionsDoc.data()!
+        .uploadedPostsArray as UploadedPostArrayObject[];
+
+      interactedPostObjectsArray = [
+        ...likedPostsArray,
+        ...commentedPostsArray,
+        ...uploadedPostsArray,
+      ];
+
+      interactedPostObjectsArray = Array.from(
+        new Set([...interactedPostObjectsArray])
+      );
+    } catch (error) {
+      console.error(
+        "Error while creating interactedPostObjectsArray on choosing Provider...",
+        error
+      );
+      return res.status(500).send("Internal Server Error");
+    }
+
+    const body: DealAPIBody = {
+      username: operationFromUsername,
+      interactedPostsObjectsArray: [...interactedPostObjectsArray],
+      provider: providerName,
+    };
     try {
       response = await fetch(
         `${process.env.NEXT_PUBLIC_API_ENDPOINT_TO_APIDON_PROVIDER_SERVER}/client/deal`,
@@ -35,10 +85,7 @@ export default async function handler(
             authorization: process.env
               .NEXT_PUBLIC_API_KEY_BETWEEN_SERVICES as string,
           },
-          body: JSON.stringify({
-            username: operationFromUsername,
-            provider: providerName,
-          }),
+          body: JSON.stringify({ ...body }),
         }
       );
     } catch (error) {

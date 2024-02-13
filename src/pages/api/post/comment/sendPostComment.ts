@@ -6,7 +6,10 @@ import { fieldValue, firestore } from "../../../../firebase/adminApp";
 
 import getDisplayName from "@/apiUtils";
 import { CommentActionAPIBody } from "@/components/types/API";
-import { INotificationServerData } from "@/components/types/User";
+import {
+  CommentedPostArrayObject,
+  INotificationServerData,
+} from "@/components/types/User";
 import AsyncLock from "async-lock";
 
 const lock = new AsyncLock();
@@ -93,8 +96,27 @@ export default async function handler(
       ...commentObjectForUserInteractions,
     });
 
-    // To make parent visible...
+    // Update Post Interactions
+    const commentedPostsArrayObject: CommentedPostArrayObject = {
+      postDocPath: postDocPath,
+      timestamp: Date.now(),
+    };
 
+    const postInteractionsDoc = await firestore
+      .doc(`/users/${operationFromUsername}/personal/postInteractions`)
+      .get();
+
+    if (!postInteractionsDoc.exists) {
+      await postInteractionsDoc.ref.set({
+        commentedPostsArray: fieldValue.arrayUnion(commentedPostsArrayObject),
+      });
+    } else {
+      await postInteractionsDoc.ref.update({
+        commentedPostsArray: fieldValue.arrayUnion(commentedPostsArrayObject),
+      });
+    }
+
+    // To make parent visible...
     const mainCommentDocOnUserForInteractionExists = (
       await firestore
         .doc(

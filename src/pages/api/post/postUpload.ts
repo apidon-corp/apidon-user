@@ -1,8 +1,11 @@
 import { PostServerData } from "@/components/types/Post";
 import { NextApiRequest, NextApiResponse } from "next";
-import { bucket, firestore } from "../../../firebase/adminApp";
+import { bucket, fieldValue, firestore } from "../../../firebase/adminApp";
 import getDisplayName from "@/apiUtils";
-import { PostClassifyBody } from "@/components/types/User";
+import {
+  PostClassifyBody,
+  UploadedPostArrayObject,
+} from "@/components/types/User";
 import AsyncLock from "async-lock";
 
 const lock = new AsyncLock();
@@ -99,6 +102,32 @@ export default async function handler(
     }
 
     newPostData = { ...newPostData, image: postImagePublicURL };
+
+    // Updating "uploadedPostsArrasy" array from "/users/user1/personal/postInteractions"
+    const newUploadedPostObject: UploadedPostArrayObject = {
+      postDocPath: createdPostDoc.path,
+      timestamp: Date.now(),
+    };
+    try {
+      const postInteractionsDoc = await firestore
+        .doc(`users/${operationFromUsername}/personal/postInteractions`)
+        .get();
+      if (!postInteractionsDoc.exists) {
+        postInteractionsDoc.ref.set({
+          uploadedPostsArray: fieldValue.arrayUnion(newUploadedPostObject),
+        });
+      } else {
+        postInteractionsDoc.ref.update({
+          uploadedPostsArray: fieldValue.arrayUnion(newUploadedPostObject),
+        });
+      }
+    } catch (error) {
+      console.error(
+        "Error om updating postDocInteractions while uploading posts",
+        error
+      );
+      return res.status(500).send("Internal Server Error");
+    }
 
     // Post Classify Send......
     let providerDoc;

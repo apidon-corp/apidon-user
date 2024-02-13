@@ -585,6 +585,29 @@ export type LikedItemData = {
 };
 
 /**
+ * Liked Posts Array Object Type
+ */
+export type LikedPostArrayObject = {
+  timestamp: number;
+  postDocPath: string;
+};
+
+/**
+ * Commented Posts Array Object Type
+ */
+export type CommentedPostArrayObject = {
+  timestamp: number;
+  postDocPath: string;
+};
+/**
+ * Uploaded Posts Array Object Type
+ */
+export type UploadedPostArrayObject = {
+  timestamp: number;
+  postDocPath: string;
+};
+
+/**
  * To show user what he/she commented.
  */
 export type CommentedItemData = {
