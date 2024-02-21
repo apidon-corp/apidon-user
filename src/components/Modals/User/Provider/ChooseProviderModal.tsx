@@ -64,7 +64,7 @@ export default function ChooseProviderModal() {
     }
 
     if (!response.ok) {
-      console.error("Error from 'provideShowcase' API:", await response.json());
+      console.error("Error from 'provideShowcase' API:", await response.text());
       return false;
     }
 
