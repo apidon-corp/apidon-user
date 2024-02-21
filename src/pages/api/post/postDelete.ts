@@ -15,13 +15,12 @@ export default async function handler(
   const { postDocId } = req.body;
 
   const operationFromUsername = await getDisplayName(authorization as string);
-  if (!operationFromUsername)
-    return res.status(401).json({ error: "unauthorized" });
+  if (!operationFromUsername) return res.status(401).send("Unauthorized");
 
-  if (req.method !== "POST") return res.status(405).json("Method not allowed");
+  if (req.method !== "POST") return res.status(405).send("Method not allowed");
 
   if (!postDocId) {
-    return res.status(422).json({ error: "Invalid prop or props" });
+    return res.status(422).send("Invalid Prop or Props");
   }
 
   await lock.acquire(`postDeleteAPI-${operationFromUsername}`, async () => {
@@ -34,13 +33,13 @@ export default async function handler(
       isOwner = postDoc.data()?.senderUsername === operationFromUsername;
     } catch (error) {
       console.error("Error while deleting post from 'isOwner' function", error);
-      return res.status(503).json({ error: "Firebase error" });
+      return res.status(503).send("Firebase Error");
     }
 
     // isOwner is false in undefined too.
     if (!isOwner) {
       console.error("Not owner of the comment");
-      return res.status(522).json({ error: "Not-Owner" });
+      return res.status(522).send("Not Owner");
     }
 
     const postDocData = postDoc.data() as PostServerData;
@@ -57,7 +56,7 @@ export default async function handler(
         "Errow while deleting post (we were deleting post files folder.)",
         error
       );
-      return res.status(503).json({ error: "Firebase error" });
+      return res.status(503).send("Firebase Error");
     }
 
     try {
@@ -71,7 +70,7 @@ export default async function handler(
         "Error while deleting post. (We were decrementing NFTs count.)",
         error
       );
-      return res.status(503).json({ error: "Firebase error" });
+      return res.status(503).send("Firebase Error");
     }
 
     try {
@@ -91,9 +90,9 @@ export default async function handler(
         "Error while deleting post.(We were deleting post doc and its subCollections):",
         error
       );
-      return res.status(503).json({ error: "Firebase error" });
+      return res.status(503).send("Firebase Error");
     }
-    return res.status(200).json({});
+    return res.status(200).send("Success");
   });
 }
 

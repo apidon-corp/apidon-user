@@ -10,12 +10,11 @@ export default async function handler(
   const { score } = req.body;
 
   const operationFromUsername = await getDisplayName(authorization as string);
-  if (!operationFromUsername)
-    return res.status(401).json({ error: "unauthorized" });
+  if (!operationFromUsername) return res.status(401).send("Unauthorized");
 
-  if (req.method !== "POST") return res.status(405).json("Method not allowed");
+  if (req.method !== "POST") return res.status(405).send("Method not allowed");
 
-  if (!score) return res.status(422).json({ error: "Invalid Prop or Props" });
+  if (!score) return res.status(422).send("Invalid Prop or Props");
 
   let currentProviderDoc: FirebaseFirestore.DocumentSnapshot<FirebaseFirestore.DocumentData>;
   try {
@@ -27,14 +26,14 @@ export default async function handler(
       "Error while updating rate. (We were looking for current provider of user.)",
       error
     );
-    return res.status(503).json({ error: "Firebase Error" });
+    return res.status(503).send("Firebase Error");
   }
 
   if (!currentProviderDoc.exists) {
     console.error(
       "Error on rate provider. Current provider doc doesn't exist."
     );
-    return res.status(503).json({ error: "Firebase Error" });
+    return res.status(503).send("Firebase Error");
   }
 
   // update current user doc
@@ -49,7 +48,7 @@ export default async function handler(
       "Error while rating provider. (We were updating current provide doc",
       error
     );
-    return res.status(503).json({ error: "Firebase Error" });
+    return res.status(503).send("Firebase Error");
   }
 
   try {
@@ -75,8 +74,8 @@ export default async function handler(
       "Error while rating provider. (We were fetching the getRate API...",
       error
     );
-    return res.status(503).json({ error: "Internal Server Error" });
+    return res.status(503).send("Internal Server Error");
   }
 
-  return res.status(200).json({});
+  return res.status(200).send("Success");
 }

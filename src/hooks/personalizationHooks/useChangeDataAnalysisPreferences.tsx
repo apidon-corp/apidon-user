@@ -43,7 +43,7 @@ export default function useChangeDataAnalysisPreferences() {
     if (!response.ok) {
       console.error(
         "Error while changing data preferences from changeDataAnalysisSettings API",
-        await response.json()
+        await response.text()
       );
       return false;
     }

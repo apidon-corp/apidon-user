@@ -12,9 +12,9 @@ export default async function handler(
     authorization !==
     (process.env.NEXT_PUBLIC_ANONYMOUS_ENTERANCE_KEY as string)
   )
-    return res.status(401).json({ error: "unauthorized" });
+    return res.status(401).send("Unauthorized");
 
-  if (req.method !== "POST") return res.status(405).json("Method not allowed");
+  if (req.method !== "POST") return res.status(405).send("Method not allowed");
 
   let postItemDatas: PostItemData[] = [];
 
@@ -26,7 +26,7 @@ export default async function handler(
       `Error while creating feed anonymous feed. (We were getting popular people)`,
       error
     );
-    return res.status(503).json({ error: "Firebase Error" });
+    return res.status(503).send("Firebase Error");
   }
 
   let popularPeople: string[] = [];
@@ -46,7 +46,7 @@ export default async function handler(
           `Error while creating anonymous feed. (We were getting posts of ${popularPerson}`,
           error
         );
-        return res.status(503).json({ error: "firebase error" });
+        return res.status(503).send("Firebase Error");
       }
       if (popularPersonPostDocsQuerySnapshot.size !== 0) {
         for (const postDoc of popularPersonPostDocsQuerySnapshot.docs) {

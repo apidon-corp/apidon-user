@@ -299,7 +299,7 @@ export default function Header({ userInformation }: Props) {
       setFullnameUpdateLoading(false);
       return console.error(
         "Error while updating fullname. (from api)",
-        await response.json()
+        await response.text()
       );
     }
 

@@ -18,13 +18,12 @@ export default async function handler(
   const { description, image: imageDataURL } = req.body;
 
   const operationFromUsername = await getDisplayName(authorization as string);
-  if (!operationFromUsername)
-    return res.status(401).json({ error: "unauthorized" });
+  if (!operationFromUsername) return res.status(401).send("unauthorized");
 
-  if (req.method !== "POST") return res.status(405).json("Method not allowed");
+  if (req.method !== "POST") return res.status(405).send("Method not allowed");
 
   if (!description && !imageDataURL) {
-    return res.status(422).json({ error: "Invalid prop or props" });
+    return res.status(422).send({ error: "Invalid prop or props" });
   }
 
   await lock.acquire(`postUploadAPI-${operationFromUsername}`, async () => {
@@ -63,7 +62,7 @@ export default async function handler(
         "Error while uploadingPost. (We were on creating doc for new post)",
         error
       );
-      return res.status(503).json({ error: "Firebase error" });
+      return res.status(503).send("Firebase Error");
     }
 
     let postImagePublicURL = "";
@@ -85,7 +84,7 @@ export default async function handler(
           "Error while uploading post. We were on uploading image",
           error
         );
-        return res.status(503).json({ error: "Firebase error" });
+        return res.status(503).send("Firebase Error");
       }
 
       try {

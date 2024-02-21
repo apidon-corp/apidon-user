@@ -13,10 +13,9 @@ export default async function handler(
   const { authorization } = req.headers;
 
   const operationFromUsername = await getDisplayName(authorization as string);
-  if (!operationFromUsername)
-    return res.status(401).json({ error: "unauthorized" });
+  if (!operationFromUsername) return res.status(401).send("Unauthorized");
 
-  if (req.method !== "POST") return res.status(405).json("Method not allowed");
+  if (req.method !== "POST") return res.status(405).send("Method not allowed");
 
   await lock.acquire(
     `getPersonalizedMainFeed-${operationFromUsername}`,
@@ -41,7 +40,7 @@ export default async function handler(
           `Error while creating feed for ${operationFromUsername}. (We were getting followings collection)`,
           error
         );
-        return res.status(503).json({ error: "Firebase Error" });
+        return res.status(503).send("Firebase Error");
       }
       // if we follow at least one person...
       if (userFollowingsQuerySnapshot.size !== 0) {
@@ -59,7 +58,7 @@ export default async function handler(
           `Error while creating feed for ${operationFromUsername}. (We were getting popular people)`,
           error
         );
-        return res.status(503).json({ error: "Firebase Error" });
+        return res.status(503).send("Firebase Error");
       }
 
       let popularPeople: string[] = [];

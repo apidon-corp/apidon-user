@@ -9,16 +9,15 @@ export default async function handler(
   const { authorization } = req.headers;
   const { username } = req.body;
 
-  if (!username)
-    return res.status(422).json({ error: "Invalid prop or props" });
+  if (!username) return res.status(422).send("Invalid Prop or Props");
 
   if (
     authorization !==
     (process.env.NEXT_PUBLIC_ANONYMOUS_ENTERANCE_KEY as string)
   )
-    return res.status(401).json({ error: "unauthorized" });
+    return res.status(401).send("unauthorized");
 
-  if (req.method !== "POST") return res.status(405).json("Method not allowed");
+  if (req.method !== "POST") return res.status(405).send("Method not allowed");
 
   let postItemDatas: PostItemData[] = [];
 
@@ -32,7 +31,7 @@ export default async function handler(
       `Error while creating user (single) ${username} feed for anonymous users`,
       error
     );
-    return res.status(503).json({ error: "firebase error" });
+    return res.status(503).send("Firebase Error");
   }
 
   if (postsDocsQuerySnapshot.size !== 0) {

@@ -31,22 +31,19 @@ export default async function handler(
       "Error on signUp.(We were fetching to 'googleRepactchaService'.)",
       error
     );
-    return res.status(503).json({ error: "Recaptcha Server Error" });
+    return res.status(503).send("Recaptcha Error");
   }
 
   if (!(await response.json()).success)
-    return res
-      .status(401)
-      .json({ error: "reCaptcha human verification resulted false." });
+    return res.status(401).send("reCaptcha human verification resulted false.");
 
-  if (req.method !== "POST")
-    return res.status(405).json({ error: "Method not allowed" });
+  if (req.method !== "POST") return res.status(405).send("Method Not Allowed");
 
   await lock.acquire(`signupAPI-${requestBody.username}`, async () => {
     const emailRegex =
       /^[A-Za-z0-9._%+-]+@(gmail|yahoo|outlook|aol|icloud|protonmail|yandex|mail|zoho)\.(com|net|org)$/i;
     if (!emailRegex.test(requestBody.email)) {
-      return res.status(422).json({ error: "Invalid Email" });
+      return res.status(422).send("Invalid Email");
     }
     const fullnameRegex = /^[\p{L}_ ]{3,20}$/u;
     const consecutiveSpaceRegex = /\s\s/;
@@ -55,11 +52,11 @@ export default async function handler(
       consecutiveSpaceRegex.test(requestBody.fullname) ||
       requestBody.fullname[requestBody.fullname.length - 1] === " "
     ) {
-      return res.status(422).json({ error: "Invalid Fullname" });
+      return res.status(422).send("Invalid Fullname");
     }
     const usernameRegex = /^[a-z0-9]{3,20}$/;
     if (!usernameRegex.test(requestBody.username)) {
-      return res.status(422).json({ error: "Invalid Username" });
+      return res.status(422).json("Invalid Username");
     }
 
     let usernameDoc;
@@ -72,31 +69,30 @@ export default async function handler(
         "Error while signup.(We were checking if username is taken)",
         error
       );
-      return res.status(503).json({ error: "Firebase error" });
+      return res.status(503).send("Firebase Error");
     }
 
     if (usernameDoc.exists) {
-      return res.status(409).json({ error: "Username taken" });
+      return res.status(409).send("Username Taken");
     }
 
     const passwordRegex =
       /^(?=.*?\p{Lu})(?=.*?\p{Ll})(?=.*?\d)(?=.*?[^\w\s]|[_]).{12,}$/u;
     if (!passwordRegex.test(requestBody.password)) {
-      return res.status(400).json({ error: "Invalid Password" });
+      return res.status(400).send("Invalid Password");
     }
 
     if (typeof requestBody.age !== "number") {
-      return res.status(422).json({ error: "Invalid Age" });
+      return res.status(422).send("Invalid Age");
     }
-    if (requestBody.age < 0)
-      return res.status(422).json({ error: "Invalid Age" });
+    if (requestBody.age < 0) return res.status(422).send("Invalig Age");
 
     if (!genders_list.includes(requestBody.gender)) {
-      return res.status(422).json({ error: "Invalid Gender" });
+      return res.status(422).send("Invalid Gender");
     }
 
     if (!country_list.includes(requestBody.country)) {
-      return res.status(422).json({ error: "Invalid Country" });
+      return res.status(422).send("Invalid Country");
     }
 
     let newUserData: UserInServer;
@@ -112,7 +108,7 @@ export default async function handler(
     } catch (error) {
       console.error("Error while signup. (We were creating user)", error);
       const err = error as AuthError;
-      return res.status(503).json({ error: err.message });
+      return res.status(503).send(err.message);
     }
 
     try {
@@ -146,7 +142,7 @@ export default async function handler(
       await batch.commit();
     } catch (error) {
       console.error("Error while signup. (We were creating docs)", error);
-      return res.status(503).json({ error: error });
+      return res.status(503).send(error);
     }
     return res.status(200).json(newUserData);
   });

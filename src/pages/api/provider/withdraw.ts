@@ -13,14 +13,13 @@ export default async function handler(
   const { withdrawAddress } = req.body;
 
   const operationFromUsername = await getDisplayName(authorization as string);
-  if (!operationFromUsername)
-    return res.status(401).json({ error: "unauthorized" });
+  if (!operationFromUsername) return res.status(401).send("Unauthorized");
 
-  if (req.method !== "POST") return res.status(405).json("Method not allowed");
+  if (req.method !== "POST") return res.status(405).send("Method not allowed");
 
   const isWithdrawAddressRight = ethers.isAddress(withdrawAddress);
   if (!isWithdrawAddressRight)
-    return res.status(422).json({ error: "Invalid Withdraw Address" });
+    return res.status(422).send("Invalid Prop or Props");
 
   // check if user has right to withdraw
   let currentProviderDocOfUser: FirebaseFirestore.DocumentSnapshot<FirebaseFirestore.DocumentData>;
@@ -33,14 +32,14 @@ export default async function handler(
       "Error while withdraw. We were getting current provide doc of user",
       error
     );
-    return res.status(503).json({ error: "Firebase Error" });
+    return res.status(503).send("Firebase Error");
   }
 
   if (!currentProviderDocOfUser.exists) {
     console.error(
       "Error while withdraw. User has even no current provider doc."
     );
-    return res.status(422).json({ error: "No-Provider" });
+    return res.status(422).send("No Provider");
   }
   const dealEndTimeInServer = currentProviderDocOfUser.data()
     ?.endTime as number;
@@ -58,14 +57,14 @@ export default async function handler(
       "Server Current Time: ",
       currentTime
     );
-    return res.status(422).json({ error: "No right to withdraw" });
+    return res.status(422).send("No Right to Withdraw");
   }
 
   const yieldValue = currentProviderDocOfUser.data()?.yield as string;
 
   if (!yieldValue) {
     console.error("Error on withdraw. (We were looking for yield.");
-    return res.status(503).json({ error: "Internal Server Error" });
+    return res.status(503).send("Internal Server Error");
   }
 
   let withdrawTx;
@@ -77,7 +76,7 @@ export default async function handler(
       "Error on withdraw. We were sending request to blockchain",
       error
     );
-    return res.status(503).json({ error: "Internal Server Error" });
+    return res.status(503).send("Internal Server Error");
   }
 
   let withdrawTxReceipt: TransactionReceipt;
@@ -88,12 +87,12 @@ export default async function handler(
       "Error on withdraw. We were waiting for confirmation.",
       error
     );
-    return res.status(503).json({ error: "Internal Server Error" });
+    return res.status(503).send("Internal Server Error");
   }
 
   if (!withdrawTxReceipt) {
     console.error("Error on withdraw. TxRecipt is null.", withdrawTxReceipt);
-    return res.status(503).json({ error: "Blockchain error" });
+    return res.status(503).send("Chain Error");
   }
 
   const currentProviderName = currentProviderDocOfUser.data()?.name as string;
@@ -108,7 +107,7 @@ export default async function handler(
       });
   } catch (error) {
     console.error("Error on withdraw. (we were adding old doc)", error);
-    return res.status(503).json({ error: "Firebase-Error" });
+    return res.status(503).send("Firebase Error");
   }
 
   try {
@@ -120,7 +119,7 @@ export default async function handler(
       "Error on withdraw. (We were deleting currentProviderDoc",
       error
     );
-    return res.status(503).json({ error: "Firebase-Error" });
+    return res.status(503).send("Firebase Error");
   }
 
   let response;
@@ -146,7 +145,7 @@ export default async function handler(
       "Error on withdraw. (We were fetching finishWithdraw API",
       error
     );
-    return res.status(503).json({ error: "Internal-Server-Error" });
+    return res.status(503).send("Internal Server Error");
   }
 
   if (!response.ok) {
@@ -154,8 +153,8 @@ export default async function handler(
       "Error on withdraw from finishWithdraw-API",
       await response.text()
     );
-    return res.status(503).json({ error: "Internal Server Error" });
+    return res.status(503).send("Internal Server Error");
   }
 
-  return res.status(200).json({});
+  return res.status(200).send("Success");
 }

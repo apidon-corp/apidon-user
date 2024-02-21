@@ -118,7 +118,7 @@ export default function NotificationModal() {
       }
 
       if (!response.ok) {
-        return console.error("Error from 'follow' API:", await response.json());
+        return console.error("Error from 'follow' API:", await response.text());
       }
     } else {
       setNotificationState((prev) => ({

@@ -49,7 +49,7 @@ export default function useFollow() {
     }
 
     if (!response.ok) {
-      console.error("Error from 'follow' API:", await response.json());
+      console.error("Error from 'follow' API:", await response.text());
       return false;
     }
 

@@ -121,7 +121,7 @@ export default function ChooseProviderModal() {
     }
 
     if (!response.ok) {
-      console.error("Error from 'chooseProvider' API:", await response.json());
+      console.error("Error from 'chooseProvider' API:", await response.text());
       return setChooseProviderLoading(false);
     }
 

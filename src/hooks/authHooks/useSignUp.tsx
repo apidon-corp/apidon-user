@@ -43,7 +43,7 @@ export default function useSignUp() {
     }
 
     if (!response.ok) {
-      const { error } = await response.json();
+      const error = await response.text();
       console.error("Error while signup from 'signup' API", error);
       return false;
     }

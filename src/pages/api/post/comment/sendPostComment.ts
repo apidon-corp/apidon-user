@@ -22,13 +22,12 @@ export default async function handler(
   const { comment, postDocPath } = req.body;
 
   const operationFromUsername = await getDisplayName(authorization as string);
-  if (!operationFromUsername)
-    return res.status(401).json({ error: "unauthorized" });
+  if (!operationFromUsername) return res.status(401).send("unauthorized");
 
-  if (req.method !== "POST") return res.status(405).json("Method not allowed");
+  if (req.method !== "POST") return res.status(405).send("Method not allowed");
 
   if (!comment || !operationFromUsername || !postDocPath) {
-    return res.status(422).json({ error: "Invalid prop or props" });
+    return res.status(422).send("Invalid prop or props");
   }
 
   await lock.acquire(`postCommentAPI-${operationFromUsername}`, async () => {
@@ -223,7 +222,7 @@ export default async function handler(
             "Error while sending comment. (We were sending notification)",
             error
           );
-          return res.status(503).json({ error: "Firebase error" });
+          return res.status(503).send("Firebase Error");
         }
 
     return res

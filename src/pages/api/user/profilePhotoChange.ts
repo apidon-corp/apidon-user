@@ -13,8 +13,7 @@ export default async function handler(
   const { image: imageDataURL } = req.body;
 
   const operationFromUsername = await getDisplayName(authorization as string);
-  if (!operationFromUsername)
-    return res.status(401).json({ error: "unauthorized" });
+  if (!operationFromUsername) return res.status(401).send("unauthorized");
 
   await lock.acquire(
     `profilePhotoChangeAPI-${operationFromUsername}`,
@@ -26,13 +25,12 @@ export default async function handler(
             .update({ profilePhoto: "" });
         } catch (error) {
           console.error("Error while deleting profilePhoto.");
-          return res.status(503).json({ error: "Firebase error" });
+          return res.status(503).send("Firebase Error");
         }
 
         return res.status(200).json({});
       } else if (req.method === "POST") {
-        if (!imageDataURL)
-          return res.status(422).json({ error: "Invalid prop or props" });
+        if (!imageDataURL) return res.status(422).send("Invalid Prop or Props");
 
         const file = bucket.file(`users/${operationFromUsername}/profilePhoto`);
         const buffer = Buffer.from(imageDataURL.split(",")[1], "base64");
@@ -51,7 +49,7 @@ export default async function handler(
             "Error while updating profile photo. (We are on 'file saving'.)",
             error
           );
-          return res.status(503).json({ error: "Firebase error" });
+          return res.status(503).send("Firebase Error");
         }
 
         try {
@@ -60,7 +58,7 @@ export default async function handler(
           console.error(
             "Error while updating profile photo.(We are on 'making file public')"
           );
-          return res.status(503).json({ error: "Firebase error" });
+          return res.status(503).send("Firebase Error");
         }
 
         let publicURL = "";
@@ -74,14 +72,14 @@ export default async function handler(
             "Error while updating post.(Process were on updating doc.)",
             error
           );
-          return res.status(503).json({ error: "Firebase error" });
+          return res.status(503).send("Firebase Error");
         }
 
         return res.status(200).json({
           newProfilePhotoURL: publicURL,
         });
       } else {
-        return res.status(405).json({ error: "Method not allowed" });
+        return res.status(405).send("Method not allowed");
       }
     }
   );

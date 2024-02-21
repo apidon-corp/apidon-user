@@ -50,7 +50,7 @@ export default function usePostDelete() {
     if (!response.ok) {
       console.error(
         "Error while deleting post from 'postDelete' API",
-        await response.json()
+        await response.text()
       );
       setPostDeletionLoading(false);
       return false;

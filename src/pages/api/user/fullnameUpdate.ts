@@ -13,17 +13,16 @@ export default async function handler(
   const { newRequestedUsername } = req.body;
 
   const operationFromUsername = await getDisplayName(authorization as string);
-  if (!operationFromUsername)
-    return res.status(401).json({ error: "unauthorized" });
+  if (!operationFromUsername) return res.status(401).send("unauthorized");
 
-  if (req.method !== "POST") return res.status(405).json("Method not allowed");
+  if (req.method !== "POST") return res.status(405).send("Method not allowed");
 
   const fullnameRegex = /^[\p{L}_ ]{3,20}$/u;
   if (!fullnameRegex.test(newRequestedUsername)) {
     console.error(
       "Error while updating fullname. (fullname regex couldn't pass)"
     );
-    return res.status(422).json({ error: "Invalid prop or props" });
+    return res.status(422).send("Invalid Prop or Props");
   }
 
   await lock.acquire(`fullnameUpdateAPI-${operationFromUsername}`, async () => {
@@ -36,9 +35,9 @@ export default async function handler(
         "Error while updating username. (We were updating userdoc)",
         error
       );
-      return res.status(503).json({ error: "firebase error" });
+      return res.status(503).send("Firebase Error");
     }
 
-    return res.status(200).json({});
+    return res.status(200).send("Success");
   });
 }

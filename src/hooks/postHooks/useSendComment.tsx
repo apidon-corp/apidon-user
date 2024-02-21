@@ -40,7 +40,7 @@ export default function useSendComment() {
     }
 
     if (!response.ok) {
-      console.error("Error from 'postComments' API:", await response.json());
+      console.error("Error from 'postComments' API:", await response.text());
 
       return "";
     }

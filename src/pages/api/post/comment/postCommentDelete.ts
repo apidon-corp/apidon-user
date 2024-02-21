@@ -14,13 +14,12 @@ export default async function handler(
   const { commentDocPathOnPost, postDocPath } = req.body;
 
   const operationFromUsername = await getDisplayName(authorization as string);
-  if (!operationFromUsername)
-    return res.status(401).json({ error: "unauthorized" });
+  if (!operationFromUsername) return res.status(401).send("Unauthorized");
 
-  if (req.method !== "POST") return res.status(405).json("Method not allowed");
+  if (req.method !== "POST") return res.status(405).send("Method not allowed");
 
   if (!commentDocPathOnPost || !postDocPath) {
-    return res.status(422).json({ error: "Invalid prop or props" });
+    return res.status(422).send("Invalid prop or props");
   }
 
   await lock.acquire(`postCommentDelete-${operationFromUsername}`, async () => {
@@ -36,12 +35,12 @@ export default async function handler(
         "Error while deleting comment from 'isOwner' function",
         error
       );
-      return res.status(503).json({ error: "Firebase error" });
+      return res.status(503).send("Firebase Error");
     }
 
     if (!isOwner) {
       console.error("Not owner of the comment");
-      return res.status(522).json({ error: "Not-Owner" });
+      return res.status(522).send("Not Owner");
     }
 
     try {
@@ -171,10 +170,10 @@ export default async function handler(
         "Error while sending comment. (We were sending notification)",
         error
       );
-      return res.status(503).json({ error: "Firebase error" });
+      return res.status(503).send("Firebase Error");
     }
 
-    return res.status(200).json({});
+    return res.status(200).send("Success");
   });
 }
 
