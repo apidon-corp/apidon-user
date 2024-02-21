@@ -87,7 +87,7 @@ const usePostCreate = () => {
     if (!response.ok) {
       console.error(
         "Error while postUpload from 'postUpload' API",
-        await response.json()
+        await response.text()
       );
       setPostUploadUpdating(false);
       return false;

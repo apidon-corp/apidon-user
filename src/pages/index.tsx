@@ -86,7 +86,7 @@ export default function Home() {
     if (!response.ok) {
       return console.error(
         `Error from 'getFeedAPI' for ${currentUserState.username} user.`,
-        await response.json()
+        await response.text()
       );
     }
 
@@ -121,7 +121,7 @@ export default function Home() {
     if (!response.ok) {
       return console.error(
         `Error from 'getFeedAPI' for ${currentUserState.username} user.`,
-        await response.json()
+        await response.text()
       );
     }
 

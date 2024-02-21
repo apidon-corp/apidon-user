@@ -67,7 +67,7 @@ export default function useNFT() {
       setCreatingNFTLoading(false);
       console.error(
         "Error while uploading nft. Error came from 'uploadNFT' API:",
-        await response.json()
+        await response.text()
       );
       return false;
     }
@@ -120,7 +120,7 @@ export default function useNFT() {
       setNftRefreshLoading(false);
       console.error(
         "Error while refreshingNFT from 'resfreshNFT' API",
-        await response.json()
+        await response.text()
       );
       return false;
     }
@@ -171,7 +171,7 @@ export default function useNFT() {
     if (!response.ok) {
       console.error(
         "Error while transferring from 'transferNFT' API",
-        await response.json()
+        await response.text()
       );
       return false;
     }

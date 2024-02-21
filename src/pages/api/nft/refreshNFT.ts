@@ -15,13 +15,12 @@ export default async function handler(
   const { postDocId } = req.body;
 
   const operationFromUsername = await getDisplayName(authorization as string);
-  if (!operationFromUsername)
-    return res.status(401).json({ error: "unauthorized" });
+  if (!operationFromUsername) return res.status(401).send("Unauthorized");
 
-  if (req.method !== "POST") return res.status(405).json("Method not allowed");
+  if (req.method !== "POST") return res.status(405).send("Method not allowed");
 
   if (!operationFromUsername || !postDocId) {
-    return res.status(422).json({ error: "Invalid prop or props" });
+    return res.status(422).send("Invalid Prop or Props");
   }
 
   await lock.acquire(`refreshNFTAPI-${operationFromUsername}`, async () => {
@@ -39,7 +38,7 @@ export default async function handler(
         "Error while refreshingNFT.(We were on downloading old metadata.)",
         error
       );
-      return res.status(503).json({ error: "Firebase error" });
+      return res.status(503).send("Firebase Error");
     }
 
     let pd: PostServerData;
@@ -55,28 +54,28 @@ export default async function handler(
         "Error while refreshingNFT.(We were on getting new comment and like count.))",
         error
       );
-      return res.status(503).json({ error: "Firebase error" });
+      return res.status(503).send("Firebase Error");
     }
 
     if (!pd) {
       console.error(
         "Error while refreshingNFT.(We were checking if postDocExist. It is not null)"
       );
-      return res.status(503).json({ error: "Firebase error" });
+      return res.status(503).send("Firebase Error");
     }
 
     if (pd.senderUsername !== operationFromUsername) {
       console.error(
         "Error while refreshing nft. (we were checking if user has access to doc)"
       );
-      return res.status(401).json({ error: "Unautorized" });
+      return res.status(401).send("Unauthorized");
     }
 
     if (!pd.nftStatus.minted) {
       console.error(
         "Error while refreshing nft.(We are checking if NFT minted)"
       );
-      return res.status(422).json({ error: "Invalid prop or props" });
+      return res.status(422).send("Invalid Prop or Props");
     }
 
     oldMetadata.attributes.find((a) => a.trait_type === "Likes")!.value =
@@ -107,7 +106,7 @@ export default async function handler(
         "Error while refreshingNFT.(We were on saving new metadata).",
         error
       );
-      return res.status(503).json({ error: "Firebase error" });
+      return res.status(503).send("Firebase Error");
     }
     try {
       await refreshedMetadataFile.makePublic();
@@ -116,8 +115,8 @@ export default async function handler(
         "Error while refreshingNFT.(We were making new metadata public.)",
         error
       );
-      return res.status(503).json({ error: "Firebase error" });
+      return res.status(503).send("Firebase Error");
     }
-    return res.status(200).json({});
+    return res.status(200).send("Success");
   });
 }

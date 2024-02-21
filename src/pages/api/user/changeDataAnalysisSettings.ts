@@ -13,11 +13,10 @@ export default async function handler(
   const { authorization } = req.headers;
   const dataAnalysisPreferences = req.body as DataAnalysisPreferencesInServer;
 
-  if (req.method !== "POST") return res.status(405).json("Method not allowed");
+  if (req.method !== "POST") return res.status(405).send("Method not allowed");
 
   const operationFromUsername = await getDisplayName(authorization as string);
-  if (!operationFromUsername)
-    return res.status(401).json({ error: "unauthorized" });
+  if (!operationFromUsername) return res.status(401).send("Unauthorized");
 
   let operationSuccessfull = true;
 
@@ -40,7 +39,7 @@ export default async function handler(
     }
   );
   if (!operationSuccessfull)
-    return res.status(500).json({ Error: "Internal Server Error" });
+    return res.status(500).send("Internal Server Error");
 
-  return res.status(200).json({});
+  return res.status(200).send("Success");
 }

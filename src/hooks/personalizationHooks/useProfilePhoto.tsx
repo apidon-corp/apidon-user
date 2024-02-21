@@ -79,7 +79,7 @@ export default function useProfilePhoto() {
     if (!response.ok) {
       console.error(
         "Error while profilePhotoUpload from 'profilePhotoChange' API",
-        await response.json()
+        await response.text()
       );
       setProfilePhotoUploadLoading(false);
       return false;
@@ -133,7 +133,7 @@ export default function useProfilePhoto() {
     if (!response.ok) {
       console.error(
         "Error while deleting post from 'profilePhotoChange' API",
-        await response.json()
+        await response.text()
       );
       setProfilePhotoDeleteLoading(false);
       return false;

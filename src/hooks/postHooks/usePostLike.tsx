@@ -38,7 +38,7 @@ const usePostLike = () => {
     if (!response.ok) {
       console.error(
         "Error while liking from 'likePost' API",
-        await response.json()
+        await response.text()
       );
       return false;
     }

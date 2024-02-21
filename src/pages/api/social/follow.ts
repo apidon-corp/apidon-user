@@ -14,17 +14,16 @@ export default async function handler(
   const { operationTo: operationToUsername, opCode } = req.body;
 
   const operationFromUsername = await getDisplayName(authorization as string);
-  if (!operationFromUsername)
-    return res.status(401).json({ error: "unauthorized" });
+  if (!operationFromUsername) return res.status(401).send("Unauthorized");
 
-  if (req.method !== "POST") return res.status(405).json("Method not allowed");
+  if (req.method !== "POST") return res.status(405).send("Method not allowed");
 
   if (
     !operationFromUsername ||
     !operationToUsername ||
     (opCode !== 1 && opCode !== -1)
   ) {
-    return res.status(422).json({ error: "Invalid prop or props" });
+    return res.status(422).send("Invalid Prop or Props");
   }
 
   await lock.acquire(`followApi-${operationFromUsername}`, async () => {
@@ -39,14 +38,14 @@ export default async function handler(
         console.error(
           "Error while follow operation. (Detected already followed.)"
         );
-        return res.status(422).json({ error: "Invalid prop or props" });
+        return res.status(422).send("Invalid Prop or Props");
       }
     } else if (opCode === -1) {
       if (!doesOperationFromFollowOperationTo) {
         console.error(
           "Error while follow operation. (Detected already not-followed.)"
         );
-        return res.status(422).json({ error: "Invalid prop or props" });
+        return res.status(422).send("Invalid Prop or Props");
       }
     }
     try {
@@ -58,7 +57,7 @@ export default async function handler(
       await Promise.all([handleOperationFrom(props), handleOperationTo(props)]);
     } catch (error) {
       console.error("Error while follow operation", error);
-      return res.status(503).json({ error: "Firebase error" });
+      return res.status(503).send("Firebase Error");
     }
 
     try {
@@ -89,10 +88,10 @@ export default async function handler(
         "Error while follow. (We were sending notification)",
         error
       );
-      return res.status(503).json({ error: "Firebase error" });
+      return res.status(503).send("Firebase Error");
     }
 
-    return res.status(200).json({});
+    return res.status(200).send("Success");
   });
 }
 

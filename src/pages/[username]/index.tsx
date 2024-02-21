@@ -68,7 +68,7 @@ export default function UserPage({ userInformation }: Props) {
     if (!response.ok) {
       return console.error(
         `Error from 'getAnonymousUserFeedAPI' for ${currentUserState.username} user.`,
-        await response.json()
+        await response.text()
       );
     }
 

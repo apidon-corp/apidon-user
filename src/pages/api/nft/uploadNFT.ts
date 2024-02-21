@@ -21,8 +21,7 @@ export default async function handler(
   const { postDocId, name, description } = req.body;
 
   const operationFromUsername = await getDisplayName(authorization as string);
-  if (!operationFromUsername)
-    return res.status(401).json({ error: "unauthorized" });
+  if (!operationFromUsername) return res.status(401).send("unauthorized");
 
   await lock.acquire(`uploadNFTAPI-${operationFromUsername}`, async () => {
     let postDocData;
@@ -39,14 +38,14 @@ export default async function handler(
         "Error while uploading NFT. (We were getting postDocData)",
         error
       );
-      return res.status(503).json({ error: "Firebase error" });
+      return res.status(503).send("Firebase Error");
     }
 
     // check if we already minted or not
 
     if (postDocData.nftStatus.minted) {
       console.error("Error while uploading NFT. (Detected already minted.)");
-      return res.status(422).json({ error: "Invalid prop or props" });
+      return res.status(422).send("Invalid Prop or Props");
     }
 
     const metadata: NFTMetadata = {
@@ -100,7 +99,7 @@ export default async function handler(
         "Error while refreshingNFT.(We were on saving new metadata).",
         error
       );
-      return res.status(503).json({ error: "Firebase error" });
+      return res.status(503).send("Firebase Error");
     }
     try {
       await newMetadataFile.makePublic();
@@ -109,7 +108,7 @@ export default async function handler(
         "Error while refreshingNFT.(We were making new metadata public.)",
         error
       );
-      return res.status(503).json({ error: "Firebase error" });
+      return res.status(503).send("Firebase Error");
     }
 
     const newMetadataFilePublicURL = newMetadataFile.publicUrl();
@@ -123,7 +122,7 @@ export default async function handler(
         "Error while uploading NFT. (We started to mint process.)",
         error
       );
-      return res.status(503).json({ error: "Blockchain error" });
+      return res.status(503).send("Chain Error");
     }
 
     try {
@@ -133,12 +132,12 @@ export default async function handler(
         "Error while uploading NFT.(We were verifying transaction.)",
         error
       );
-      return res.status(503).json({ error: "Blockchain error" });
+      return res.status(503).send("Chain Error");
     }
 
     if (!txReceipt) {
       console.error("Error while uploading NFT. (TX is null)", txReceipt);
-      return res.status(503).json({ error: "Blockchain error" });
+      return res.status(503).send("Chain Error");
     }
     const tokenId = parseInt(txReceipt.logs[1].topics[2], 16);
     const openSeaLinkCreated = `https://testnets.opensea.io/assets/mumbai/${apidonNFTMumbaiContractAddress}/${tokenId}`;
@@ -152,7 +151,7 @@ export default async function handler(
         "Error while uploading NFT. (We are updating NFT Count of user.",
         error
       );
-      return res.status(503).json({ error: "Firebase error" });
+      return res.status(503).send("Firebase Error");
     }
 
     const resultNFTStatus: PostServerData["nftStatus"] = {
@@ -178,7 +177,7 @@ export default async function handler(
         });
     } catch (error) {
       console.error("Error uploading NFT. (We were updating post doc.", error);
-      return res.status(503).json({ error: "Firebase error" });
+      return res.status(503).send("Firebase Error");
     }
 
     return res.status(200).json(resultNFTStatus);

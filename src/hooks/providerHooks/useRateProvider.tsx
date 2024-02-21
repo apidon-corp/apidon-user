@@ -28,7 +28,7 @@ export default function useRateProvider() {
     }
 
     if (!response.ok) {
-      console.error("Error from 'rateProvider' API:", await response.json());
+      console.error("Error from 'rateProvider' API:", await response.text());
       return false;
     }
 

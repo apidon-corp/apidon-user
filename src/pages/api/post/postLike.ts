@@ -20,17 +20,16 @@ export default async function handler(
   const { opCode, postDocPath } = req.body;
 
   const operationFromUsername = await getDisplayName(authorization as string);
-  if (!operationFromUsername)
-    return res.status(401).json({ error: "unauthorized" });
+  if (!operationFromUsername) return res.status(401).send("Unauthorized");
 
-  if (req.method !== "POST") return res.status(405).json("Method not allowed");
+  if (req.method !== "POST") return res.status(405).send("Method not allowed");
 
   if (
     (opCode !== 1 && opCode !== -1) ||
     !postDocPath ||
     !operationFromUsername
   ) {
-    return res.status(422).json({ error: "Invalid prop or props" });
+    return res.status(422).send("Invalid Prop or Props");
   }
 
   await lock.acquire(`postLikeApi-${operationFromUsername}}`, async () => {
@@ -45,14 +44,14 @@ export default async function handler(
     if (opCode === 1) {
       if (operationFromHaveLikeAlready) {
         console.error("Error while like operation. (Detected already liked.)");
-        return res.status(422).json({ error: "Invalid prop or props" });
+        return res.status(422).send("Invalid Prop or Props");
       }
     }
     // If de-like request came, we want to make sure if we liked.
     else {
       if (!operationFromHaveLikeAlready) {
         console.error("Error on like operation. (Detected already not-liked.)");
-        return res.status(422).json({ error: "Invalid prop or props" });
+        return res.status(422).send("Invalid Prop or Props");
       }
     }
 
@@ -63,7 +62,7 @@ export default async function handler(
       });
     } catch (error) {
       console.error("Error while like operation, we were on increment", error);
-      return res.status(503).json({ error: "Firebase error" });
+      return res.status(503).send("Firebase Error");
     }
 
     // Getting Like Timestamp
@@ -130,7 +129,7 @@ export default async function handler(
         "Error while updating personal/postActivities of user.",
         error
       );
-      return res.status(503).json({ error: "Firebase error" });
+      return res.status(503).send("Firebase Error");
     }
 
     // At this part, we are adding like data to post. Info is who liked and when.
@@ -151,7 +150,7 @@ export default async function handler(
         "Error while like operation, we were creating or deleting new like doc.",
         error
       );
-      return res.status(503).json({ error: "Firebase error" });
+      return res.status(503).send("Firebase Error");
     }
 
     // Classification Part (If we liked)
@@ -250,9 +249,9 @@ export default async function handler(
             "Error while like. (We were sending or deleting notification)",
             error
           );
-          return res.status(503).json({ error: "Firebase error" });
+          return res.status(503).send("Firebase Error");
         }
 
-    return res.status(200).json({});
+    return res.status(200).send("Success");
   });
 }

@@ -14,13 +14,11 @@ export default async function handler(
   const { username } = req.body;
 
   const operationFromUsername = await getDisplayName(authorization as string);
-  if (!operationFromUsername)
-    return res.status(401).json({ error: "unauthorized" });
+  if (!operationFromUsername) return res.status(401).send("unauthorized");
 
-  if (!username)
-    return res.status(422).json({ error: "Invalid prop or props" });
+  if (!username) return res.status(422).send("Invalid Prop or Props");
 
-  if (req.method !== "POST") return res.status(405).json("Method not allowed");
+  if (req.method !== "POST") return res.status(405).send("Method not allowed");
 
   await lock.acquire(
     `getPersonalizedUserFeed-${operationFromUsername}`,
@@ -35,7 +33,7 @@ export default async function handler(
           `Error while creating user (single) ${username} feed for ${operationFromUsername} user.`,
           error
         );
-        return res.status(503).json({ error: "firebase error" });
+        return res.status(503).send("Firebase Error");
       }
 
       let handleCreatePostItemDataPromisesArray: Promise<PostItemData>[] = [];

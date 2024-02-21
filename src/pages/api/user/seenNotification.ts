@@ -10,10 +10,9 @@ export default async function handler(
   const { unSeenNotificationsDocsIds } = req.body;
 
   const operationFromUsername = await getDisplayName(authorization as string);
-  if (!operationFromUsername)
-    return res.status(401).json({ error: "unauthorized" });
+  if (!operationFromUsername) return res.status(401).send("unauthorized");
 
-  if (req.method !== "POST") return res.status(405).json("Method not allowed");
+  if (req.method !== "POST") return res.status(405).send("Method not allowed");
 
   let updateNotificationDocsPromises = [];
   for (const unSeenNotificationDocId of unSeenNotificationsDocsIds) {
@@ -29,10 +28,10 @@ export default async function handler(
       "Error while seenNotification. (We were updating notification doc)",
       error
     );
-    return res.status(502).json({ error: "Firebase Error" });
+    return res.status(502).send("Firebase Error");
   }
 
-  return res.status(200).json({});
+  return res.status(200).send("Success");
 }
 
 async function updateNotificationDoc(

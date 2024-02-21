@@ -52,7 +52,7 @@ export default function useCommentDelete() {
     if (!response.ok) {
       console.error(
         "Error while deleting comment from postCommentDelete API",
-        await response.json()
+        await response.text()
       );
       return false;
     }

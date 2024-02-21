@@ -19,12 +19,11 @@ export default async function handler(
   const { postDocId, transferAddress } = req.body;
 
   if (!transferAddress || !postDocId) {
-    return res.status(422).json({ error: "Invalid prop or props" });
+    return res.status(422).send("Invalid Props");
   }
 
   const operationFromUsername = await getDisplayName(authorization as string);
-  if (!operationFromUsername)
-    return res.status(401).json({ error: "unauthorized" });
+  if (!operationFromUsername) return res.status(401).send("Unauthorized");
 
   await lock.acquire(`transferNFTAPI-${operationFromUsername}`, async () => {
     let pd: PostServerData;
@@ -39,28 +38,28 @@ export default async function handler(
         "Error while transferring NFT..(We were on getting post doc.)",
         error
       );
-      return res.status(503).json({ error: "Firebase error" });
+      return res.status(503).send("Firebase Error");
     }
 
     if (pd.senderUsername !== operationFromUsername) {
       console.error(
         "Error while transferring nft. (we were checking if user has access to doc)"
       );
-      return res.status(401).json({ error: "Unautorized" });
+      return res.status(401).send("Unauthorized");
     }
 
     if (!pd.nftStatus.minted) {
       console.error(
         "Error while transferring nft.(We are checking if NFT minted)"
       );
-      return res.status(422).json({ error: "Invalid prop or props" });
+      return res.status(422).send("Invalid prop or props");
     }
 
     if (pd.nftStatus.transferred) {
       console.error(
         "Error while transferring nft.(We are checking if NFT transferred)"
       );
-      return res.status(422).json({ error: "Invalid prop or props" });
+      return res.status(422).send("Invalid Prop or Props");
     }
 
     const transferAddressValidationStatus = ethers.isAddress(transferAddress);
@@ -68,7 +67,7 @@ export default async function handler(
       console.error(
         "Error while transferring nft.(We were checking if address is valid or not)"
       );
-      return res.status(422).json({ error: "Invalid prop or props" });
+      return res.status(422).send("Invalid Prop or Props");
     }
 
     try {
@@ -85,7 +84,7 @@ export default async function handler(
         "Error while transferring nft. (We were approving NFT)",
         error
       );
-      return res.status(503).json({ error: "BlockChain error" });
+      return res.status(503).send("Chain Error");
     }
 
     try {
@@ -104,7 +103,7 @@ export default async function handler(
         "Error while transferring nft. (We were transferring NFT)",
         error
       );
-      return res.status(503).json({ error: "BlockChain error" });
+      return res.status(503).send("Chain Error");
     }
 
     try {
@@ -122,8 +121,8 @@ export default async function handler(
         "Error while transferring nft. (We were updating post doc.)",
         error
       );
-      return res.status(503).json({ error: "Firebase error" });
+      return res.status(503).send("Firebase Error");
     }
-    return res.status(200).json({});
+    return res.status(200).send("Success");
   });
 }
