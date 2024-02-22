@@ -33,3 +33,30 @@ export type DealAPIBody = {
   provider: string;
   interactedPostsObjectsArray: InteractedPostObject[];
 };
+
+// Read APIs Part
+
+interface JSONData {
+  [key: string]: JSONData | string | number | boolean | null;
+}
+
+export type GetDocBody = {
+  docPath: string;
+};
+
+export type GetDocResponse = {
+  data: any;
+  ref: {
+    id: string;
+    path: string;
+  };
+  isExists: boolean;
+};
+
+export type GetCollectionBody = {
+  collectionPath: string;
+};
+
+export type GetCollectionResponse = {
+  docsArray: GetDocResponse[];
+};

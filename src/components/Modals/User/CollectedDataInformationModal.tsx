@@ -7,7 +7,8 @@ import {
   LikeDataForUsersPersonal,
   LikedItemData,
 } from "@/components/types/User";
-import { auth, firestore } from "@/firebase/clientApp";
+import { auth } from "@/firebase/clientApp";
+import useGetFirebase from "@/hooks/readHooks/useGetFirebase";
 import {
   Button,
   Flex,
@@ -22,7 +23,6 @@ import {
   Text,
 } from "@chakra-ui/react";
 
-import { collection, doc, getDoc, getDocs } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { AiOutlineClose } from "react-icons/ai";
 import { useRecoilState } from "recoil";
@@ -42,33 +42,27 @@ export default function CollectedDataInformationModal() {
 
   const [loading, setLoading] = useState(true);
 
+  const { getDocServer, getCollectionServer } = useGetFirebase();
+
   const getLikeData = async () => {
     // Getting Like Informations....
-    const likeQuerySnapshot = await getDocs(
-      collection(
-        firestore,
-        `/users/${auth.currentUser?.displayName}/personal/postInteractions/likedPosts`
-      )
+
+    const likeCollection = await getCollectionServer(
+      `/users/${auth.currentUser?.displayName}/personal/postInteractions/likedPosts`
     );
+    if (!likeCollection) return;
 
     let collectedLikeInformationsArrayLocal: LikedItemData[] = [];
-    for (const likeInformationDoc of likeQuerySnapshot.docs) {
-      const postDoc = await getDoc(
-        doc(firestore, likeInformationDoc.data().postPath)
-      );
-      if (postDoc.exists() === false) {
-        console.warn(
-          `${likeInformationDoc.data().postPath}, (post) doesn't exist anymore.`
-        );
-        continue;
-      }
+    for (const likeInformationDoc of likeCollection.docsArray) {
+      const postDoc = await getDocServer(likeInformationDoc.data.postPath);
+      if (!postDoc) continue;
 
-      const senderUsername = (postDoc.data() as PostServerData).senderUsername;
+      const senderUsername = (postDoc.data as PostServerData).senderUsername;
 
-      const postId = postDoc.id;
+      const postId = postDoc.ref.id;
       const postURL = `https://apidon.com/${senderUsername}/${postId}`;
 
-      const timestamp = (likeInformationDoc.data() as LikeDataForUsersPersonal)
+      const timestamp = (likeInformationDoc.data as LikeDataForUsersPersonal)
         .ts;
 
       const collectedLikeDataObject: LikedItemData = {
@@ -89,54 +83,43 @@ export default function CollectedDataInformationModal() {
 
   const getCommentData = async () => {
     // Getting Comment Informations...
-    const commentedPostsQuerySnapshot = await getDocs(
-      collection(
-        firestore,
-        `users/${auth.currentUser?.displayName}/personal/postInteractions/commentedPosts`
-      )
+
+    const commentPostCollection = await getCollectionServer(
+      `users/${auth.currentUser?.displayName}/personal/postInteractions/commentedPosts`
     );
+
+    if (!commentPostCollection) return;
+
     let collectedCommentInformationArray: CommentedItemData[] = [];
-    for (const commentedPostDoc of commentedPostsQuerySnapshot.docs) {
-      const commentsQuerySnapshot = await getDocs(
-        collection(firestore, `${commentedPostDoc.ref.path}/comments`)
+    for (const commentedPostDoc of commentPostCollection.docsArray) {
+      const commentCollection = await getCollectionServer(
+        `${commentedPostDoc.ref.path}/comments`
       );
 
-      for (const commentDoc of commentsQuerySnapshot.docs) {
-        const postDoc = await getDoc(
-          doc(firestore, commentDoc.data().postDocPath)
-        );
+      if (!commentCollection) continue;
 
-        if (postDoc.exists() === false) {
-          console.warn("The post you commented before, does not exist anymore");
-          continue;
-        }
+      for (const commentDoc of commentCollection.docsArray) {
+        const postDoc = await getDocServer(commentDoc.data.postDocPath);
+        if (!postDoc) continue;
 
-        const postDocData = postDoc.data() as PostServerData;
+        const postDocData = postDoc.data as PostServerData;
 
         const postSenderUsername = postDocData.senderUsername;
 
-        const postId = postDoc.id;
+        const postId = postDoc.ref.id;
         const postURL = `https://apidon.com/${postSenderUsername}/${postId}`;
 
         // Getting comment text....
-        const commentDocAtPost = await getDoc(
-          doc(
-            firestore,
-            `${postDoc.ref.path}/comments/${auth.currentUser?.displayName}/comments/${commentDoc.id}`
-          )
+        const commentDocAtPost = await getDocServer(
+          `${postDoc.ref.path}/comments/${auth.currentUser?.displayName}/comments/${commentDoc.ref.id}`
         );
-        if (commentDocAtPost.exists() === false) {
-          console.warn(
-            "Comment Doc at Post doesn't exist. Even it does exist at user personalities...."
-          );
-          continue;
-        }
+        if (!commentDocAtPost) continue;
 
-        const commentDataAtPost = commentDocAtPost.data() as CommentData;
+        const commentDataAtPost = commentDocAtPost.data as CommentData;
         const comment = commentDataAtPost.comment;
 
         const commentedItemData: CommentedItemData = {
-          timestamp: commentDoc.data().creationTime,
+          timestamp: commentDoc.data.creationTime,
           comment: comment,
           commentDocPathOnPost: commentDocAtPost.ref.path,
           postSenderUsername: postSenderUsername,

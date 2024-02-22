@@ -17,8 +17,6 @@ import React, { useRef, useState } from "react";
 
 import { useSetRecoilState } from "recoil";
 
-import { firestore } from "@/firebase/clientApp";
-import { doc, getDoc } from "firebase/firestore";
 import { AiOutlineCheckCircle } from "react-icons/ai";
 import { BiError, BiErrorCircle } from "react-icons/bi";
 
@@ -31,6 +29,7 @@ import {
 } from "@/components/types/User";
 import useSignUp from "@/hooks/authHooks/useSignUp";
 import ReCAPTCHA from "react-google-recaptcha";
+import useGetFirebase from "@/hooks/readHooks/useGetFirebase";
 
 export default function SignUp() {
   const age_input = useRef<HTMLInputElement>(null);
@@ -74,15 +73,14 @@ export default function SignUp() {
 
   const { initiateSignUp } = useSignUp();
 
+  const { getDocServer } = useGetFirebase();
+
   const isUserNameTaken = async (susUsername: string) => {
     if (!susUsername) return false;
+    const docResult = await getDocServer(`/usernames/${susUsername}`);
+    if (!docResult) return;
 
-    const susDocRef = doc(firestore, "usernames", susUsername);
-    const susDocSnap = await getDoc(susDocRef);
-
-    const existingStatus = susDocSnap.exists();
-
-    return existingStatus;
+    return docResult.isExists;
   };
 
   const handleCaptcha = async () => {
@@ -223,7 +221,9 @@ export default function SignUp() {
           setUserNameRight(true);
 
           setUserNameTakenStateLoading(true);
-          const isTaken = await isUserNameTaken(event.target.value);
+          const isTaken = (await isUserNameTaken(
+            event.target.value
+          )) as boolean;
 
           setUserNameTakenState(isTaken);
           setUserNameTakenStateLoading(false);
