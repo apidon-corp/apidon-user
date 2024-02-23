@@ -3,21 +3,16 @@ import { currentUserStateAtom } from "@/components/atoms/currentUserAtom";
 import { CurrentUser, UserInServer } from "@/components/types/User";
 
 import { providerModalStateAtom } from "@/components/atoms/providerModalAtom";
-import { auth, firestore } from "@/firebase/clientApp";
+import { auth } from "@/firebase/clientApp";
 import {
   User,
   UserCredential,
   signInWithEmailAndPassword,
 } from "firebase/auth";
-import {
-  DocumentData,
-  DocumentSnapshot,
-  doc,
-  getDoc,
-} from "firebase/firestore";
 
 import { useSetRecoilState } from "recoil";
 import useCheckProviderStatus from "../providerHooks/useCheckProviderStatus";
+import useGetFirebase from "../readHooks/useGetFirebase";
 
 const useLogin = () => {
   const setCurrentUserState = useSetRecoilState(currentUserStateAtom);
@@ -26,6 +21,8 @@ const useLogin = () => {
   const setProviderModalState = useSetRecoilState(providerModalStateAtom);
 
   const { checkProviderStatusOnLogin } = useCheckProviderStatus();
+
+  const { getDocServer } = useGetFirebase();
 
   /**
    * @param emailOrUsername
@@ -44,12 +41,14 @@ const useLogin = () => {
       email = emailOrUsername;
     } else {
       const username = emailOrUsername;
-      const userDocSnapshot = await getDoc(doc(firestore, `users/${username}`));
 
-      if (!userDocSnapshot.exists()) {
+      const userDocResult = await getDocServer(`users/${username}`);
+      if (!userDocResult) return;
+
+      if (!userDocResult.isExists) {
         email = "";
       } else {
-        email = userDocSnapshot.data().email;
+        email = userDocResult.data.email;
       }
     }
 
@@ -74,27 +73,20 @@ const useLogin = () => {
    */
   const logSignedUserIn = async (user: User) => {
     if (!user) return false;
-    let signedInUserDocSnapshot: DocumentSnapshot<DocumentData>;
-    try {
-      signedInUserDocSnapshot = await getDoc(
-        doc(firestore, `users/${user.displayName}`)
-      );
-    } catch (error) {
-      console.error(
-        "Error while log user in. (We were getting doc with userCred.",
-        error
-      );
-      return false;
-    }
 
-    if (!signedInUserDocSnapshot.exists()) {
+    const signedInUserDocResult = await getDocServer(
+      `users/${user.displayName}`
+    );
+    if (!signedInUserDocResult) return false;
+
+    if (!signedInUserDocResult.isExists) {
       console.error("Error while login. (User snapshot doesn't exixt)");
       return false;
     }
 
     let currentUserDataOnServer: UserInServer;
 
-    currentUserDataOnServer = signedInUserDocSnapshot.data() as UserInServer;
+    currentUserDataOnServer = signedInUserDocResult.data as UserInServer;
 
     const currentUserDataTemp: CurrentUser = {
       isThereCurrentUser: true,

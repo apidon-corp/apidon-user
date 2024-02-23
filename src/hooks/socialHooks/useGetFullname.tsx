@@ -1,7 +1,8 @@
-import { firestore } from "@/firebase/clientApp";
-import { doc, getDoc } from "firebase/firestore";
+import useGetFirebase from "../readHooks/useGetFirebase";
 
 export default function useGetFullname() {
+  const { getDocServer } = useGetFirebase();
+
   /**
    * Give username and if exists, returns username.
    * Future, it will save (username => fullname (dataURL)) at atom
@@ -9,15 +10,16 @@ export default function useGetFullname() {
    */
   const getFullname = async (username: string): Promise<string> => {
     // userDocRef
-    const userDocRef = doc(firestore, `users/${username}`);
-    const userDocSnapshot = await getDoc(userDocRef);
-    if (userDocSnapshot.exists()) return userDocSnapshot.data().fullname;
+
+    const userDocResult = await getDocServer(`users/${username}`);
+
+    if (userDocResult && !userDocResult.isExists)
+      return userDocResult.data.fullname;
     else {
       console.log("No user with this username to get full name");
       return "";
     }
   };
-
   return {
     getFullname,
   };

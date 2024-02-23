@@ -1,13 +1,16 @@
 import { currentUserStateAtom } from "@/components/atoms/currentUserAtom";
 import { postsStatusAtom } from "@/components/atoms/postsStatusAtom";
 import UserPageLayout from "@/components/Layout/UserPageLayout";
+import { GetDocResponse } from "@/components/types/API";
 
 import { PostItemData } from "@/components/types/Post";
 import { IPagePreviewData, UserInServer } from "@/components/types/User";
+import { firestore } from "@/firebase/adminApp";
 
-import { auth, firestore } from "@/firebase/clientApp";
+import { auth } from "@/firebase/clientApp";
+import useGetFirebase from "@/hooks/readHooks/useGetFirebase";
 import { Flex, Text } from "@chakra-ui/react";
-import { doc, getDoc } from "firebase/firestore";
+
 import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
 
@@ -151,13 +154,11 @@ export default function UserPage({ userInformation }: Props) {
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const username = context.query.username;
-
   let userInformation: UserInServer | null = null;
 
-  let userDoc;
+  let userInformationDocResult;
   try {
-    const userInformationDocRef = doc(firestore, `users/${username as string}`);
-    userDoc = await getDoc(userInformationDocRef);
+    userInformationDocResult = await firestore.doc(`users/${username}`).get();
   } catch (error) {
     console.error(
       "Error while creating userpage. (We were getting userdoc)",
@@ -170,7 +171,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     };
   }
 
-  if (!userDoc.exists()) {
+  if (!userInformationDocResult.exists) {
     console.warn("User doesn't exist");
     return {
       props: {
@@ -180,17 +181,17 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   }
 
   const tempUserInformation: UserInServer = {
-    username: userDoc.data().username,
-    fullname: userDoc.data().fullname,
-    profilePhoto: userDoc.data().profilePhoto,
+    username: userInformationDocResult.data()?.username,
+    fullname: userInformationDocResult.data()?.fullname,
+    profilePhoto: userInformationDocResult.data()?.profilePhoto,
 
-    followingCount: userDoc.data().followingCount,
-    followerCount: userDoc.data().followerCount,
+    followingCount: userInformationDocResult.data()?.followingCount,
+    followerCount: userInformationDocResult.data()?.followerCount,
 
-    nftCount: userDoc.data().nftCount,
+    nftCount: userInformationDocResult.data()?.nftCount,
 
-    email: userDoc.data().email,
-    uid: userDoc.data().uid,
+    email: userInformationDocResult.data()?.email,
+    uid: userInformationDocResult.data()?.uid,
   };
 
   userInformation = tempUserInformation;

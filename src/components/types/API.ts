@@ -35,17 +35,14 @@ export type DealAPIBody = {
 };
 
 // Read APIs Part
-
-interface JSONData {
-  [key: string]: JSONData | string | number | boolean | null;
-}
-
 export type GetDocBody = {
   docPath: string;
 };
 
 export type GetDocResponse = {
-  data: any;
+  data: {
+    [key: string]: any;
+  };
   ref: {
     id: string;
     path: string;
@@ -55,8 +52,15 @@ export type GetDocResponse = {
 
 export type GetCollectionBody = {
   collectionPath: string;
+  querySettings?: QuerySettings;
 };
 
 export type GetCollectionResponse = {
   docsArray: GetDocResponse[];
+};
+
+export type QuerySettings = {
+  startAt: string;
+  endAt: string;
+  orderBy: string;
 };

@@ -3,6 +3,7 @@ import {
   GetCollectionResponse,
   GetDocBody,
   GetDocResponse,
+  QuerySettings,
 } from "@/components/types/API";
 import { auth } from "@/firebase/clientApp";
 
@@ -47,7 +48,10 @@ export default function useGetFirebase() {
     return getDocResponse;
   };
 
-  const getCollectionServer = async (collectionPath: string) => {
+  const getCollectionServer = async (
+    collectionPath: string,
+    querySettings?: QuerySettings
+  ) => {
     let idToken = "";
     try {
       idToken = (await auth.currentUser?.getIdToken()) as string;
@@ -58,10 +62,21 @@ export default function useGetFirebase() {
       );
       return false;
     }
-
-    const getColletionBody: GetCollectionBody = {
-      collectionPath: collectionPath,
-    };
+    let getColletionBody: GetCollectionBody;
+    if (querySettings) {
+      getColletionBody = {
+        collectionPath: collectionPath,
+        querySettings: {
+          endAt: querySettings?.endAt,
+          orderBy: querySettings?.orderBy,
+          startAt: querySettings?.startAt,
+        },
+      };
+    } else {
+      getColletionBody = {
+        collectionPath: collectionPath,
+      };
+    }
 
     let getCollectionResponse: GetCollectionResponse;
     try {

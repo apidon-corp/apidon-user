@@ -1,4 +1,3 @@
-import { firestore } from "@/firebase/clientApp";
 import {
   Flex,
   Icon,
@@ -9,14 +8,6 @@ import {
   Spinner,
   Stack,
 } from "@chakra-ui/react";
-import {
-  collection,
-  endAt,
-  getDocs,
-  orderBy,
-  query,
-  startAt,
-} from "firebase/firestore";
 import React, { useRef, useState } from "react";
 import { AiOutlineSearch } from "react-icons/ai";
 
@@ -24,6 +15,7 @@ import { UserInSearchbar } from "../../types/User";
 
 import { MdCancel } from "react-icons/md";
 import SearchItem from "./SearchItem";
+import useGetFirebase from "@/hooks/readHooks/useGetFirebase";
 
 type Props = {};
 
@@ -44,6 +36,7 @@ export default function SearchBar({}: Props) {
    */
   const [searchFocus, setSearchFocus] = useState(false);
 
+  const { getCollectionServer } = useGetFirebase();
   const onChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const inputValue = event.target.value;
     const searchInput = inputValue.toLowerCase();
@@ -55,21 +48,21 @@ export default function SearchBar({}: Props) {
     setSearchResult([]);
 
     // Search thorugh documents for match....
-    const searchQuery = query(
-      collection(firestore, "users"),
-      orderBy("username"),
-      startAt(searchInput),
-      endAt(searchInput + "\uf8ff")
-    );
 
-    const querySnaphot = await getDocs(searchQuery);
+    const searchCollectionResult = await getCollectionServer("users", {
+      endAt: searchInput + "\uf8ff",
+      startAt: searchInput,
+      orderBy: "username",
+    });
+
+    if (!searchCollectionResult) return;
 
     const resultArray: UserInSearchbar[] = [];
-    querySnaphot.forEach((doc) => {
+    searchCollectionResult.docsArray.forEach((doc) => {
       const resultObject = {
-        username: doc.data().username,
-        fullname: doc.data().fullname,
-        profilePhoto: doc.data().profilePhoto,
+        username: doc.data.username,
+        fullname: doc.data.fullname,
+        profilePhoto: doc.data.profilePhoto,
       };
       resultArray.push(resultObject);
     });

@@ -1,5 +1,9 @@
 import getDisplayName from "@/apiUtils";
-import { GetCollectionResponse, GetDocResponse } from "@/components/types/API";
+import {
+  GetCollectionResponse,
+  GetDocResponse,
+  QuerySettings,
+} from "@/components/types/API";
 import { firestore } from "@/firebase/adminApp";
 import { NextApiRequest, NextApiResponse } from "next";
 
@@ -9,6 +13,7 @@ export default async function handler(
 ) {
   const { authorization } = req.headers;
   const { collectionPath } = req.body;
+  const querySettings: QuerySettings | undefined = req.body.querySettings;
 
   const operationFromUsername = await getDisplayName(authorization as string);
   if (!operationFromUsername) return res.status(401).send("unauthorized");
@@ -22,7 +27,18 @@ export default async function handler(
    * If exists, return data
    */
   try {
-    const collectionSnapshot = await firestore.collection(collectionPath).get();
+    let collectionSnapshot;
+    if (!querySettings) {
+      collectionSnapshot = await firestore.collection(collectionPath).get();
+    } else {
+      collectionSnapshot = await firestore
+        .collection(collectionPath)
+        .orderBy(querySettings.orderBy)
+        .startAt(querySettings.startAt)
+        .endAt(querySettings.endAt)
+        .get();
+    }
+
     const docs = collectionSnapshot.docs;
 
     let docsArray: GetDocResponse[] = [];

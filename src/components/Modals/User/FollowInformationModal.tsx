@@ -1,5 +1,5 @@
 import { currentUserStateAtom } from "@/components/atoms/currentUserAtom";
-import { firestore } from "@/firebase/clientApp";
+
 import {
   Flex,
   Icon,
@@ -11,13 +11,13 @@ import {
   Stack,
   Text,
 } from "@chakra-ui/react";
-import { collection, getDocs, orderBy, query, where } from "firebase/firestore";
 
 import React, { SetStateAction, useEffect, useState } from "react";
 import { AiOutlineClose } from "react-icons/ai";
 import { useRecoilValue } from "recoil";
 import FollowItem from "../../user/FollowItem";
 import { FollowingsFollowersModalType } from "../../user/Header";
+import useGetFirebase from "@/hooks/readHooks/useGetFirebase";
 
 type Props = {
   followInformationModalStateValue: FollowingsFollowersModalType;
@@ -40,6 +40,8 @@ export default function FollowInformationModal({
 
   const [followDataLoading, setFollowDataLoading] = useState(true);
 
+  const { getCollectionServer } = useGetFirebase();
+
   useEffect(() => {
     if (followInformationModalStateValue.isOpen) handleFollowData();
   }, [followInformationModalStateValue]);
@@ -47,16 +49,14 @@ export default function FollowInformationModal({
   const handleFollowData = async () => {
     setFollowDataLoading(true);
 
-    const followDataCollection = collection(
-      firestore,
+    const followDataCollection = await getCollectionServer(
       `users/${userName}/${followInformationModalStateValue.modal}`
     );
-    const q = query(followDataCollection, orderBy("followTime", "desc"));
-    const followDataDocs = (await getDocs(q)).docs;
+    if (!followDataCollection) return;
 
     let tempFollowData: string[] = [];
-    for (const doc of followDataDocs) {
-      tempFollowData.push(doc.id);
+    for (const doc of followDataCollection.docsArray) {
+      tempFollowData.push(doc.ref.id);
     }
 
     let finalFollowData: string[] = tempFollowData;
