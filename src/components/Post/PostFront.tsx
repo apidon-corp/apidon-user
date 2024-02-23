@@ -28,6 +28,8 @@ import {
 } from "react-icons/ai";
 import { BsDot, BsImage } from "react-icons/bs";
 
+import { CiShare2 } from "react-icons/ci";
+
 import useFollow from "@/hooks/socialHooks/useFollow";
 import usePostDelete from "@/hooks/postHooks/usePostDelete";
 
@@ -107,8 +109,7 @@ export default function PostFront({
       return setShowFollowButtonOnPost(false);
     }
 
-    if (router.asPath.includes(postFrontData.senderUsername))
-      return setShowFollowButtonOnPost(false);
+    
 
     if (postFrontData.currentUserFollowThisSender)
       return setShowFollowButtonOnPost(false);
@@ -220,6 +221,9 @@ export default function PostFront({
   };
 
   const handleLike = async (opCode: -1 | 1) => {
+
+    console.log("handleLike initiated.")
+
     if (!currentUserState.username) {
       console.log("Only Users can like");
       setAuthModalState((prev) => ({
@@ -275,7 +279,7 @@ export default function PostFront({
   };
 
   return (
-    <Flex bg="black" direction="column" p={1}>
+    <Flex bg="black" direction="column" width="100%" height="100%" p={1}>
       <Flex
         id="postHeader"
         align="center"
@@ -477,7 +481,7 @@ export default function PostFront({
               } else {
                 return (
                   <span key={i} style={{ color: "white" }}>
-                    {w.word}{" "}
+                    {w.word}
                   </span>
                 );
               }
@@ -527,6 +531,18 @@ export default function PostFront({
             >
               <Icon as={AiOutlineComment} color="white" fontSize="25px" />
               <Text textColor="white">{postFrontData.commentCount}</Text>
+            </Flex>
+
+            <Flex
+              gap="1"
+              cursor="pointer"
+              onClick={() => {
+                navigator.clipboard.writeText(
+                  `http://localhost:3001/${postFrontData.senderUsername}/posts/${postFrontData.postDocId}`
+                );
+              }}
+            >
+              <Icon as={CiShare2} color="white" fontSize="25px" />
             </Flex>
           </Flex>
 

@@ -1,14 +1,12 @@
 import { currentUserStateAtom } from "@/components/atoms/currentUserAtom";
 import { postsStatusAtom } from "@/components/atoms/postsStatusAtom";
 import UserPageLayout from "@/components/Layout/UserPageLayout";
-import { GetDocResponse } from "@/components/types/API";
 
 import { PostItemData } from "@/components/types/Post";
 import { IPagePreviewData, UserInServer } from "@/components/types/User";
 import { firestore } from "@/firebase/adminApp";
 
 import { auth } from "@/firebase/clientApp";
-import useGetFirebase from "@/hooks/readHooks/useGetFirebase";
 import { Flex, Text } from "@chakra-ui/react";
 
 import { GetServerSidePropsContext } from "next";
