@@ -12,6 +12,7 @@ import SystemStatus from "../system-status/SystemStatus";
 import useLogin from "@/hooks/authHooks/useLogin";
 import DataAnalysisPreferencesModal from "../Modals/User/DataAnalysisPreferencesModal";
 import CollectedDataInformationModal from "../Modals/User/CollectedDataInformationModal";
+import useCookie from "@/hooks/cookieHooks/useCookie";
 
 type Props = {
   children: ReactNode;
@@ -24,6 +25,8 @@ export default function Layout({ children }: Props) {
 
   const { logSignedUserIn } = useLogin();
 
+  const { setCookie } = useCookie();
+
   useEffect(() => {
     setInnerHeight(`${window.innerHeight}px`);
   }, []);
@@ -32,8 +35,8 @@ export default function Layout({ children }: Props) {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
       setLoading(true);
       if (user) {
-        console.log("We have user!");
         await logSignedUserIn(user);
+        setCookie("firebase-auth.session-token", await user.getIdToken());
         console.log("User has been initialized.");
         setLoading(false);
       } else {

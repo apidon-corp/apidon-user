@@ -23,21 +23,19 @@ export default function Posts({ postsItemDatas }: Props) {
   }, [postsItemDatas]);
 
   return (
-    <>
-      <Stack gap={3} mt={2} width="100%">
-        {postsLoading ? (
-          Array.from({ length: 1 }, (_, index) => <PostSkeleton key={index} />)
-        ) : (
-          <>
-            {postsAtView.map((postItemData) => (
-              <PostItem
-                key={`${postItemData.senderUsername}${postItemData.postDocId}`}
-                postItemData={postItemData}
-              />
-            ))}
-          </>
-        )}
-      </Stack>
-    </>
+    <Stack gap={3} mt={2} width="100%">
+      {postsLoading ? (
+        Array.from({ length: 1 }, (_, index) => <PostSkeleton key={index} />)
+      ) : (
+        <>
+          {postsAtView.map((postItemData) => (
+            <PostItem
+              key={`${postItemData.senderUsername}${postItemData.postDocId}`}
+              postItemData={postItemData}
+            />
+          ))}
+        </>
+      )}
+    </Stack>
   );
 }

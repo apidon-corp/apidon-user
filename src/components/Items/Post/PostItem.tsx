@@ -4,6 +4,7 @@ import PostComments from "../../Modals/Post/PostComments";
 import PostLikes from "../../Modals/Post/PostLikes";
 import PostFront from "../../Post/PostFront";
 import { OpenPanelName, PostItemData } from "../../types/Post";
+import { Flex } from "@chakra-ui/react";
 
 type Props = {
   postItemData: PostItemData;
@@ -16,7 +17,7 @@ export default function PostItem({ postItemData }: Props) {
   const [commentCount, setCommentCount] = useState(postItemData.commentCount);
 
   return (
-    <>
+    <Flex width="100%" height="100%" >
       <PostFront
         postFrontData={{
           ...postItemData,
@@ -50,6 +51,6 @@ export default function PostItem({ postItemData }: Props) {
           commentCount: commentCount,
         }}
       />
-    </>
+    </Flex>
   );
 }
