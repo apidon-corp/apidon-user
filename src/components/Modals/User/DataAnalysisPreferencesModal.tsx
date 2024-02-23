@@ -3,9 +3,9 @@ import {
   DataAnalysisPreferencesInServer,
   DataAnalysisPreferencesState,
 } from "@/components/types/User";
-import { auth, firestore } from "@/firebase/clientApp";
+import { auth } from "@/firebase/clientApp";
 import useChangeDataAnalysisPreferences from "@/hooks/personalizationHooks/useChangeDataAnalysisPreferences";
-
+import useGetFirebase from "@/hooks/readHooks/useGetFirebase";
 import {
   Button,
   Flex,
@@ -19,7 +19,6 @@ import {
   Switch,
   Text,
 } from "@chakra-ui/react";
-import { doc, getDoc } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import { AiOutlineClose } from "react-icons/ai";
 import { useRecoilState } from "recoil";
@@ -55,6 +54,8 @@ export default function DataAnalysisPreferencesModal() {
     }));
   };
 
+  const { getDocServer } = useGetFirebase();
+
   const handleSaveButton = async () => {
     setSaveLoading(true);
     const opResult = await changeDataAnalysisPreferences(
@@ -71,23 +72,19 @@ export default function DataAnalysisPreferencesModal() {
   const handleGetPreferencesFromServer = async () => {
     setGetLoading(true);
     try {
-      const docSnapshot = await getDoc(
-        doc(
-          firestore,
-          `/users/${auth.currentUser?.displayName}/personal/settings/dataAnalysisSettings/postAnalysisSettings`
-        )
+      if (!auth.currentUser) return;
+      const docResult = await getDocServer(
+        `/users/${auth.currentUser.displayName}/personal/settings/dataAnalysisSettings/postAnalysisSettings`
       );
-      if (!docSnapshot.exists) {
+
+      if (!docResult) return;
+
+      if (!docResult.isExists) {
         console.log("There is no Analysis Settings Doc in Firestore.");
         return setGetLoading(false);
       }
 
-      if (!docSnapshot.data()) {
-        console.log("There is no Analysis Settings Data in Firestore.");
-        return setGetLoading(false);
-      }
-
-      const prefData = docSnapshot.data() as DataAnalysisPreferencesInServer;
+      const prefData = docResult.data as DataAnalysisPreferencesInServer;
 
       setDataAnalysisPreferencesState(prefData);
       setOriginallDataAnalysisPreferencesState(prefData);

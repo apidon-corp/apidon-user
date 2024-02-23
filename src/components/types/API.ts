@@ -33,3 +33,34 @@ export type DealAPIBody = {
   provider: string;
   interactedPostsObjectsArray: InteractedPostObject[];
 };
+
+// Read APIs Part
+export type GetDocBody = {
+  docPath: string;
+};
+
+export type GetDocResponse = {
+  data: {
+    [key: string]: any;
+  };
+  ref: {
+    id: string;
+    path: string;
+  };
+  isExists: boolean;
+};
+
+export type GetCollectionBody = {
+  collectionPath: string;
+  querySettings?: QuerySettings;
+};
+
+export type GetCollectionResponse = {
+  docsArray: GetDocResponse[];
+};
+
+export type QuerySettings = {
+  startAt: string;
+  endAt: string;
+  orderBy: string;
+};

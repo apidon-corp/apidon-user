@@ -1,5 +1,4 @@
 import { ICurrentProviderData } from "@/components/types/User";
-import { firestore } from "@/firebase/clientApp";
 import {
   AspectRatio,
   CircularProgress,
@@ -14,15 +13,8 @@ import {
   Spinner,
   Text,
 } from "@chakra-ui/react";
-import {
-  DocumentData,
-  DocumentSnapshot,
-  doc,
-  getDoc,
-} from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
-
 import ProviderUserStarRateItem from "@/components/Items/Provider/ProviderUserStarRateItem";
 import { currentUserStateAtom } from "@/components/atoms/currentUserAtom";
 import { format } from "date-fns";
@@ -31,6 +23,7 @@ import { BsCalendar4, BsCalendarCheckFill } from "react-icons/bs";
 import { providerModalStateAtom } from "../../../atoms/providerModalAtom";
 import ProviderScoreStarItem from "@/components/Items/Provider/ProviderScoreStarItem";
 import WithdrawArea from "./WithdrawArea";
+import useGetFirebase from "@/hooks/readHooks/useGetFirebase";
 
 export default function CurrentProviderModal() {
   const [providerModalState, setProvideModalState] = useRecoilState(
@@ -58,6 +51,8 @@ export default function CurrentProviderModal() {
       image: "",
       expired: false,
     });
+
+  const { getDocServer, getCollectionServer } = useGetFirebase();
 
   useEffect(() => {
     const openStatus =
@@ -125,35 +120,18 @@ export default function CurrentProviderModal() {
   };
 
   const getSpecializedInformtaionAboutCurrentProvider = async () => {
-    let currentProviderDocSnapshot: DocumentSnapshot<DocumentData>;
-    try {
-      currentProviderDocSnapshot = await getDoc(
-        doc(
-          firestore,
-          `users/${currentUserState.username}/provider/currentProvider`
-        )
-      );
-    } catch (error) {
-      console.error(
-        "Error while geting current provider data. (We were getting specialized infos.",
-        error
-      );
-      return false;
-    }
-
-    if (!currentProviderDocSnapshot.exists) {
-      console.error(
-        "Error while getting current provider data. (Doc doesn't exist)"
-      );
-      return false;
-    }
+    const currentProviderDocResult = await getDocServer(
+      `users/${currentUserState.username}/provider/currentProvider`
+    );
+    if (!currentProviderDocResult) return;
+    if (!currentProviderDocResult.isExists) return;
 
     const specializedInformation = {
-      name: currentProviderDocSnapshot.data()?.name,
-      startTime: currentProviderDocSnapshot.data()?.startTime,
-      endTime: currentProviderDocSnapshot.data()?.endTime,
-      yield: currentProviderDocSnapshot.data()?.yield,
-      currentUserScore: currentProviderDocSnapshot.data()?.userScore,
+      name: currentProviderDocResult.data.name,
+      startTime: currentProviderDocResult.data.startTime,
+      endTime: currentProviderDocResult.data.endTime,
+      yield: currentProviderDocResult.data.yield,
+      currentUserScore: currentProviderDocResult.data.userScore,
     };
 
     return specializedInformation;

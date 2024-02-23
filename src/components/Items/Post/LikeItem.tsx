@@ -1,5 +1,5 @@
 import { postsAtViewAtom } from "@/components/atoms/postsAtViewAtom";
-import { firestore } from "@/firebase/clientApp";
+
 import useFollow from "@/hooks/socialHooks/useFollow";
 import {
   Button,
@@ -18,6 +18,7 @@ import { useRecoilState, useSetRecoilState } from "recoil";
 import { authModalStateAtom } from "../../atoms/authModalAtom";
 import { currentUserStateAtom } from "../../atoms/currentUserAtom";
 import { OpenPanelName } from "../../types/Post";
+import useGetFirebase from "@/hooks/readHooks/useGetFirebase";
 
 type Props = {
   likerUsername: string;
@@ -47,6 +48,8 @@ export default function LikeItem({
   const [followOperationLoading, setFollowOperationLoading] = useState(false);
 
   const [postsAtView, setPostsAtView] = useRecoilState(postsAtViewAtom);
+
+  const { getDocServer } = useGetFirebase();
 
   useEffect(() => {
     getLikerData();
@@ -102,27 +105,25 @@ export default function LikeItem({
 
   const getLikerData = async () => {
     setGettingLikerInformation(true);
-    const likerDocRef = doc(firestore, `users/${likerUsername}`);
-    const likerDocSnapshot = await getDoc(likerDocRef);
+
+    const docResult = await getDocServer(`users/${likerUsername}`);
+    if (!docResult) return;
 
     let currentUserFollowsThisLiker = false;
-    if (currentUserState.isThereCurrentUser)
-      currentUserFollowsThisLiker = (
-        await getDoc(
-          doc(
-            firestore,
-            `users/${currentUserState.username}/followings/${likerUsername}`
-          )
-        )
-      ).exists();
-
-    if (likerDocSnapshot.exists()) {
-      setLikerUserInformation({
-        likerFullname: likerDocSnapshot.data().fullname,
-        likerProfilePhoto: likerDocSnapshot.data().profilePhoto,
-        followedByCurrentUser: currentUserFollowsThisLiker,
-      });
+    if (currentUserState.isThereCurrentUser) {
+      const docResult = await getDocServer(
+        `users/${currentUserState.username}/followings/${likerUsername}`
+      );
+      if (!docResult) return;
+      currentUserFollowsThisLiker = docResult.isExists;
     }
+
+    setLikerUserInformation({
+      likerFullname: docResult.data.fullname,
+      likerProfilePhoto: docResult.data.profilePhoto,
+      followedByCurrentUser: currentUserFollowsThisLiker,
+    });
+
     setGettingLikerInformation(false);
   };
 

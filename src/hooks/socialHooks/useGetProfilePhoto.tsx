@@ -1,7 +1,8 @@
-import { firestore } from "@/firebase/clientApp";
-import { doc, getDoc } from "firebase/firestore";
+import useGetFirebase from "../readHooks/useGetFirebase";
 
 export default function useGetProfilePhoto() {
+  const { getDocServer } = useGetFirebase();
+
   /**
    * Give username and if exists, returns downloadable URL.
    * If there is user, but no pp then returns empty string
@@ -10,9 +11,11 @@ export default function useGetProfilePhoto() {
    */
   const getProfilePhotoURL = async (username: string): Promise<string> => {
     // userDocRef
-    const userDocRef = doc(firestore, `users/${username}`);
-    const userDocSnapshot = await getDoc(userDocRef);
-    if (userDocSnapshot.exists()) return userDocSnapshot.data().profilePhoto;
+
+    const userDocResult = await getDocServer(`users/${username}`);
+
+    if (userDocResult && userDocResult.isExists)
+      return userDocResult.data.profilePhoto;
     else {
       console.log("No user with this username to get pp");
       return "";

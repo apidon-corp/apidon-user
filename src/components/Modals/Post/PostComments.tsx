@@ -1,6 +1,4 @@
-import { firestore } from "@/firebase/clientApp";
 import useSendComment from "@/hooks/postHooks/useSendComment";
-
 import {
   Flex,
   Icon,
@@ -15,7 +13,6 @@ import {
   Stack,
   Text,
 } from "@chakra-ui/react";
-import { collection, getDocs, orderBy, query } from "firebase/firestore";
 import React, { useEffect, useRef, useState } from "react";
 import { AiOutlineClose, AiOutlineSend } from "react-icons/ai";
 import { CgProfile } from "react-icons/cg";
@@ -23,6 +20,7 @@ import { useRecoilValue } from "recoil";
 import { currentUserStateAtom } from "../../atoms/currentUserAtom";
 import CommentItem from "../../Items/Post/CommentItem";
 import { CommentDataWithCommentDocPath, OpenPanelName } from "../../types/Post";
+import useGetFirebase from "@/hooks/readHooks/useGetFirebase";
 
 type Props = {
   commentsInfo: {
@@ -53,6 +51,8 @@ export default function PostComments({
   const [gettingComments, setGettingComments] = useState(true);
   const [commentSendLoading, setCommentSendLoading] = useState(false);
 
+  const { getCollectionServer } = useGetFirebase();
+
   useEffect(() => {
     if (openPanelNameValue === "comments") {
       handleLoadComments();
@@ -64,29 +64,28 @@ export default function PostComments({
 
     // get comment docs
 
-    const postCommentsCollection = collection(
-      firestore,
+    const postCommentsCollection = await getCollectionServer(
       `${commentsInfo.postDocPath}/comments`
     );
-
-    const postCommentsDocs = await getDocs(postCommentsCollection);
+    if (!postCommentsCollection) return;
 
     const commentDatasWithCommentDocPathArray: CommentDataWithCommentDocPath[] =
       [];
 
-    for (const doc of postCommentsDocs.docs) {
+    for (const doc of postCommentsCollection.docsArray) {
       const subCommentCollectionPath = `${doc.ref.path}/comments`;
 
-      const subCommentDocs = await getDocs(
-        collection(firestore, subCommentCollectionPath)
+      const subCommmenCollection = await getCollectionServer(
+        subCommentCollectionPath
       );
+      if (!subCommmenCollection) continue;
 
-      for (const doc of subCommentDocs.docs) {
+      for (const doc of subCommmenCollection.docsArray) {
         const commentDataObject: CommentDataWithCommentDocPath = {
           commentDocPath: doc.ref.path,
-          commentSenderUsername: doc.data().commentSenderUsername,
-          comment: doc.data().comment,
-          creationTime: doc.data().creationTime,
+          commentSenderUsername: doc.data.commentSenderUsername,
+          comment: doc.data.comment,
+          creationTime: doc.data.creationTime,
         };
         commentDatasWithCommentDocPathArray.push(commentDataObject);
       }

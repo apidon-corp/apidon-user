@@ -1,5 +1,4 @@
 import { currentUserStateAtom } from "@/components/atoms/currentUserAtom";
-import { firestore } from "@/firebase/clientApp";
 import {
   Flex,
   Icon,
@@ -11,19 +10,12 @@ import {
   Stack,
   Text,
 } from "@chakra-ui/react";
-import {
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  orderBy,
-  query,
-} from "firebase/firestore";
 import { SetStateAction, useEffect, useState } from "react";
 import { AiOutlineClose } from "react-icons/ai";
 import { useRecoilValue } from "recoil";
 import LikeItem from "../../Items/Post/LikeItem";
 import { LikeData, OpenPanelName } from "../../types/Post";
+import useGetFirebase from "@/hooks/readHooks/useGetFirebase";
 
 type Props = {
   likeData: LikeData;
@@ -44,24 +36,27 @@ export default function PostLikes({
 
   const [gettingLikes, setGettingLikes] = useState(true);
 
+  const { getCollectionServer } = useGetFirebase();
+
   useEffect(() => {
     if (openPanelNameValue === "likes") getLikes();
   }, [openPanelNameValue]);
 
   const getLikes = async () => {
     setGettingLikes(true);
-    const likesCol = collection(firestore, likeData.likeColPath);
-    const likesQuery = query(likesCol, orderBy("likeTime", "desc"));
-    const likesDocs = (await getDocs(likesQuery)).docs;
-    if (likesDocs.length === 0) {
+
+    const likesCollection = await getCollectionServer(likeData.likeColPath);
+    if (!likesCollection) return;
+
+    if (likesCollection.docsArray.length === 0) {
       setLikeDatas([]);
       return setGettingLikes(false);
     }
 
     let finalLikeDatas: string[] = [];
 
-    for (const liker of likesDocs) {
-      finalLikeDatas.push(liker.id);
+    for (const liker of likesCollection.docsArray) {
+      finalLikeDatas.push(liker.ref.id);
     }
 
     if (currentUserState.isThereCurrentUser) {

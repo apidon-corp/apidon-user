@@ -1,4 +1,3 @@
-import { firestore } from "@/firebase/clientApp";
 import useFollow from "@/hooks/socialHooks/useFollow";
 import {
   Flex,
@@ -9,7 +8,6 @@ import {
   Button,
   SkeletonText,
 } from "@chakra-ui/react";
-import { doc, getDoc } from "firebase/firestore";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 import { CgProfile } from "react-icons/cg";
@@ -17,6 +15,7 @@ import { useRecoilState, useSetRecoilState } from "recoil";
 import { authModalStateAtom } from "../atoms/authModalAtom";
 import { currentUserStateAtom } from "../atoms/currentUserAtom";
 import { FollowingsFollowersModalType } from "./Header";
+import useGetFirebase from "@/hooks/readHooks/useGetFirebase";
 
 type Props = {
   username: string;
@@ -55,41 +54,34 @@ export default function FollowItem({
 
   const [followOperationLoading, setFollowOperationLoading] = useState(false);
 
+  const { getDocServer } = useGetFirebase();
+
   useEffect(() => {
     if (username) getFollowItemInformation();
   }, [username]);
 
   const getFollowItemInformation = async () => {
     setGettingFollowItemState(true);
-    const followItemUserDocRef = doc(firestore, `users/${username}`);
-    const followItemUserDocSnaphot = await getDoc(followItemUserDocRef);
 
-    // I am sure it exists but ....
-    if (!followItemUserDocSnaphot.exists()) {
-      setFollowItemState({
-        username: "NO USER",
-        fullname: "NO USER",
-        followedByCurrentUser: false,
-      });
-      return;
-    }
+    const followItemUserDocResult = await getDocServer(`users/${username}`);
+
+    if (!followItemUserDocResult || !followItemUserDocResult.isExists) return;
 
     let currentUserFollowsThisFollowObject = false;
-    if (currentUserState.isThereCurrentUser)
-      currentUserFollowsThisFollowObject = (
-        await getDoc(
-          doc(
-            firestore,
-            `users/${currentUserState.username}/followings/${username}`
-          )
-        )
-      ).exists();
+    if (currentUserState.isThereCurrentUser) {
+      const docResult = await getDocServer(
+        `users/${currentUserState.username}/followings/${username}`
+      );
+      if (!docResult) return;
+
+      currentUserFollowsThisFollowObject = docResult.isExists;
+    }
 
     const followItemStateServer: FollowItemState = {
       // We know username but if I download from server,I use it.
-      username: followItemUserDocSnaphot.data().username,
-      fullname: followItemUserDocSnaphot.data().fullname,
-      profilePhoto: followItemUserDocSnaphot.data().profilePhoto,
+      username: followItemUserDocResult.data.username,
+      fullname: followItemUserDocResult.data.fullname,
+      profilePhoto: followItemUserDocResult.data.profilePhoto,
       followedByCurrentUser: currentUserFollowsThisFollowObject,
     };
 

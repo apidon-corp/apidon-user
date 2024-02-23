@@ -1,9 +1,10 @@
 import { notificationStateAtom } from "@/components/atoms/notificationModalAtom";
 import { INotificationServerData } from "@/components/types/User";
-import { firestore } from "@/firebase/clientApp";
+import useGetFirebase from "@/hooks/readHooks/useGetFirebase";
+
 import { Flex, Icon, Image, SkeletonCircle, Text } from "@chakra-ui/react";
 import { formatDistanceToNow } from "date-fns";
-import { doc, getDoc } from "firebase/firestore";
+
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { BsDot } from "react-icons/bs";
@@ -43,15 +44,17 @@ export default function NotificationItem({
     setGettingNotificationSenderInformation,
   ] = useState(true);
 
+  const { getDocServer } = useGetFirebase();
+
   useEffect(() => {
     handleNotificationItemData();
   }, []);
 
   const handleNotificationItemData = async () => {
     setGettingNotificationSenderInformation(true);
-    const notificationSenderDoc = await getDoc(
-      doc(firestore, `users/${sender}`)
-    );
+
+    const docResult = await getDocServer(`users/${sender}`);
+    if (!docResult) return;
 
     let message: string = "";
 
@@ -61,8 +64,8 @@ export default function NotificationItem({
 
     const tempNotificationItemObject: NotificationItemData = {
       senderUsername: sender,
-      senderFullName: notificationSenderDoc.data()?.fullname,
-      senderProfilePhoto: notificationSenderDoc.data()?.profilePhoto,
+      senderFullName: docResult.data.fullname,
+      senderProfilePhoto: docResult.data.profilePhoto,
       notificationTime: notificationTime,
       message: message,
     };

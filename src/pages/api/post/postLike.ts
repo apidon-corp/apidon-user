@@ -114,7 +114,7 @@ export default async function handler(
       } else {
         const query = firestore
           .collection(
-            `users/${operationFromUsername}/personal/postInteractions`
+            `users/${operationFromUsername}/personal/postInteractions/likedPosts`
           )
           .where("postPath", "==", postDocPath);
 

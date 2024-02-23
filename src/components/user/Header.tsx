@@ -39,14 +39,14 @@ import { defaultCurrentUserState, UserInServer } from "../types/User";
 import FollowInformationModal from "../Modals/User/FollowInformationModal";
 import ProfilePhotoUpdateModal from "../Modals/User/ProfilePhotoUpdateModal";
 
-import { auth, firestore } from "@/firebase/clientApp";
+import { auth } from "@/firebase/clientApp";
 import { signOut } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
 import { AiFillEdit } from "react-icons/ai";
 import { headerAtViewAtom } from "../atoms/headerAtViewAtom";
 import { providerModalStateAtom } from "../atoms/providerModalAtom";
 import { dataAnalysisPreferencesModalAtom } from "../atoms/dataAnalysisPreferencesModalAtom";
 import { collectedDataInformationModalAtom } from "../atoms/CollectedDataInformationModalAtom";
+import useGetFirebase from "@/hooks/readHooks/useGetFirebase";
 
 type Props = {
   userInformation: UserInServer;
@@ -133,6 +133,8 @@ export default function Header({ userInformation }: Props) {
     collectedDataInformationModalAtom
   );
 
+  const { getDocServer } = useGetFirebase();
+
   useEffect(() => {
     // after updating photo, we are using raw base64 selected photo as pp until refresh.
     setSelectedProfilePhoto("");
@@ -171,14 +173,12 @@ export default function Header({ userInformation }: Props) {
   const handleFollowStatus = async () => {
     setGettingFollowStatus(true);
 
-    const doesCurrentUserFollowThisMan = (
-      await getDoc(
-        doc(
-          firestore,
-          `users/${currentUserState.username}/followings/${userInformation.username}`
-        )
-      )
-    ).exists();
+    const docResult = await getDocServer(
+      `users/${currentUserState.username}/followings/${userInformation.username}`
+    );
+    if (!docResult) return;
+
+    const doesCurrentUserFollowThisMan: boolean = docResult.isExists;
     setCurrentUserFollowThisMan(doesCurrentUserFollowThisMan);
 
     setGettingFollowStatus(false);

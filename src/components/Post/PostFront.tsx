@@ -28,12 +28,11 @@ import {
 } from "react-icons/ai";
 import { BsDot, BsImage } from "react-icons/bs";
 
-import { firestore } from "@/firebase/clientApp";
 import useFollow from "@/hooks/socialHooks/useFollow";
 import usePostDelete from "@/hooks/postHooks/usePostDelete";
 
 import usePostLike from "@/hooks/postHooks/usePostLike";
-import { doc, getDoc } from "firebase/firestore";
+
 import moment from "moment";
 import { useRouter } from "next/router";
 import { CgProfile } from "react-icons/cg";
@@ -42,6 +41,7 @@ import { authModalStateAtom } from "../atoms/authModalAtom";
 import { currentUserStateAtom } from "../atoms/currentUserAtom";
 import { postsAtViewAtom } from "../atoms/postsAtViewAtom";
 import { OpenPanelName, PostFrontData } from "../types/Post";
+import useGetFirebase from "@/hooks/readHooks/useGetFirebase";
 
 type Props = {
   postFrontData: PostFrontData;
@@ -86,6 +86,8 @@ export default function PostFront({
 
   const [showFollowButtonOnPost, setShowFollowButtonOnPost] = useState(false);
 
+  const { getDocServer } = useGetFirebase();
+
   useEffect(() => {
     handleGetPostSenderData(postFrontData.senderUsername);
   }, [currentUserState.username]);
@@ -122,16 +124,14 @@ export default function PostFront({
    * @returns
    */
   const handleGetPostSenderData = async (username: string) => {
-    const userDocRef = doc(firestore, `users/${username}`);
-    const userDocSnapshot = await getDoc(userDocRef);
+    const userDocResult = await getDocServer(`users/${username}`);
+    if (!userDocResult || !userDocResult.isExists) return;
 
-    if (userDocSnapshot.exists()) {
-      setPostSenderInformation((prev) => ({
-        ...prev,
-        fullname: userDocSnapshot.data().fullname,
-        profilePhoto: userDocSnapshot.data().profilePhoto,
-      }));
-    }
+    setPostSenderInformation((prev) => ({
+      ...prev,
+      fullname: userDocResult.data.fullname,
+      profilePhoto: userDocResult.data.profilePhoto,
+    }));
   };
 
   const handleFollowOnPost = async () => {

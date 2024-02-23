@@ -1,5 +1,4 @@
 import { currentUserStateAtom } from "@/components/atoms/currentUserAtom";
-import { firestore } from "@/firebase/clientApp";
 import useCommentDelete from "@/hooks/postHooks/useCommentDelete";
 import {
   Flex,
@@ -9,7 +8,6 @@ import {
   Spinner,
   Text,
 } from "@chakra-ui/react";
-import { doc, getDoc } from "firebase/firestore";
 import moment from "moment";
 import { useRouter } from "next/router";
 import React, { SetStateAction, useEffect, useState } from "react";
@@ -17,6 +15,7 @@ import { BsDot, BsTrash } from "react-icons/bs";
 import { CgProfile } from "react-icons/cg";
 import { useRecoilValue } from "recoil";
 import { CommentDataWithCommentDocPath, OpenPanelName } from "../../types/Post";
+import useGetFirebase from "@/hooks/readHooks/useGetFirebase";
 
 type Props = {
   commentDataWithCommentDocId: CommentDataWithCommentDocPath;
@@ -46,19 +45,26 @@ export default function CommentItem({
 
   const [commentDeletLoading, setCommentDeleteLoading] = useState(false);
 
+  const { getDocServer } = useGetFirebase();
+
   useEffect(() => {
     getCommentSenderPhoto();
   }, []);
 
   const getCommentSenderPhoto = async () => {
     setGettingCommentSenderPhoto(true);
-    const commentSenderDocRef = doc(
-      firestore,
+
+    const existsStatus = await getDocServer(
       `users/${commentDataWithCommentDocId.commentSenderUsername}`
     );
-    const commentDocSnapshot = await getDoc(commentSenderDocRef);
-    if (commentDocSnapshot.exists()) {
-      setCommentSenderPhoto(commentDocSnapshot.data().profilePhoto);
+
+    const docResult = await getDocServer(
+      `users/${commentDataWithCommentDocId.commentSenderUsername}`
+    );
+
+    if (!docResult) return;
+    if (existsStatus) {
+      setCommentSenderPhoto(docResult.data.profilePhoto as string);
     }
     setGettingCommentSenderPhoto(false);
   };

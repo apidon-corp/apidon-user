@@ -2,7 +2,8 @@ import { currentUserStateAtom } from "@/components/atoms/currentUserAtom";
 import { notificationStateAtom } from "@/components/atoms/notificationModalAtom";
 import NotificationItem from "@/components/Items/User/NotificationItem";
 import { INotificationServerData } from "@/components/types/User";
-import { auth, firestore } from "@/firebase/clientApp";
+import { auth } from "@/firebase/clientApp";
+import useGetFirebase from "@/hooks/readHooks/useGetFirebase";
 import {
   Flex,
   Icon,
@@ -13,7 +14,6 @@ import {
   Spinner,
   Stack,
 } from "@chakra-ui/react";
-import { collection, getDocs, orderBy, query } from "firebase/firestore";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { AiOutlineClose } from "react-icons/ai";
@@ -34,6 +34,8 @@ export default function NotificationModal() {
 
   const router = useRouter();
 
+  const { getCollectionServer } = useGetFirebase();
+
   useEffect(() => {
     if (currentUserState.username) handleNotificationData();
   }, [
@@ -49,30 +51,26 @@ export default function NotificationModal() {
 
     setNotificationsLoading(true);
     setNotificationState((prev) => ({ ...prev, loading: true }));
-    const notificationDocs = (
-      await getDocs(
-        query(
-          collection(
-            firestore,
-            `users/${currentUserState.username}/notifications`
-          ),
-          orderBy("notificationTime", "desc")
-        )
-      )
-    ).docs;
+
+    const notificationDocsCollection = await getCollectionServer(
+      `users/${currentUserState.username}/notifications`
+    );
+    if (!notificationDocsCollection) return;
+
+    const notificationDocs = notificationDocsCollection.docsArray;
     let unSeenNotificationsDocsIds: string[] = [];
     let tempNotifications: INotificationServerData[] = [];
     for (const notificationDoc of notificationDocs) {
       const newNotificationObject: INotificationServerData = {
-        notificationTime: notificationDoc.data().notificationTime,
-        seen: notificationDoc.data().seen,
-        sender: notificationDoc.data().sender,
-        cause: notificationDoc.data().cause,
+        notificationTime: notificationDoc.data.notificationTime,
+        seen: notificationDoc.data.seen,
+        sender: notificationDoc.data.sender,
+        cause: notificationDoc.data.cause,
       };
       tempNotifications.push(newNotificationObject);
 
-      if (!notificationDoc.data()?.seen)
-        unSeenNotificationsDocsIds.push(notificationDoc.id);
+      if (!notificationDoc.data.seen)
+        unSeenNotificationsDocsIds.push(notificationDoc.ref.id);
     }
 
     setNotificationData(tempNotifications);
