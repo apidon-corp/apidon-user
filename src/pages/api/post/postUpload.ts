@@ -38,16 +38,7 @@ export default async function handler(
       likeCount: 0,
       commentCount: 0,
       nftStatus: {
-        minted: false,
-        mintTime: -1,
-        metadataLink: "",
-        tokenId: -1,
-        name: "",
-        description: "",
-        contractAddress: "",
-        openseaUrl: "",
-        transferred: false,
-        transferredAddress: "",
+        convertedToNft: false,
       },
       creationTime: Date.now(),
     };

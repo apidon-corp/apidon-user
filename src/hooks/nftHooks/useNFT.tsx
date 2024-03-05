@@ -1,5 +1,6 @@
 import { currentUserStateAtom } from "@/components/atoms/currentUserAtom";
 import { headerAtViewAtom } from "@/components/atoms/headerAtViewAtom";
+import { UploadNFTResponse } from "@/components/types/API";
 import { auth } from "@/firebase/clientApp";
 import { useRouter } from "next/router";
 import { useState } from "react";
@@ -79,7 +80,9 @@ export default function useNFT() {
       setHeaderAtView((prev) => ({ ...prev, nftCount: prev.nftCount + 1 }));
     }
 
-    return await response.json();
+    const result = (await response.json()) as UploadNFTResponse;
+
+    return result;
   };
 
   /**

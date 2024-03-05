@@ -64,3 +64,9 @@ export type QuerySettings = {
   endAt: string;
   orderBy: string;
 };
+
+export type UploadNFTResponse = {
+  nftDocPath: string;
+};
+
+
