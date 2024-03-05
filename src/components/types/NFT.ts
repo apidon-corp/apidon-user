@@ -19,3 +19,9 @@ export type NFTMetadata = {
       }
   )[];
 };
+
+export const nftMetadataPlaceHolder: NFTMetadata = {
+  description: "",
+  name: "",
+  attributes: [],
+};

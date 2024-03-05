@@ -1,6 +1,6 @@
 import { currentUserStateAtom } from "@/components/atoms/currentUserAtom";
 import { postsAtViewAtom } from "@/components/atoms/postsAtViewAtom";
-import { NFTMetadata } from "@/components/types/NFT";
+import { NFTMetadata, nftMetadataPlaceHolder } from "@/components/types/NFT";
 import {
   NftDocDataInServer,
   OpenPanelName,
@@ -67,15 +67,16 @@ export default function PostNFT({
   const { getDocServer } = useGetFirebase();
 
   const [nftPanelViewState, setNftPanelViewState] = useState<
-    | "initalLoading"
+    | "initialLoading"
     | "create"
     | "creating"
     | "created"
+    | "updating"
     | "transfer"
     | "transferring"
-  >("initalLoading");
+  >("initialLoading");
 
-  const [nftDataState, setNftDataState] = useState<NftDocDataInServer>({
+  const [nftDocDataState, setNftDocDataState] = useState<NftDocDataInServer>({
     contractAddress: "",
     description: "",
     metadataLink: "",
@@ -87,6 +88,10 @@ export default function PostNFT({
       isTransferred: false,
     },
   });
+
+  const [nftMetadataState, setNftMetadataState] = useState<NFTMetadata>(
+    nftMetadataPlaceHolder
+  );
 
   const {
     mintNft,
@@ -103,7 +108,6 @@ export default function PostNFT({
   );
 
   const [gettingNFTDataLoading, setGettingNFTDataLoading] = useState(true);
-  const [nftMetadaData, setNFTMetadata] = useState<NFTMetadata>();
 
   const [refreshNFTLoading, setRefreshNFTLoading] = useState(false);
 
@@ -141,12 +145,18 @@ export default function PostNFT({
 
   useEffect(() => {
     if (openPanelNameValue !== "nft") return;
-    if (nftPanelViewState !== "initalLoading") return;
+    if (nftPanelViewState !== "initialLoading") return;
     getInitialNFTData();
   }, [nftPanelViewState, openPanelNameValue]);
 
+  useEffect(() => {
+    if (openPanelNameValue === "nft") {
+      setNftPanelViewState("initialLoading");
+    }
+  }, [openPanelNameValue]);
+
   const getInitialNFTData = async () => {
-    setNftPanelViewState("initalLoading");
+    setNftPanelViewState("initialLoading");
 
     const postDocResult = await getDocServer(
       `/users/${postInformation.senderUsername}/posts/${postInformation.postDocId}`
@@ -169,14 +179,27 @@ export default function PostNFT({
     const nftDocResult = await getDocServer(nftDocPath);
     if (!nftDocResult || !nftDocResult.isExists) {
       console.error("NFT Doc doesn't exist.");
-      return setNftPanelViewState("initalLoading");
+      return setNftPanelViewState("initialLoading");
     }
 
     // In here we have a valid nft data.
     const nftDocData = nftDocResult.data as NftDocDataInServer;
-    setNftDataState({ ...nftDocData });
+    setNftDocDataState({ ...nftDocData });
+
+    // We need to get NFT Metadata, too.
+    const nftMetadaDataResult = await handleGetMetadata(
+      nftDocData.metadataLink
+    );
+    if (!nftMetadaDataResult) {
+      console.error("Error on getting nft metadata");
+      return setNftPanelViewState("initialLoading");
+    }
+
+    // We have a valid nft metadata data.
+    setNftMetadataState(nftMetadaDataResult);
 
     // We need to show nft information to user
+    // setNftPanelViewState("created");
     setNftPanelViewState("created");
   };
 
@@ -215,7 +238,7 @@ export default function PostNFT({
 
     if (!nftMintResult || !nftMintResult.nftDocPath) {
       console.error("NFT Mint Result is not okay");
-      return setNftPanelViewState("initalLoading");
+      return setNftPanelViewState("initialLoading");
     }
 
     setPostsAtView((prev) => {
@@ -234,7 +257,21 @@ export default function PostNFT({
     });
 
     // To get updated data from server.
-    setNftPanelViewState("initalLoading");
+    setNftPanelViewState("initialLoading");
+  };
+
+  const handleUpdateNftButon = async () => {
+    setNftPanelViewState("updating");
+
+    const updateNftResult = await refreshNFT(postInformation.postDocId);
+
+    if (!updateNftResult) {
+      console.error("Update Nft Result is not okay.");
+      return setNftPanelViewState("initialLoading");
+    }
+
+    // Operation is successfull, we need to refresh panel
+    setNftPanelViewState("initialLoading");
   };
 
   const resetStatesAfterNFTCreation = () => {
@@ -283,19 +320,6 @@ export default function PostNFT({
     setGettingNFTDataLoading(false);
   };
 
-  */
-
-  /**
-  const handleRefreshNFT = async () => {
-    setRefreshNFTLoading(true);
-    const operationResult = await refreshNFT(postInformation.postDocId);
-
-    if (!operationResult) {
-      return setRefreshNFTLoading(false);
-    }
-    setRefreshNFTLoading(false);
-    getNFTData();
-  };
   */
 
   const handleNFTransfer = async () => {
@@ -358,7 +382,7 @@ export default function PostNFT({
     }
     setNftTransferAddress(susAddress);
   };
-  // openPanelNameValue === "nft"
+
   return (
     <Modal
       isOpen={openPanelNameValue === "nft"}
@@ -383,7 +407,7 @@ export default function PostNFT({
           lg: "500px",
         }}
       >
-        {nftPanelViewState === "initalLoading" && (
+        {nftPanelViewState === "initialLoading" && (
           <ModalHeader color="white">NFT</ModalHeader>
         )}
         {nftPanelViewState === "create" && (
@@ -395,10 +419,13 @@ export default function PostNFT({
         {nftPanelViewState === "created" && (
           <ModalHeader color="white">View NFT</ModalHeader>
         )}
+        {nftPanelViewState === "updating" && (
+          <ModalHeader color="white">Update NFT</ModalHeader>
+        )}
         <ModalCloseButton color="white" />
 
         <ModalBody display="flex">
-          {nftPanelViewState === "initalLoading" && (
+          {nftPanelViewState === "initialLoading" && (
             <Flex width="100%" align="center" justify="center">
               <Spinner width="75px" height="75px" color="white" />
             </Flex>
@@ -485,64 +512,124 @@ export default function PostNFT({
               id="created-nft-flex"
               width="100%"
               direction="column"
-              gap="5px"
+              gap="20px"
             >
-              <Flex id="nft-title-data" align="center" gap={1}>
+              <Flex
+                id="top-area"
+                direction="column"
+                width="100%"
+                align="center"
+                justify="center"
+                gap="5px"
+              >
                 <Image
                   width="50%"
-                  src={nftMetadaData?.image}
-                  borderRadius="5"
+                  src={nftMetadataState.image}
+                  border="1px solid gray"
+                  borderRadius="10px"
                 />
-                <Icon as={RxText} fontSize="13pt" color="white" />
-                <Text
-                  color="gray.300"
-                  fontSize="13pt"
-                  maxHeight="100px"
-                  wordBreak="break-word"
-                  overflowY="auto"
+
+                <Flex id="nft-title-data" align="center">
+                  <Text
+                    color="white"
+                    fontSize="13pt"
+                    fontWeight="700"
+                    textAlign="center"
+                  >
+                    {nftDocDataState.name}
+                  </Text>
+                </Flex>
+
+                <Flex id="nft-description-data" align="center">
+                  <Text color="gray.300" fontSize="10pt" fontWeight="700">
+                    "{nftDocDataState.description}"
+                  </Text>
+                </Flex>
+                <Flex align="center" justify="center" gap="10px">
+                  <Flex id="nft-like-data" align="center" gap={1}>
+                    <Icon as={AiFillHeart} fontSize="13pt" color="white" />
+                    <Text color="gray.300" fontSize="13pt">
+                      {
+                        nftMetadataState.attributes.find(
+                          (a) => a.trait_type === "Likes"
+                        )?.value
+                      }
+                    </Text>
+                  </Flex>
+
+                  <Flex id="nft-comment-data" align="center" gap={1}>
+                    <Icon as={AiOutlineComment} fontSize="13pt" color="white" />
+                    <Text color="gray.300" fontSize="13pt">
+                      {
+                        nftMetadataState.attributes.find(
+                          (a) => a.trait_type === "Comments"
+                        )?.value
+                      }
+                    </Text>
+                  </Flex>
+                </Flex>
+              </Flex>
+              <Flex
+                id="update-transfer-buttons"
+                gap="10px"
+                width="100%"
+                align="center"
+                justify="center"
+              >
+                <Flex
+                  id="transfer-button"
+                  hidden={nftDocDataState.transferStatus.isTransferred}
                 >
-                  {nftDataState.name}
-                </Text>
-              </Flex>
-
-              <Flex id="nft-description-data" align="center" gap={1}>
-                <Icon as={GrTextAlignFull} fontSize="13pt" color="white" />
-
-                <Text
-                  color="gray.300"
-                  fontSize="12pt"
-                  maxHeight="100px"
-                  wordBreak="break-word"
-                  overflowY="auto"
+                  <Button
+                    id="transfer-nft-button"
+                    size="sm"
+                    variant="solid"
+                    colorScheme="blue"
+                  >
+                    Transfer Your NFT
+                  </Button>
+                </Flex>
+                <Flex
+                  id="update-button"
+                  hidden={
+                    postInformation.likeCount ===
+                      Number(
+                        nftMetadataState.attributes.find(
+                          (a) => a.trait_type === "Likes"
+                        )?.value
+                      ) &&
+                    postInformation.commentCount ===
+                      Number(
+                        nftMetadataState.attributes.find(
+                          (a) => a.trait_type === "Comments"
+                        )?.value
+                      )
+                  }
                 >
-                  {nftDataState.description}
-                </Text>
-              </Flex>
-
-              <Flex id="nft-like-data" align="center" gap={1}>
-                <Icon as={AiFillHeart} fontSize="13pt" color="white" />
-                <Text color="gray.300" fontSize="13pt">
-                  53
-                </Text>
-              </Flex>
-
-              <Flex id="nft-comment-data" align="center" gap={1}>
-                <Icon as={AiOutlineComment} fontSize="13pt" color="white" />
-                <Text color="gray.300" fontSize="13pt">
-                  53
-                </Text>
+                  <Button
+                    id="update-nft-button"
+                    size="sm"
+                    variant="outline"
+                    colorScheme="blue"
+                    onClick={() => {
+                      handleUpdateNftButon();
+                    }}
+                  >
+                    Update Your NFT
+                  </Button>
+                </Flex>
               </Flex>
 
               <Flex id="nft-market-places-links" direction="column" gap={2}>
                 <Text fontSize="15pt" as="b" color="white">
-                  Market Place Links
+                  Market Place Link
                 </Text>
                 <Flex
                   gap={1}
                   cursor="pointer"
                   onClick={() => {
                     window.open(
-                      `https://testnets.opensea.io/assets/mumbai/${apidonNFTMumbaiContractAddress}/${nftDataState.tokenId}`,
+                      `https://testnets.opensea.io/assets/mumbai/${apidonNFTMumbaiContractAddress}/${nftDocDataState.tokenId}`,
                       "blank"
                     );
                   }}
@@ -564,14 +651,14 @@ export default function PostNFT({
                   <Flex id="nft-owner-data" align="center" gap={1}>
                     <Icon as={FaRegUserCircle} fontSize="11pt" color="white" />
                     <Text color="white" fontSize="11pt">
-                      {nftDataState.transferStatus.isTransferred
-                        ? `${nftDataState.transferStatus.transferredAddress?.slice(
+                      {nftDocDataState.transferStatus.isTransferred
+                        ? `${nftDocDataState.transferStatus.transferredAddress?.slice(
                             0,
                             3
-                          )}...${nftDataState.transferStatus.transferredAddress?.slice(
-                            nftDataState.transferStatus.transferredAddress
+                          )}...${nftDocDataState.transferStatus.transferredAddress?.slice(
+                            nftDocDataState.transferStatus.transferredAddress
                               ?.length - 3,
-                            nftDataState.transferStatus.transferredAddress
+                            nftDocDataState.transferStatus.transferredAddress
                               ?.length
                           )}`
                         : "Apidon"}
@@ -583,7 +670,7 @@ export default function PostNFT({
                       cursor="pointer"
                       onClick={() => {
                         navigator.clipboard.writeText(
-                          nftDataState.transferStatus
+                          nftDocDataState.transferStatus
                             .transferredAddress as string
                         );
                       }}
@@ -592,7 +679,7 @@ export default function PostNFT({
                   <Flex id="nft-tokenId-data" align="center" gap={1}>
                     <Icon as={AiOutlineNumber} fontSize="11pt" color="white" />
                     <Text color="white" fontSize="11pt">
-                      {nftDataState.tokenId}
+                      {nftDocDataState.tokenId}
                     </Text>
                     <Icon
                       as={MdContentCopy}
@@ -601,7 +688,7 @@ export default function PostNFT({
                       cursor="pointer"
                       onClick={() => {
                         navigator.clipboard.writeText(
-                          nftDataState.tokenId.toString()
+                          nftDocDataState.tokenId.toString()
                         );
                       }}
                     />
@@ -652,7 +739,10 @@ export default function PostNFT({
                       color="white"
                     />
                     <Text color="white" fontSize="11pt">
-                      {format(new Date(nftDataState.mintTime), "dd MMMM yyyy")}
+                      {format(
+                        new Date(nftDocDataState.mintTime),
+                        "dd MMMM yyyy"
+                      )}
                     </Text>
                   </Flex>
                 </Flex>
@@ -736,6 +826,22 @@ export default function PostNFT({
                   </Button>
                 </form>
               </Flex>
+            </Flex>
+          )}
+
+          {nftPanelViewState === "updating" && (
+            <Flex
+              id="nft-update-flex"
+              width="100%"
+              direction="column"
+              align="center"
+              justify="center"
+              gap="10px"
+            >
+              <Spinner width="75px" height="75px" color="teal" />
+              <Text color="white" fontSize="15pt" fontWeight="700">
+                NFT is being updated.
+              </Text>
             </Flex>
           )}
         </ModalBody>
