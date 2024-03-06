@@ -111,6 +111,8 @@ export default function PostNFT({
 
   const setPostsAtView = useSetRecoilState(postsAtViewAtom);
 
+  const currentUserState = useRecoilValue(currentUserStateAtom);
+
   /**
    * Get intial nft status then save it to state.
    * Create seperated blocks for creating, transferring, updating.
@@ -349,7 +351,7 @@ export default function PostNFT({
           <ModalHeader color="white">Create NFT</ModalHeader>
         )}
         {nftPanelViewState === "created" && (
-          <ModalHeader color="white">View NFT</ModalHeader>
+          <ModalHeader color="white">NFT</ModalHeader>
         )}
         {nftPanelViewState === "updating" && (
           <ModalHeader color="white">Update NFT</ModalHeader>
@@ -518,6 +520,9 @@ export default function PostNFT({
                 width="100%"
                 align="center"
                 justify="center"
+                hidden={
+                  currentUserState.username !== postInformation.senderUsername
+                }
               >
                 <Flex
                   id="transfer-button"
@@ -871,6 +876,17 @@ export default function PostNFT({
               }}
             >
               Return to post
+            </Button>
+          )}
+          {nftPanelViewState === "transfer" && (
+            <Button
+              variant="outline"
+              colorScheme="blue"
+              onClick={() => {
+                setNftPanelViewState("created");
+              }}
+            >
+              Return to NFT
             </Button>
           )}
         </ModalFooter>
