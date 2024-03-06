@@ -124,16 +124,15 @@ export default async function handler(
       return res.status(503).send("Chain Error");
     }
 
+    const transferStatus: NftDocDataInServer["transferStatus"] = {
+      isTransferred: true,
+      transferredAddress: transferAddress,
+    };
+
     try {
-      await firestore
-        .doc(`users/${operationFromUsername}/posts/${postDocId}`)
-        .update({
-          nftStatus: {
-            ...pd.nftStatus,
-            transferred: true,
-            transferredAddress: transferAddress,
-          },
-        });
+      await firestore.doc(pd.nftStatus.nftDocPath).update({
+        transferStatus: { ...transferStatus },
+      });
     } catch (error) {
       console.error(
         "Error while transferring nft. (We were updating post doc.)",

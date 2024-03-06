@@ -40,17 +40,14 @@ import {
   AiOutlineComment,
   AiOutlineNumber,
 } from "react-icons/ai";
-import { BiError } from "react-icons/bi";
+import { BiError, BiTransferAlt } from "react-icons/bi";
 import {
-  BsArrowRight,
   BsFillCalendarHeartFill,
   BsFillCalendarPlusFill,
 } from "react-icons/bs";
 import { FaRegUserCircle } from "react-icons/fa";
 import { FiExternalLink } from "react-icons/fi";
-import { GrTextAlignFull } from "react-icons/gr";
 import { MdContentCopy } from "react-icons/md";
-import { RxText } from "react-icons/rx";
 import { useRecoilValue, useSetRecoilState } from "recoil";
 
 type Props = {
@@ -107,42 +104,18 @@ export default function PostNFT({
     postInformation.description
   );
 
-  const [gettingNFTDataLoading, setGettingNFTDataLoading] = useState(true);
-
-  const [refreshNFTLoading, setRefreshNFTLoading] = useState(false);
-
-  const [nftMetadataLikeCommentCount, setNftMetdataLikeCommentCount] = useState(
-    {
-      likeCount: 0,
-      commentCount: 0,
-    }
-  );
-
-  /**
-   * nftAddress state with 0x add-on
-   */
   const [nftTransferAddress, setNftTransferAddress] = useState("");
   const [nftTransferAddressRight, setNftTransferAddressRight] = useState(true);
-  const [nftTransferLoading, setNftTransferLoading] = useState(false);
-
-  const currentUserState = useRecoilValue(currentUserStateAtom);
 
   const nftTransferAddressInputRef = useRef<HTMLInputElement>(null);
 
   const setPostsAtView = useSetRecoilState(postsAtViewAtom);
-
-  const bigInputRef = useRef<HTMLTextAreaElement>(null);
-  const smallInputRef = useRef<HTMLInputElement>(null);
-  const [focusedTextInput, setFocusedInput] = useState<
-    "bigInput" | "smallInput"
-  >("smallInput");
 
   /**
    * Get intial nft status then save it to state.
    * Create seperated blocks for creating, transferring, updating.
    *
    */
-
   useEffect(() => {
     if (openPanelNameValue !== "nft") return;
     if (nftPanelViewState !== "initialLoading") return;
@@ -199,7 +172,6 @@ export default function PostNFT({
     setNftMetadataState(nftMetadaDataResult);
 
     // We need to show nft information to user
-    // setNftPanelViewState("created");
     setNftPanelViewState("created");
   };
 
@@ -274,63 +246,19 @@ export default function PostNFT({
     setNftPanelViewState("initialLoading");
   };
 
-  const resetStatesAfterNFTCreation = () => {
-    setNftCreated(false);
-
-    setNftTitle("");
-    setNftDescription(postInformation.description);
+  const handleTransferButton = async () => {
+    setNftPanelViewState("transfer");
   };
-
-  const resetStatesAfterAbandon = () => {
-    setNftTitle("");
-    setNftDescription(postInformation.description);
-  };
-
-  /**
-  const getNFTData = async () => {
-    
-    setGettingNFTDataLoading(true);
-
-    setNFTMetadata(undefined);
-    setNftMetdataLikeCommentCount({ commentCount: 0, likeCount: 0 });
-    const response = await fetch(postInformation.nftStatus.metadataLink, {
-      cache: "no-store",
-      method: "GET",
-    });
-
-    if (!response.ok) {
-      setGettingNFTDataLoading(false);
-      return console.error(
-        "Error while getting nftMetadata",
-        await response.json()
-      );
-    }
-
-    const result: NFTMetadata = await response.json();
-    setNFTMetadata(result);
-    setNftMetdataLikeCommentCount({
-      likeCount: Number(
-        result.attributes.find((a) => a.trait_type === "Likes")!.value
-      ),
-      commentCount: Number(
-        result.attributes.find((a) => a.trait_type === "Comments")!.value
-      ),
-    });
-
-    setGettingNFTDataLoading(false);
-  };
-
-  */
 
   const handleNFTransfer = async () => {
+    setNftPanelViewState("transferring");
+
     const transferAddressValidationStatus =
       ethers.isAddress(nftTransferAddress);
-    if (!transferAddressValidationStatus) {
-      return setNftTransferAddressRight(false);
-    }
-    if (!nftTransferAddressRight) return;
 
-    setNftTransferLoading(true);
+    if (!transferAddressValidationStatus) {
+      return setNftPanelViewState("transfer");
+    }
 
     const operationResult = await transferNft(
       postInformation.postDocId,
@@ -338,7 +266,7 @@ export default function PostNFT({
     );
 
     if (!operationResult) {
-      return setNftTransferLoading(false);
+      return setNftPanelViewState("transfer");
     }
 
     setPostsAtView((prev) => {
@@ -354,9 +282,7 @@ export default function PostNFT({
       });
     });
 
-    //getNFTData();
-
-    setNftTransferLoading(false);
+    setNftPanelViewState("initialLoading");
   };
 
   const handleNftTransferAddressChange = (
@@ -387,9 +313,15 @@ export default function PostNFT({
     <Modal
       isOpen={openPanelNameValue === "nft"}
       onClose={() => {
-        openPanelNameValueSetter("main");
-        // To prevent lose unfinished progress
-        if (nftCreated) resetStatesAfterNFTCreation();
+        if (
+          !(
+            nftPanelViewState === "initialLoading" ||
+            nftPanelViewState === "creating" ||
+            nftPanelViewState === "updating" ||
+            nftPanelViewState === "transferring"
+          )
+        )
+          openPanelNameValueSetter("main");
       }}
       autoFocus={false}
       size={{
@@ -422,7 +354,18 @@ export default function PostNFT({
         {nftPanelViewState === "updating" && (
           <ModalHeader color="white">Update NFT</ModalHeader>
         )}
-        <ModalCloseButton color="white" />
+        {nftPanelViewState === "transfer" && (
+          <ModalHeader color="white">Transfer</ModalHeader>
+        )}
+        {nftPanelViewState === "transferring" && (
+          <ModalHeader color="white">Transfer</ModalHeader>
+        )}
+        {!(
+          nftPanelViewState === "initialLoading" ||
+          nftPanelViewState === "creating" ||
+          nftPanelViewState === "updating" ||
+          nftPanelViewState === "transferring"
+        ) && <ModalCloseButton color="white" />}
 
         <ModalBody display="flex">
           {nftPanelViewState === "initialLoading" && (
@@ -431,7 +374,7 @@ export default function PostNFT({
             </Flex>
           )}
           {nftPanelViewState === "create" && (
-            <Flex id="createNftFlex" direction="column">
+            <Flex id="createNftFlex" direction="column" width="100%">
               <FormControl variant="floating">
                 <Input
                   required
@@ -585,6 +528,9 @@ export default function PostNFT({
                     size="sm"
                     variant="solid"
                     colorScheme="blue"
+                    onClick={() => {
+                      handleTransferButton();
+                    }}
                   >
                     Transfer Your NFT
                   </Button>
@@ -610,7 +556,7 @@ export default function PostNFT({
                     id="update-nft-button"
                     size="sm"
                     variant="outline"
-                    colorScheme="blue"
+                    colorScheme="yellow"
                     onClick={() => {
                       handleUpdateNftButon();
                     }}
@@ -751,81 +697,126 @@ export default function PostNFT({
           )}
 
           {nftPanelViewState === "transfer" && (
-            <Flex id="transfer-nft-panel">
-              <Flex id="transfer-nft-area" direction="column" gap={2}>
-                <Text color="red" fontSize="9pt">
-                  {postInformation.senderUsername === currentUserState.username
-                    ? "Your"
-                    : "This"}
-                  NFT is not transferred.
+            <Flex
+              id="transfer-nft-panel"
+              width="100%"
+              direction="column"
+              align="center"
+              justify="center"
+              gap="20px"
+            >
+              <Icon
+                as={BiTransferAlt}
+                color="white"
+                width="100px"
+                height="100px"
+              />
+              <Flex
+                id="warning-area"
+                direction="column"
+                align="center"
+                justify="center"
+                gap="2px"
+                fontWeight="600"
+              >
+                <Text
+                  id="main-warning"
+                  color="red"
+                  fontSize="12pt"
+                  textAlign="center"
+                >
+                  Warning: NFT Transfer is Permanent
                 </Text>
-                <form
-                  onSubmit={(event) => {
-                    event.preventDefault();
+                <Text
+                  id="sub-warning"
+                  color="yellow.500"
+                  fontSize="10pt"
+                  textAlign="center"
+                >
+                  This NFT transfer cannot be reversed.
+                </Text>
+                <Text
+                  id="small-explain"
+                  color="yellow.500"
+                  fontSize="9pt"
+                  textAlign="center"
+                >
+                  Once you confirm this transaction, the ownership of this NFT
+                  will be permanently transferred to the recipient address.
+                </Text>
+              </Flex>
+              <Flex direction="column" width="100%">
+                <InputGroup>
+                  <FormControl variant="floating">
+                    <Input
+                      ref={nftTransferAddressInputRef}
+                      required
+                      name="nftTransferAddress"
+                      placeholder=" "
+                      mb={2}
+                      pr={"9"}
+                      onChange={handleNftTransferAddressChange}
+                      value={nftTransferAddress}
+                      _hover={{
+                        border: "1px solid",
+                        borderColor: "blue.500",
+                      }}
+                      textColor="white"
+                      bg="black"
+                      spellCheck={false}
+                      isRequired
+                    />
+                    <FormLabel
+                      bg="rgba(0,0,0)"
+                      textColor="gray.500"
+                      fontSize="12pt"
+                      my={2}
+                    >
+                      Transfer Address
+                    </FormLabel>
+                  </FormControl>
+                  <InputRightElement hidden={nftTransferAddress.length === 0}>
+                    {!nftTransferAddressRight ? (
+                      <Icon as={BiError} fontSize="20px" color="red" />
+                    ) : (
+                      <Icon
+                        as={AiOutlineCheckCircle}
+                        fontSize="20px"
+                        color="green"
+                      />
+                    )}
+                  </InputRightElement>
+                </InputGroup>
+                <Button
+                  width="100%"
+                  variant="outline"
+                  type="submit"
+                  colorScheme="blue"
+                  size="sm"
+                  isDisabled={!nftTransferAddressRight || !nftTransferAddress}
+                  onClick={() => {
                     handleNFTransfer();
                   }}
-                  style={{
-                    marginTop: "1",
-                  }}
-                  hidden={
-                    postInformation.senderUsername !== currentUserState.username
-                  }
                 >
-                  <InputGroup>
-                    <FormControl variant="floating">
-                      <Input
-                        ref={nftTransferAddressInputRef}
-                        required
-                        name="nftTransferAddress"
-                        placeholder=" "
-                        mb={2}
-                        pr={"9"}
-                        onChange={handleNftTransferAddressChange}
-                        value={nftTransferAddress}
-                        _hover={{
-                          border: "1px solid",
-                          borderColor: "blue.500",
-                        }}
-                        textColor="white"
-                        bg="black"
-                        spellCheck={false}
-                        isRequired
-                        disabled={nftTransferLoading}
-                      />
-                      <FormLabel
-                        bg="rgba(0,0,0)"
-                        textColor="gray.500"
-                        fontSize="12pt"
-                        my={2}
-                      >
-                        Transfer Address
-                      </FormLabel>
-                    </FormControl>
-                    <InputRightElement hidden={nftTransferAddress.length === 0}>
-                      {!nftTransferAddressRight ? (
-                        <Icon as={BiError} fontSize="20px" color="red" />
-                      ) : (
-                        <Icon
-                          as={AiOutlineCheckCircle}
-                          fontSize="20px"
-                          color="green"
-                        />
-                      )}
-                    </InputRightElement>
-                  </InputGroup>
-                  <Button
-                    width="100%"
-                    variant="outline"
-                    type="submit"
-                    colorScheme="blue"
-                    size="sm"
-                    isDisabled={!nftTransferAddressRight}
-                    isLoading={nftTransferLoading}
-                  >
-                    Transfer your NFT
-                  </Button>
-                </form>
+                  Transfer your NFT
+                </Button>
               </Flex>
+            </Flex>
+          )}
+
+          {nftPanelViewState === "transferring" && (
+            <Flex
+              id="transferring-flex"
+              width="100%"
+              direction="column"
+              align="center"
+              justify="center"
+              gap="15px"
+            >
+              <Spinner width="75px" height="75px" color="teal" />
+              <Text color="white" fontSize="12pt" fontWeight="700">
+                NFT is being transferred
+              </Text>
             </Flex>
           )}
 
@@ -853,7 +844,6 @@ export default function PostNFT({
                 variant="outline"
                 colorScheme="blue"
                 onClick={() => {
-                  resetStatesAfterAbandon();
                   openPanelNameValueSetter("main");
                 }}
                 isDisabled={creatingNFTLoading}
@@ -878,7 +868,6 @@ export default function PostNFT({
               colorScheme="blue"
               onClick={() => {
                 openPanelNameValueSetter("main");
-                resetStatesAfterNFTCreation();
               }}
             >
               Return to post
