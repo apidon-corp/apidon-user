@@ -166,6 +166,7 @@ export default async function handler(
       transferStatus: {
         isTransferred: false,
       },
+      postDocPath: `/users/${operationFromUsername}/posts/${postDocId}`,
     };
 
     let createdNftDoc;

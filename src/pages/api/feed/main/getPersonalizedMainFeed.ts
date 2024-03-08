@@ -23,13 +23,12 @@ export default async function handler(
       /**
        * We are creating feed for index....
        * 1-) Posts from we follow...
-       * 2-) Popular posts....
-       * 3-) Ads...
+       * 2-) Posts from Provider Algorithm
        */
 
       let postsSourcesUsernames: string[] = [];
 
-      // 1
+      // 1-) Followings
       let userFollowingsQuerySnapshot: FirebaseFirestore.QuerySnapshot<FirebaseFirestore.DocumentData>;
       try {
         userFollowingsQuerySnapshot = await firestore
@@ -49,31 +48,7 @@ export default async function handler(
         }
       }
 
-      // 2-)
-      let celebritiesDoc: FirebaseFirestore.DocumentSnapshot<FirebaseFirestore.DocumentData>;
-      try {
-        celebritiesDoc = await firestore.doc(`popular/celebrities`).get();
-      } catch (error) {
-        console.error(
-          `Error while creating feed for ${operationFromUsername}. (We were getting popular people)`,
-          error
-        );
-        return res.status(503).send("Firebase Error");
-      }
-
-      let popularPeople: string[] = [];
-      if (celebritiesDoc.data()) {
-        popularPeople = celebritiesDoc.data()!.people;
-      }
-
-      if (popularPeople.length !== 0) {
-        for (const popularPerson of popularPeople) {
-          postsSourcesUsernames.push(popularPerson);
-        }
-      }
-
-      // 3-)
-
+      // 2-) Proivder
       let provider = "";
 
       let currentProviderDocSnapshot: FirebaseFirestore.DocumentSnapshot<FirebaseFirestore.DocumentData>;

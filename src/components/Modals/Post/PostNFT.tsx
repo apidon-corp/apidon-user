@@ -3,6 +3,7 @@ import { postsAtViewAtom } from "@/components/atoms/postsAtViewAtom";
 import { NFTMetadata, nftMetadataPlaceHolder } from "@/components/types/NFT";
 import {
   NftDocDataInServer,
+  NftDocDataInServerPlaceholder,
   OpenPanelName,
   PostItemData,
   PostServerData,
@@ -73,18 +74,7 @@ export default function PostNFT({
     | "transferring"
   >("initialLoading");
 
-  const [nftDocDataState, setNftDocDataState] = useState<NftDocDataInServer>({
-    contractAddress: "",
-    description: "",
-    metadataLink: "",
-    mintTime: 0,
-    name: "",
-    openseaUrl: "",
-    tokenId: 0,
-    transferStatus: {
-      isTransferred: false,
-    },
-  });
+  const [nftDocDataState, setNftDocDataState] = useState<NftDocDataInServer>(NftDocDataInServerPlaceholder);
 
   const [nftMetadataState, setNftMetadataState] = useState<NFTMetadata>(
     nftMetadataPlaceHolder
