@@ -1,6 +1,7 @@
 import getDisplayName from "@/apiUtils";
 import { GetPersonalizedNftFeedResponse } from "@/components/types/API";
-import { NftDocDataInServer, PostItemData } from "@/components/types/Post";
+import { NftDocDataInServer } from "@/components/types/NFT";
+import { PostItemData } from "@/components/types/Post";
 import { firestore } from "@/firebase/adminApp";
 import { NextApiRequest, NextApiResponse } from "next";
 

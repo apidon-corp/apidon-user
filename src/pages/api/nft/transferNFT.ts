@@ -1,5 +1,5 @@
 import getDisplayName from "@/apiUtils";
-import { NftDocDataInServer, PostServerData } from "@/components/types/Post";
+import { PostServerData } from "@/components/types/Post";
 import AsyncLock from "async-lock";
 import { ethers } from "ethers";
 import { NextApiRequest, NextApiResponse } from "next";
@@ -8,6 +8,7 @@ import {
   apidonNFT,
   apidonNFTMumbaiContractAddress,
 } from "@/web3/NFT/ApidonNFTApp";
+import { NftDocDataInServer } from "@/components/types/NFT";
 
 const lock = new AsyncLock();
 

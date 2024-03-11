@@ -1,9 +1,14 @@
 import { currentUserStateAtom } from "@/components/atoms/currentUserAtom";
 import { postsAtViewAtom } from "@/components/atoms/postsAtViewAtom";
-import { NFTMetadata, nftMetadataPlaceHolder } from "@/components/types/NFT";
 import {
+  NFTMetadata,
   NftDocDataInServer,
   NftDocDataInServerPlaceholder,
+  NftListInput,
+  nftListInputPlaceholder,
+  nftMetadataPlaceHolder,
+} from "@/components/types/NFT";
+import {
   OpenPanelName,
   PostItemData,
   PostServerData,
@@ -50,6 +55,9 @@ import { FaRegUserCircle } from "react-icons/fa";
 import { FiExternalLink } from "react-icons/fi";
 import { MdContentCopy } from "react-icons/md";
 import { useRecoilValue, useSetRecoilState } from "recoil";
+import { AiFillDollarCircle } from "react-icons/ai";
+
+import { MdSell } from "react-icons/md";
 
 type Props = {
   openPanelNameValue: OpenPanelName;
@@ -72,9 +80,13 @@ export default function PostNFT({
     | "updating"
     | "transfer"
     | "transferring"
+    | "list"
+    | "listing"
   >("initialLoading");
 
-  const [nftDocDataState, setNftDocDataState] = useState<NftDocDataInServer>(NftDocDataInServerPlaceholder);
+  const [nftDocDataState, setNftDocDataState] = useState<NftDocDataInServer>(
+    NftDocDataInServerPlaceholder
+  );
 
   const [nftMetadataState, setNftMetadataState] = useState<NFTMetadata>(
     nftMetadataPlaceHolder
@@ -82,11 +94,11 @@ export default function PostNFT({
 
   const {
     mintNft,
-    creatingNFTLoading,
     refreshNFT,
-    nftCreated,
-    setNftCreated,
     transferNft,
+    creatingNFTLoading,
+    nftCreated,
+    listNft,
   } = useNFT();
 
   const [nftTitle, setNftTitle] = useState("");
@@ -102,6 +114,10 @@ export default function PostNFT({
   const setPostsAtView = useSetRecoilState(postsAtViewAtom);
 
   const currentUserState = useRecoilValue(currentUserStateAtom);
+
+  const [listNftInputState, setListNftInputState] = useState<NftListInput>(
+    nftListInputPlaceholder
+  );
 
   /**
    * Get intial nft status then save it to state.
@@ -162,6 +178,8 @@ export default function PostNFT({
 
     // We have a valid nft metadata data.
     setNftMetadataState(nftMetadaDataResult);
+
+    console.log(nftDocData);
 
     // We need to show nft information to user
     setNftPanelViewState("created");
@@ -301,6 +319,37 @@ export default function PostNFT({
     setNftTransferAddress(susAddress);
   };
 
+  /**
+   * Toggles 'list' panel
+   */
+  const handleListYourNFTButton = () => {
+    setNftPanelViewState("list");
+  };
+
+  const handleListPriceInputChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    if (!event.target.value) return;
+    const priceInNumber = Number(event.target.value);
+
+    setListNftInputState((prev) => ({ ...prev, price: priceInNumber }));
+  };
+
+  /**
+   * Function that calls hook.
+   */
+  const handleListButton = async () => {
+    setNftPanelViewState("listing");
+
+    const operationResult = await listNft({
+      currency: "dollar",
+      postDocId: postInformation.postDocId,
+      price: listNftInputState.price,
+    });
+
+    return setNftPanelViewState("initialLoading");
+  };
+
   return (
     <Modal
       isOpen={openPanelNameValue === "nft"}
@@ -310,7 +359,8 @@ export default function PostNFT({
             nftPanelViewState === "initialLoading" ||
             nftPanelViewState === "creating" ||
             nftPanelViewState === "updating" ||
-            nftPanelViewState === "transferring"
+            nftPanelViewState === "transferring" ||
+            nftPanelViewState === "listing"
           )
         )
           openPanelNameValueSetter("main");
@@ -352,11 +402,18 @@ export default function PostNFT({
         {nftPanelViewState === "transferring" && (
           <ModalHeader color="white">Transfer</ModalHeader>
         )}
+        {nftPanelViewState === "list" && (
+          <ModalHeader color="white">List Your NFT</ModalHeader>
+        )}
+        {nftPanelViewState === "listing" && (
+          <ModalHeader color="white">List Your NFT</ModalHeader>
+        )}
         {!(
           nftPanelViewState === "initialLoading" ||
           nftPanelViewState === "creating" ||
           nftPanelViewState === "updating" ||
-          nftPanelViewState === "transferring"
+          nftPanelViewState === "transferring" ||
+          nftPanelViewState == "listing"
         ) && <ModalCloseButton color="white" />}
 
         <ModalBody display="flex">
@@ -505,7 +562,7 @@ export default function PostNFT({
                 </Flex>
               </Flex>
               <Flex
-                id="update-transfer-buttons"
+                id="update-transfer-list-buttons"
                 gap="10px"
                 width="100%"
                 align="center"
@@ -559,6 +616,59 @@ export default function PostNFT({
                     Update Your NFT
                   </Button>
                 </Flex>
+                <Button
+                  id="list-nft-button"
+                  size="sm"
+                  variant="outline"
+                  colorScheme="green"
+                  onClick={() => {
+                    handleListYourNFTButton();
+                  }}
+                  hidden={nftDocDataState.listStatus.isListed}
+                >
+                  List Your NFT
+                </Button>
+              </Flex>
+
+              <Flex
+                id="nft-list-status"
+                direction="column"
+                hidden={!nftDocDataState.listStatus.isListed}
+              >
+                <Flex id="sold-flex"></Flex>
+                <Flex id="not-sold-flex" direction="column" gap="2">
+                  <Text fontSize="15pt" as="b" color="white">
+                    Listing
+                  </Text>
+                  <Text fontSize="10pt" as="b" color="white">
+                    This NFT is{" "}
+                    <span
+                      style={{
+                        color: "#63B3ED",
+                      }}
+                    >
+                      listed
+                    </span>{" "}
+                    for{" "}
+                    <span
+                      style={{
+                        color: "green",
+                        fontWeight: "700",
+                      }}
+                    >
+                      ${nftDocDataState.listStatus.price}{" "}
+                    </span>
+                    and{" "}
+                    <span
+                      style={{
+                        color: "#D69E2E",
+                      }}
+                    >
+                      waiting
+                    </span>{" "}
+                    for buyers.
+                  </Text>
+                </Flex>
               </Flex>
 
               <Flex id="nft-market-places-links" direction="column" gap={2}>
@@ -584,6 +694,7 @@ export default function PostNFT({
                   <Icon as={FiExternalLink} color="white" fontSize="10pt" />
                 </Flex>
               </Flex>
+
               <Flex id="nft-details" direction="column" gap={2}>
                 <Text color="white" fontSize="15pt" as="b">
                   Details
@@ -827,6 +938,95 @@ export default function PostNFT({
               <Spinner width="75px" height="75px" color="teal" />
               <Text color="white" fontSize="15pt" fontWeight="700">
                 NFT is being updated.
+              </Text>
+            </Flex>
+          )}
+
+          {nftPanelViewState === "list" && (
+            <Flex
+              id="list-nft-flex"
+              width="100%"
+              direction="column"
+              align="center"
+              justify="center"
+              gap="20px"
+            >
+              <Icon as={MdSell} color="white" width="75px" height="75px" />
+              <Flex
+                id="set-price-area"
+                width="50%"
+                direction="column"
+                gap="10px"
+                align="center"
+                justify="center"
+              >
+                <Text color="white" fontSize="15pt" fontWeight="700">
+                  Set Price
+                </Text>
+
+                <InputGroup>
+                  <FormControl variant="floating">
+                    <Input
+                      type="number"
+                      required
+                      name="price"
+                      placeholder=" "
+                      mb={2}
+                      pr={"9"}
+                      onChange={handleListPriceInputChange}
+                      //  value={""}
+                      _hover={{
+                        border: "1px solid",
+                        borderColor: "blue.500",
+                      }}
+                      textColor="white"
+                      bg="black"
+                      spellCheck={false}
+                      isRequired
+                    />
+                    <FormLabel
+                      bg="rgba(0,0,0)"
+                      textColor="gray.500"
+                      fontSize="12pt"
+                      my={2}
+                    >
+                      Price
+                    </FormLabel>
+                  </FormControl>
+                  <InputRightElement>
+                    <Icon
+                      as={AiFillDollarCircle}
+                      color="green"
+                      fontSize="x-large"
+                    />
+                  </InputRightElement>
+                </InputGroup>
+              </Flex>
+
+              <Button
+                id="list-button"
+                colorScheme="green"
+                variant="outline"
+                size="md"
+                onClick={handleListButton}
+              >
+                List
+              </Button>
+            </Flex>
+          )}
+
+          {nftPanelViewState === "listing" && (
+            <Flex
+              id="listing-flex"
+              width="100%"
+              direction="column"
+              align="center"
+              justify="center"
+              gap="15px"
+            >
+              <Spinner width="75px" height="75px" color="green.500" />
+              <Text color="white" fontSize="12pt" fontWeight="700">
+                NFT is being listed
               </Text>
             </Flex>
           )}

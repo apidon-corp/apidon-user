@@ -1,6 +1,6 @@
 import getDisplayName from "@/apiUtils";
-import { NFTMetadata } from "@/components/types/NFT";
-import { NftDocDataInServer, PostServerData } from "@/components/types/Post";
+import { NFTMetadata, NftDocDataInServer } from "@/components/types/NFT";
+import { PostServerData } from "@/components/types/Post";
 
 import AsyncLock from "async-lock";
 import { TransactionReceipt } from "ethers";
@@ -167,6 +167,9 @@ export default async function handler(
         isTransferred: false,
       },
       postDocPath: `/users/${operationFromUsername}/posts/${postDocId}`,
+      listStatus: {
+        isListed: false,
+      },
     };
 
     let createdNftDoc;

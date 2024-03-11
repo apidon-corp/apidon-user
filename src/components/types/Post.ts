@@ -117,31 +117,4 @@ export type PostStatus = {
   loading: boolean;
 };
 
-export type NftDocDataInServer = {
-  mintTime: number;
-  metadataLink: string;
-  name: string;
-  description: string;
-  tokenId: number;
-  contractAddress: string;
-  openseaUrl: string;
-  transferStatus: {
-    isTransferred: boolean;
-    transferredAddress?: string;
-  };
-  postDocPath: string;
-};
 
-export const NftDocDataInServerPlaceholder: NftDocDataInServer = {
-  contractAddress: "",
-  description: "",
-  metadataLink: "",
-  mintTime: 0,
-  name: "",
-  openseaUrl: "",
-  postDocPath: "",
-  tokenId: 0,
-  transferStatus: {
-    isTransferred: false,
-  },
-};

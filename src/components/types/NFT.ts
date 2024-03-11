@@ -25,3 +25,63 @@ export const nftMetadataPlaceHolder: NFTMetadata = {
   name: "",
   attributes: [],
 };
+
+export type NftDocDataInServer = {
+  mintTime: number;
+  metadataLink: string;
+  name: string;
+  description: string;
+  tokenId: number;
+  contractAddress: string;
+  openseaUrl: string;
+  transferStatus: {
+    isTransferred: boolean;
+    transferredAddress?: string;
+  };
+  postDocPath: string;
+  listStatus: {
+    buyer?: string;
+    currency?: "dollar" | "matic";
+    isListed: boolean;
+    price?: number;
+    sold?: boolean;
+  };
+};
+
+export const NftDocDataInServerPlaceholder: NftDocDataInServer = {
+  contractAddress: "",
+  description: "",
+  metadataLink: "",
+  mintTime: 0,
+  name: "",
+  openseaUrl: "",
+  postDocPath: "",
+  tokenId: 0,
+  transferStatus: {
+    isTransferred: false,
+  },
+  listStatus: {
+    isListed: false,
+  },
+};
+
+export type NftListInput = {
+  price: number;
+  currency: "dollar" | "matic";
+};
+
+export const nftListInputPlaceholder: NftListInput = {
+  price: 0,
+  currency: "dollar",
+};
+
+export type NftListRequestBody = {
+  price: number;
+  currency: "dollar" | "matic";
+  postDocId: string;
+};
+
+export type NFTListResponseBody = {
+  price: number;
+  currency: "dollar" | "matic";
+};
