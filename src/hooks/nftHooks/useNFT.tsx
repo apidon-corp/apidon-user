@@ -2,6 +2,7 @@ import { currentUserStateAtom } from "@/components/atoms/currentUserAtom";
 import { headerAtViewAtom } from "@/components/atoms/headerAtViewAtom";
 import { UploadNFTResponse } from "@/components/types/API";
 import {
+  NFTBuyRequestBody,
   NFTListResponseBody,
   NftListInput,
   NftListRequestBody,
@@ -227,12 +228,52 @@ export default function useNFT() {
     }
   };
 
+  const buyNft = async (nftBuyRequestBody: NFTBuyRequestBody) => {
+    if (!nftBuyRequestBody.postDocPath) return false;
+
+    let idToken = "";
+    try {
+      idToken = (await auth.currentUser?.getIdToken()) as string;
+    } catch (error) {
+      console.error(
+        "Error while listing NFT. Couln't be got idToken. \n",
+        error
+      );
+      return false;
+    }
+
+    try {
+      const response = await fetch("/api/nft/buyNFT", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `Bearer ${idToken}`,
+        },
+        body: JSON.stringify({
+          ...nftBuyRequestBody,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          `Response from buyNFT API is not okay: \n ${await response.text()}`
+        );
+      }
+    } catch (error) {
+      console.error("Error while fetching buyNFT API : \n", error);
+      return false;
+    }
+
+    return true
+  };
+
   return {
     mintNft,
     creatingNFTLoading,
     nftCreated,
     refreshNFT,
     transferNft,
-    listNft
+    listNft,
+    buyNft
   };
 }

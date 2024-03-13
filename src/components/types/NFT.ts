@@ -85,3 +85,7 @@ export type NFTListResponseBody = {
   price: number;
   currency: "dollar" | "matic";
 };
+
+export type NFTBuyRequestBody = {
+  postDocPath: string;
+};

@@ -42,24 +42,24 @@ export default async function handler(
       const postInteractionsDoc = await firestore
         .doc(`users/${operationFromUsername}/personal/postInteractions`)
         .get();
-      if (!postInteractionsDoc.exists) return (interactedPostObjectsArray = []);
+      if (postInteractionsDoc.exists) {
+        const likedPostsArray = postInteractionsDoc.data()!
+          .likedPostsArray as LikedPostArrayObject[];
+        const commentedPostsArray = postInteractionsDoc.data()!
+          .commentedPostsArray as CommentedPostArrayObject[];
+        const uploadedPostsArray = postInteractionsDoc.data()!
+          .uploadedPostsArray as UploadedPostArrayObject[];
 
-      const likedPostsArray = postInteractionsDoc.data()!
-        .likedPostsArray as LikedPostArrayObject[];
-      const commentedPostsArray = postInteractionsDoc.data()!
-        .commentedPostsArray as CommentedPostArrayObject[];
-      const uploadedPostsArray = postInteractionsDoc.data()!
-        .uploadedPostsArray as UploadedPostArrayObject[];
+        interactedPostObjectsArray = [
+          ...likedPostsArray,
+          ...commentedPostsArray,
+          ...uploadedPostsArray,
+        ];
 
-      interactedPostObjectsArray = [
-        ...likedPostsArray,
-        ...commentedPostsArray,
-        ...uploadedPostsArray,
-      ];
-
-      interactedPostObjectsArray = Array.from(
-        new Set([...interactedPostObjectsArray])
-      );
+        interactedPostObjectsArray = Array.from(
+          new Set([...interactedPostObjectsArray])
+        );
+      }
     } catch (error) {
       console.error(
         "Error while creating interactedPostObjectsArray on choosing Provider...",
