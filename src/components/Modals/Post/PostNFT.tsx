@@ -364,7 +364,7 @@ export default function PostNFT({
   };
 
   /**
-   * Handles buyNFT Hook
+   * Executes buyNFT Hook
    */
   const handleBuyButton = async () => {
     setNftPanelViewState("buying");
@@ -373,7 +373,6 @@ export default function PostNFT({
       postDocPath: `/users/${postInformation.senderUsername}/posts/${postInformation.postDocId}`,
     };
     const operationResult = await buyNft(nftBuyRequestBody);
-    console.log("Response from buyNFT hook: ", operationResult);
 
     setNftPanelViewState("initialLoading");
   };
@@ -672,12 +671,28 @@ export default function PostNFT({
                 hidden={!nftDocDataState.listStatus.isListed}
               >
                 {nftDocDataState.listStatus.sold && (
-                  <Flex id="sold-flex" direction="column">
+                  <Flex id="sold-flex" direction="column" gap="2">
                     <Text fontSize="15pt" as="b" color="white">
                       Listing
                     </Text>
+
+                    <Flex
+                      id="price-box"
+                      width="100px"
+                      height="100px"
+                      justify="center"
+                      align="center"
+                      borderWidth="1px"
+                      borderColor="gray"
+                      borderRadius="10px"
+                    >
+                      <Text color="green.500" fontWeight="700" fontSize="20pt">
+                        ${nftDocDataState.listStatus.price}
+                      </Text>
+                    </Flex>
+
                     <Text color="white" fontSize="10pt" fontWeight="700">
-                      This NFT is sold to ${nftDocDataState.listStatus.price}
+                      This NFT is sold.
                     </Text>
                   </Flex>
                 )}
@@ -693,37 +708,33 @@ export default function PostNFT({
                         <Text fontSize="15pt" as="b" color="white">
                           Listing
                         </Text>
+
+                        <Flex
+                          id="price-box"
+                          width="100px"
+                          height="100px"
+                          justify="center"
+                          align="center"
+                          borderWidth="1px"
+                          borderColor="gray"
+                          borderRadius="10px"
+                        >
+                          <Text
+                            color="green.500"
+                            fontWeight="700"
+                            fontSize="20pt"
+                          >
+                            ${nftDocDataState.listStatus.price}
+                          </Text>
+                        </Flex>
+
                         <Text fontSize="10pt" as="b" color="white">
-                          This NFT is{" "}
-                          <span
-                            style={{
-                              color: "#63B3ED",
-                            }}
-                          >
-                            listed
-                          </span>{" "}
-                          for{" "}
-                          <span
-                            style={{
-                              color: "green",
-                              fontWeight: "700",
-                            }}
-                          >
-                            ${nftDocDataState.listStatus.price}{" "}
-                          </span>
-                          and{" "}
-                          <span
-                            style={{
-                              color: "#D69E2E",
-                            }}
-                          >
-                            waiting
-                          </span>{" "}
-                          for buyers.
+                          This NFT is listed with $
+                          {nftDocDataState.listStatus.price} and waiting for
+                          buyers.
                         </Text>
                       </Flex>
                     )}
-                    1
                     {postInformation.senderUsername !==
                       currentUserState.username && (
                       <Flex
@@ -734,10 +745,25 @@ export default function PostNFT({
                         <Text fontSize="15pt" as="b" color="white">
                           Listing
                         </Text>
-                        <Text fontSize="10pt" as="b" color="white">
-                          This NFT are valued for: $
-                          {nftDocDataState.listStatus.price}
-                        </Text>
+                        <Flex
+                          id="price-box"
+                          width="100px"
+                          height="100px"
+                          justify="center"
+                          align="center"
+                          borderWidth="1px"
+                          borderColor="gray"
+                          borderRadius="10px"
+                        >
+                          <Text
+                            color="green.500"
+                            fontWeight="700"
+                            fontSize="20pt"
+                          >
+                            ${nftDocDataState.listStatus.price}
+                          </Text>
+                        </Flex>
+
                         <Button
                           id="buy-this-nft-button"
                           variant="outline"
@@ -745,6 +771,7 @@ export default function PostNFT({
                           onClick={() => {
                             handleBuyNftButton();
                           }}
+                          size="sm"
                         >
                           Buy
                         </Button>
@@ -1123,16 +1150,41 @@ export default function PostNFT({
               justify="center"
               gap="15px"
             >
-              <Icon
-                as={FaCartShopping}
-                color="white"
-                width="75px"
-                height="75px"
+              <Image
+                width="50%"
+                src={nftMetadataState.image}
+                border="1px solid gray"
+                borderRadius="10px"
               />
+              <Flex
+                id="title-description"
+                direction="column"
+                gap="2px"
+                justify="center"
+                align="center"
+              >
+                <Flex id="nft-title-data" align="center">
+                  <Text
+                    color="white"
+                    fontSize="13pt"
+                    fontWeight="700"
+                    textAlign="center"
+                  >
+                    {nftDocDataState.name}
+                  </Text>
+                </Flex>
+
+                <Flex id="nft-description-data" align="center">
+                  <Text color="gray.300" fontSize="10pt" fontWeight="700">
+                    "{nftDocDataState.description}"
+                  </Text>
+                </Flex>
+              </Flex>
+
               <Text
                 id="price-text"
                 color="green.500"
-                fontSize="15pt"
+                fontSize="20pt"
                 fontWeight="700"
               >
                 ${nftDocDataState.listStatus.price}
