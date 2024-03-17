@@ -1,10 +1,11 @@
-import { Box, Flex, Text } from "@chakra-ui/react";
+import { Box, Button, Flex, Text } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 import Authentication from "./Authentication/Authentication";
 import NotificationButton from "./SearchBar/NotificationButton";
 import PostCreateButton from "./SearchBar/PostCreateButton";
 
 import SearchBar from "./SearchBar/SearchBar";
+import NFTButton from "./NFTButton";
 
 export default function Navbar() {
   const router = useRouter();
@@ -54,6 +55,7 @@ export default function Navbar() {
 
         <Box>
           <Flex align="center" gap={2}>
+            <NFTButton />
             <NotificationButton />
             <PostCreateButton />
             <Authentication />
@@ -97,6 +99,7 @@ export default function Navbar() {
           <SearchBar />
         </Flex>
         <Flex justify="flex-end" width="100%" align="center" gap={3}>
+          <NFTButton />
           <NotificationButton />
           <PostCreateButton />
           <Authentication />

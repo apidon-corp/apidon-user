@@ -3,6 +3,9 @@ export type PostCreateForm = {
   image: string;
 };
 
+/**
+ * This Type are used at Firebase, mostly.
+ */
 export type PostServerData = {
   senderUsername: string;
 
@@ -13,21 +16,16 @@ export type PostServerData = {
   commentCount: number;
 
   nftStatus: {
-    minted: boolean;
-    mintTime: number;
-    metadataLink: string;
-    name: string;
-    description: string;
-    tokenId: number;
-    contractAddress: string;
-    openseaUrl: string;
-    transferred: boolean;
-    transferredAddress: string;
+    convertedToNft: boolean;
+    nftDocPath?: string;
   };
 
   creationTime: number;
 };
 
+/**
+ * This type are used mostly for state management, frontend.
+ */
 export type PostItemData = {
   senderUsername: string;
 
@@ -41,16 +39,8 @@ export type PostItemData = {
   postDocId: string;
 
   nftStatus: {
-    minted: boolean;
-    mintTime: number;
-    metadataLink: string;
-    name: string;
-    description: string;
-    tokenId: number;
-    contractAddress: string;
-    openseaUrl: string;
-    transferred: boolean;
-    transferredAddress: string;
+    convertedToNft: boolean;
+    nftDocPath?: string;
   };
 
   currentUserFollowThisSender: boolean;
@@ -58,6 +48,9 @@ export type PostItemData = {
   creationTime: number;
 };
 
+/**
+ * This type are used mostly for state management, frontend.
+ */
 export type PostFrontData = {
   senderUsername: string;
 
@@ -71,16 +64,8 @@ export type PostFrontData = {
   postDocId: string;
 
   nftStatus: {
-    minted: boolean;
-    mintTime: number;
-    metadataLink: string;
-    name: string;
-    description: string;
-    tokenId: number;
-    contractAddress: string;
-    openseaUrl: string;
-    transferred: boolean;
-    transferredAddress: string;
+    convertedToNft: boolean;
+    nftDocPath?: string;
   };
 
   currentUserFollowThisSender: boolean;
@@ -131,3 +116,5 @@ export type SendNftStatus =
 export type PostStatus = {
   loading: boolean;
 };
+
+

@@ -109,8 +109,6 @@ export default function PostFront({
       return setShowFollowButtonOnPost(false);
     }
 
-    
-
     if (postFrontData.currentUserFollowThisSender)
       return setShowFollowButtonOnPost(false);
 
@@ -221,8 +219,7 @@ export default function PostFront({
   };
 
   const handleLike = async (opCode: -1 | 1) => {
-
-    console.log("handleLike initiated.")
+    console.log("handleLike initiated.");
 
     if (!currentUserState.username) {
       console.log("Only Users can like");
@@ -374,7 +371,7 @@ export default function PostFront({
                 <Icon as={AiOutlineMenu} color="white" />
               </MenuButton>
               <MenuList>
-                {postFrontData.nftStatus.minted ? (
+                {postFrontData.nftStatus.convertedToNft ? (
                   <MenuItem onClick={() => openPanelNameSetter("nft")}>
                     Manage NFT
                   </MenuItem>
@@ -548,7 +545,7 @@ export default function PostFront({
 
           <Flex width="100%" position="relative">
             <Button
-              hidden={!!!postFrontData.nftStatus.minted}
+              hidden={!!!postFrontData.nftStatus.convertedToNft}
               position="absolute"
               right="2.5"
               bottom="2"

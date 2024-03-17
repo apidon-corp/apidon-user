@@ -45,7 +45,7 @@ export default async function handler(
     const postDocData = postDoc.data() as PostServerData;
 
     try {
-      if (postDocData.image || postDocData.nftStatus.minted) {
+      if (postDocData.image || postDocData.nftStatus.convertedToNft) {
         const postFilesPath = `users/${operationFromUsername}/postsFiles/${postDocId}`;
         await bucket.deleteFiles({
           prefix: postFilesPath + "/",
@@ -59,8 +59,9 @@ export default async function handler(
       return res.status(503).send("Firebase Error");
     }
 
+    // Decrementing NFT's count.
     try {
-      if (postDocData.nftStatus.minted) {
+      if (postDocData.nftStatus.convertedToNft) {
         await firestore.doc(`users/${operationFromUsername}`).update({
           nftCount: fieldValue.increment(-1),
         });
@@ -71,6 +72,22 @@ export default async function handler(
         error
       );
       return res.status(503).send("Firebase Error");
+    }
+
+    // Deleting nft doc on firebase.
+    try {
+      if (
+        postDocData.nftStatus.convertedToNft &&
+        postDocData.nftStatus.nftDocPath
+      ) {
+        await firestore.doc(postDocData.nftStatus.nftDocPath).delete();
+      }
+    } catch (error) {
+      console.error(
+        "Error on deleting nft doc while deleting post doc: \n",
+        error
+      );
+      return res.status(500).send("Internal Server Error");
     }
 
     try {

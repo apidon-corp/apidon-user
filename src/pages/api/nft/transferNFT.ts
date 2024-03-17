@@ -8,6 +8,7 @@ import {
   apidonNFT,
   apidonNFTMumbaiContractAddress,
 } from "@/web3/NFT/ApidonNFTApp";
+import { NftDocDataInServer } from "@/components/types/NFT";
 
 const lock = new AsyncLock();
 
@@ -48,14 +49,32 @@ export default async function handler(
       return res.status(401).send("Unauthorized");
     }
 
-    if (!pd.nftStatus.minted) {
+    if (!pd.nftStatus.convertedToNft) {
       console.error(
-        "Error while transferring nft.(We are checking if NFT minted)"
+        "Error while transferring nft.(We are checking if post converted to nft)"
       );
       return res.status(422).send("Invalid prop or props");
     }
 
-    if (pd.nftStatus.transferred) {
+    if (!pd.nftStatus.nftDocPath) {
+      console.error(
+        "Error while transferring nft.(We are checking if post had nft doc path in it)"
+      );
+      return res.status(422).send("Invalid prop or props");
+    }
+
+    let nftDoc;
+    try {
+      nftDoc = await firestore.doc(pd.nftStatus.nftDocPath).get();
+      if (!nftDoc.exists) throw new Error("NFT doc doesn't exist.");
+    } catch (error) {
+      console.error("Error while getting nftDoc: \n", error);
+      return res.status(500).send("Internal Server Error");
+    }
+
+    const nftDocData = nftDoc.data() as NftDocDataInServer;
+
+    if (nftDocData.transferStatus.isTransferred) {
       console.error(
         "Error while transferring nft.(We are checking if NFT transferred)"
       );
@@ -73,7 +92,7 @@ export default async function handler(
     try {
       const tx = await apidonNFT.approve(
         apidonNFTMumbaiContractAddress,
-        pd.nftStatus.tokenId
+        nftDocData.tokenId
       );
       const r = await tx.wait(1);
       if (!r) {
@@ -91,7 +110,7 @@ export default async function handler(
       const nftMintTx = await apidonNFT.safeTransferFrom(
         process.env.NEXT_PUBLIC_OWNER_PUBLIC_ADDRESS,
         transferAddress,
-        pd.nftStatus.tokenId
+        nftDocData.tokenId
       );
       const txReceipt = await nftMintTx.wait(1);
 
@@ -106,16 +125,15 @@ export default async function handler(
       return res.status(503).send("Chain Error");
     }
 
+    const transferStatus: NftDocDataInServer["transferStatus"] = {
+      isTransferred: true,
+      transferredAddress: transferAddress,
+    };
+
     try {
-      await firestore
-        .doc(`users/${operationFromUsername}/posts/${postDocId}`)
-        .update({
-          nftStatus: {
-            ...pd.nftStatus,
-            transferred: true,
-            transferredAddress: transferAddress,
-          },
-        });
+      await firestore.doc(pd.nftStatus.nftDocPath).update({
+        transferStatus: { ...transferStatus },
+      });
     } catch (error) {
       console.error(
         "Error while transferring nft. (We were updating post doc.)",

@@ -71,9 +71,9 @@ export default async function handler(
       return res.status(401).send("Unauthorized");
     }
 
-    if (!pd.nftStatus.minted) {
+    if (!pd.nftStatus.convertedToNft) {
       console.error(
-        "Error while refreshing nft.(We are checking if NFT minted)"
+        "Error while refreshing nft.(We are checking if post converted to nft)"
       );
       return res.status(422).send("Invalid Prop or Props");
     }

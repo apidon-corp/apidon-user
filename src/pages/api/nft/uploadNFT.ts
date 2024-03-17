@@ -1,5 +1,5 @@
 import getDisplayName from "@/apiUtils";
-import { NFTMetadata } from "@/components/types/NFT";
+import { NFTMetadata, NftDocDataInServer } from "@/components/types/NFT";
 import { PostServerData } from "@/components/types/Post";
 
 import AsyncLock from "async-lock";
@@ -10,6 +10,7 @@ import {
   apidonNFT,
   apidonNFTMumbaiContractAddress,
 } from "@/web3/NFT/ApidonNFTApp";
+import { UploadNFTResponse } from "@/components/types/API";
 
 const lock = new AsyncLock();
 
@@ -154,8 +155,7 @@ export default async function handler(
       return res.status(503).send("Firebase Error");
     }
 
-    const resultNFTStatus: PostServerData["nftStatus"] = {
-      minted: true,
+    const nftData: NftDocDataInServer = {
       metadataLink: newMetadataFilePublicURL,
       mintTime: Date.now(),
       name: metadata.name,
@@ -163,8 +163,29 @@ export default async function handler(
       tokenId: tokenId,
       contractAddress: apidonNFTMumbaiContractAddress,
       openseaUrl: openSeaLinkCreated,
-      transferred: false,
-      transferredAddress: "",
+      transferStatus: {
+        isTransferred: false,
+      },
+      postDocPath: `/users/${operationFromUsername}/posts/${postDocId}`,
+      listStatus: {
+        isListed: false,
+      },
+    };
+
+    let createdNftDoc;
+    try {
+      createdNftDoc = await firestore.collection(`/nfts`).add({ ...nftData });
+    } catch (error) {
+      console.error(
+        "Error while creating nft doc for newly created nft: \n",
+        error
+      );
+      return res.status(500).send("Internal Server Error");
+    }
+
+    const postDocNftStatusPart: PostServerData["nftStatus"] = {
+      convertedToNft: true,
+      nftDocPath: createdNftDoc.path,
     };
 
     try {
@@ -172,7 +193,7 @@ export default async function handler(
         .doc(`users/${operationFromUsername}/posts/${postDocId}`)
         .update({
           nftStatus: {
-            ...resultNFTStatus,
+            ...postDocNftStatusPart,
           },
         });
     } catch (error) {
@@ -180,6 +201,9 @@ export default async function handler(
       return res.status(503).send("Firebase Error");
     }
 
-    return res.status(200).json(resultNFTStatus);
+    const response: UploadNFTResponse = {
+      nftDocPath: createdNftDoc.path,
+    };
+    return res.status(200).json({ ...response });
   });
 }

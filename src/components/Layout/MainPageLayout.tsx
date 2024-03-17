@@ -7,6 +7,9 @@ type Props = {
   postItemsDatas: PostItemData[];
 };
 
+/**
+ * This component are being used for both 'main page' and 'nft page'.
+ */
 export default function MainPageLayout({ postItemsDatas }: Props) {
   const [innerHeight, setInnerHeight] = useState("");
 

@@ -1,5 +1,12 @@
 import { currentUserStateAtom } from "@/components/atoms/currentUserAtom";
 import { headerAtViewAtom } from "@/components/atoms/headerAtViewAtom";
+import { UploadNFTResponse } from "@/components/types/API";
+import {
+  NFTBuyRequestBody,
+  NFTListResponseBody,
+  NftListInput,
+  NftListRequestBody,
+} from "@/components/types/NFT";
 import { auth } from "@/firebase/clientApp";
 import { useRouter } from "next/router";
 import { useState } from "react";
@@ -79,7 +86,9 @@ export default function useNFT() {
       setHeaderAtView((prev) => ({ ...prev, nftCount: prev.nftCount + 1 }));
     }
 
-    return await response.json();
+    const result = (await response.json()) as UploadNFTResponse;
+
+    return result;
   };
 
   /**
@@ -179,13 +188,92 @@ export default function useNFT() {
     return true;
   };
 
+  const listNft = async (nftListRequestBody: NftListRequestBody) => {
+    // Check if inputs are valid.
+    if (!nftListRequestBody.price || !nftListRequestBody.postDocId)
+      return false;
+
+    let idToken = "";
+    try {
+      idToken = (await auth.currentUser?.getIdToken()) as string;
+    } catch (error) {
+      console.error(
+        "Error while listing NFT. Couln't be got idToken. \n",
+        error
+      );
+      return false;
+    }
+
+    try {
+      const response = await fetch("/api/nft/listNFT", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `Bearer ${idToken}`,
+        },
+        body: JSON.stringify({ ...nftListRequestBody }),
+      });
+
+      if (!response.ok)
+        throw new Error(
+          `Response from listNFT api is not okay: \n ${await response.text()}`
+        );
+
+      const result: NFTListResponseBody = await response.json();
+
+      return result;
+    } catch (error) {
+      console.error("Error while fetching to listNFT API: \n", error);
+      return false;
+    }
+  };
+
+  const buyNft = async (nftBuyRequestBody: NFTBuyRequestBody) => {
+    if (!nftBuyRequestBody.postDocPath) return false;
+
+    let idToken = "";
+    try {
+      idToken = (await auth.currentUser?.getIdToken()) as string;
+    } catch (error) {
+      console.error(
+        "Error while listing NFT. Couln't be got idToken. \n",
+        error
+      );
+      return false;
+    }
+
+    try {
+      const response = await fetch("/api/nft/buyNFT", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `Bearer ${idToken}`,
+        },
+        body: JSON.stringify({
+          ...nftBuyRequestBody,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          `Response from buyNFT API is not okay: \n ${await response.text()}`
+        );
+      }
+    } catch (error) {
+      console.error("Error while fetching buyNFT API : \n", error);
+      return false;
+    }
+
+    return true
+  };
+
   return {
     mintNft,
     creatingNFTLoading,
     nftCreated,
-    setNftCreated,
     refreshNFT,
-    nftRefreshLoading,
     transferNft,
+    listNft,
+    buyNft
   };
 }
