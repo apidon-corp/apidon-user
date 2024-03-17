@@ -13,6 +13,7 @@ import useLogin from "@/hooks/authHooks/useLogin";
 import DataAnalysisPreferencesModal from "../Modals/User/DataAnalysisPreferencesModal";
 import CollectedDataInformationModal from "../Modals/User/CollectedDataInformationModal";
 import useCookie from "@/hooks/cookieHooks/useCookie";
+import TradedNFTsModal from "../Modals/User/TradedNFTsModal";
 
 type Props = {
   children: ReactNode;
@@ -68,6 +69,7 @@ export default function Layout({ children }: Props) {
           <CurrentProviderModal />
           <DataAnalysisPreferencesModal />
           <CollectedDataInformationModal />
+          <TradedNFTsModal />
           <Footer />
           <SystemStatus />
         </Box>

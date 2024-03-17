@@ -47,6 +47,7 @@ import { providerModalStateAtom } from "../atoms/providerModalAtom";
 import { dataAnalysisPreferencesModalAtom } from "../atoms/dataAnalysisPreferencesModalAtom";
 import { collectedDataInformationModalAtom } from "../atoms/CollectedDataInformationModalAtom";
 import useGetFirebase from "@/hooks/readHooks/useGetFirebase";
+import { tradedNFTsModalAtom } from "../atoms/tradedNFTsModalAtom";
 
 type Props = {
   userInformation: UserInServer;
@@ -81,7 +82,6 @@ export default function Header({ userInformation }: Props) {
     onSelectWillBeCroppedProfilePhoto,
     setSelectedProfilePhoto,
     setWillBeCroppedProfilePhoto,
-    profilePhotoError,
     profilePhotoDelete,
     profilePhotoDeleteLoading,
   } = useProfilePhoto();
@@ -132,6 +132,8 @@ export default function Header({ userInformation }: Props) {
   const setCollectedDAtaInformationModalState = useSetRecoilState(
     collectedDataInformationModalAtom
   );
+
+  const setTradedNFTsModalState = useSetRecoilState(tradedNFTsModalAtom);
 
   const { getDocServer } = useGetFirebase();
 
@@ -748,6 +750,18 @@ export default function Header({ userInformation }: Props) {
                 }}
               >
                 Collected Datas
+              </Button>
+              <Button
+                colorScheme="blue"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setTradedNFTsModalState({
+                    isOpen: true,
+                  });
+                }}
+              >
+                NFT Trade
               </Button>
             </Flex>
           </Flex>

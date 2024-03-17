@@ -1,7 +1,11 @@
 import getDisplayName from "@/apiUtils";
-import { NftDocDataInServer } from "@/components/types/NFT";
+import {
+  BoughtNFTsArrayObject,
+  NftDocDataInServer,
+  SoldNFTsArrayObject,
+} from "@/components/types/NFT";
 import { PostServerData } from "@/components/types/Post";
-import { firestore } from "@/firebase/adminApp";
+import { fieldValue, firestore } from "@/firebase/adminApp";
 import { NextApiRequest, NextApiResponse } from "next";
 
 export default async function handler(
@@ -91,9 +95,62 @@ export default async function handler(
     return res.status(500).send("Internal Server Error");
   }
 
-  
+  // We need to update nftTrade/nftTrade doc of buyer.
+  const boughtNFTsArrayObject: BoughtNFTsArrayObject = {
+    postDocPath: postDocPath,
+    ts: Date.now(),
+  };
+  try {
+    const nftTradeDocRef = firestore.doc(
+      `users/${operationFromUsername}/nftTrade/nftTrade`
+    );
 
-  // We need to add this NFT to buyers's "boughtNFTs" collection
+    const nftTradeDocSnapshot = await nftTradeDocRef.get();
+
+    if (nftTradeDocSnapshot.exists) {
+      // We need to just update.
+      nftTradeDocRef.update({
+        boughtNFTs: fieldValue.arrayUnion({ ...boughtNFTsArrayObject }),
+      });
+    } else {
+      // We need to create nftTrade doc, too.
+      await nftTradeDocRef.set({
+        boughtNFTs: [{ ...boughtNFTsArrayObject }],
+      });
+    }
+  } catch (error) {
+    console.error("Error while updating bought nfts array of buyer: \n", error);
+    return res.status(500).send("Internal Server Error");
+  }
+
+  // We need to update nftTrade/nftTrade doc of buyer.
+  const soldNFTsArrayObject: SoldNFTsArrayObject = {
+    postDocPath: postDocPath,
+    ts: Date.now(),
+  };
+
+  try {
+    const nftTradeDocRef = firestore.doc(
+      `users/${postDocData.senderUsername}/nftTrade/nftTrade`
+    );
+
+    const nftTradeDocSnapshot = await nftTradeDocRef.get();
+
+    if (nftTradeDocSnapshot.exists) {
+      // We need to just update.
+      nftTradeDocRef.update({
+        soldNFTs: fieldValue.arrayUnion({ ...soldNFTsArrayObject }),
+      });
+    } else {
+      // We need to create nftTrade doc, too.
+      await nftTradeDocRef.set({
+        soldNFTs: [{ ...soldNFTsArrayObject }],
+      });
+    }
+  } catch (error) {
+    console.error("Error while updating sold nfts array of seller: \n", error);
+    return res.status(500).send("Internal Server Error");
+  }
 
   return res.status(200).send("Success");
 }

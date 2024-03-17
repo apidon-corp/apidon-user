@@ -89,3 +89,12 @@ export type NFTListResponseBody = {
 export type NFTBuyRequestBody = {
   postDocPath: string;
 };
+
+export type BoughtNFTsArrayObject = {
+  postDocPath : string,
+  ts : number;
+}
+export type SoldNFTsArrayObject = {
+  postDocPath : string,
+  ts : number;
+}

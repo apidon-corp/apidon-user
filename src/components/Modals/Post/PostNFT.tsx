@@ -42,6 +42,7 @@ import { format } from "date-fns";
 import { ethers } from "ethers";
 import React, { SetStateAction, useEffect, useRef, useState } from "react";
 import {
+  AiFillDollarCircle,
   AiFillHeart,
   AiOutlineCheckCircle,
   AiOutlineComment,
@@ -56,11 +57,9 @@ import { FaRegUserCircle } from "react-icons/fa";
 import { FiExternalLink } from "react-icons/fi";
 import { MdContentCopy } from "react-icons/md";
 import { useRecoilValue, useSetRecoilState } from "recoil";
-import { AiFillDollarCircle } from "react-icons/ai";
 
 import { MdSell } from "react-icons/md";
 
-import { FaCartShopping } from "react-icons/fa6";
 
 type Props = {
   openPanelNameValue: OpenPanelName;
