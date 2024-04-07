@@ -35,9 +35,9 @@ export default function Navbar() {
           lg: "none",
         }}
       >
-        <Box height="100%" justifyContent="center" alignContent="center">
-          <Image src="/og.png" height="80%" />
-        </Box>
+        <Flex height="100%" align="center" justify="center">
+          <Image src="/og.png" height="75%" />
+        </Flex>
 
         <Box flex="1" ml={1}>
           <SearchBar />
