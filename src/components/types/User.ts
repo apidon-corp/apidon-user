@@ -44,7 +44,7 @@ export interface CurrentUser {
   email: string;
   uid: string;
 
-  hasProvider : boolean;
+  hasProvider: boolean;
 }
 
 export const defaultCurrentUserState: CurrentUser = {
@@ -59,7 +59,7 @@ export const defaultCurrentUserState: CurrentUser = {
   email: "",
   uid: "",
 
-  hasProvider : false
+  hasProvider: false,
 };
 
 export interface INotificationServerData {
@@ -118,6 +118,7 @@ export interface InitialSignUpForm {
   username: string;
   password: string;
   age: number;
+  referenceCode: string;
   gender: Genders;
   country: Countries;
 }
@@ -546,6 +547,7 @@ export type SignUpRequestBody = {
   username: string;
   password: string;
   age: number;
+  referenceCode: string;
   gender: Genders;
   country: Countries;
   captchaToken: string;

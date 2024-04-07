@@ -27,7 +27,6 @@ import {
   genders_list,
 } from "@/components/types/User";
 import useSignUp from "@/hooks/authHooks/useSignUp";
-import useGetFirebase from "@/hooks/readHooks/useGetFirebase";
 import ReCAPTCHA from "react-google-recaptcha";
 
 export default function SignUp() {
@@ -40,6 +39,7 @@ export default function SignUp() {
     password: "",
     username: "",
     age: 18,
+    referenceCode: "",
     gender: "male",
     country: "Turkey",
   });
@@ -70,7 +70,7 @@ export default function SignUp() {
 
   const { initiateSignUp } = useSignUp();
 
-  const { getDocServer } = useGetFirebase();
+  const [referenceCodeRight, setReferenceCodeRight] = useState(true);
 
   const handleCaptcha = async () => {
     if (!captchaRef.current) {
@@ -87,8 +87,6 @@ export default function SignUp() {
     event.preventDefault();
     setSignUpLoading(true);
     setError("");
-
-    console.log(signUpForm);
 
     const captchaToken = await handleCaptcha();
 
@@ -137,18 +135,30 @@ export default function SignUp() {
     }
 
     if (typeof signUpForm.age !== "number") {
-      setSignUpLoading(false);
-      return setError("Invalid Age");
+      setError("Invalid Age");
+      return setSignUpLoading(false);
     }
-    if (signUpForm.age < 0) return setError("Invalid Age");
+    if (signUpForm.age < 0) {
+      setError("Invalid Age");
+      return setSignUpLoading(false);
+    }
+
+    if (signUpForm.referenceCode.length === 0) {
+      setError("Invalid Reference Code");
+      return setSignUpLoading(false);
+    }
 
     if (!genders_list.includes(signUpForm.gender)) {
-      return setError("Invalid Gender");
+      setError("Invalid Gender");
+      return setSignUpLoading(false);
     }
 
     if (!country_list.includes(signUpForm.country)) {
-      return setError("Invalid Country");
+      setError("Invalid Country");
+      return setSignUpLoading(false);
     }
+
+    setError("");
 
     const operationResult = await initiateSignUp(signUpForm, captchaToken);
     if (!operationResult) {
@@ -266,6 +276,21 @@ export default function SignUp() {
       }));
     }
 
+    if (event.target.name == "referenceCode") {
+      const referenceCode = event.target.value;
+
+      if (!referenceCode) {
+        setReferenceCodeRight(false);
+      } else {
+        setReferenceCodeRight(true);
+      }
+
+      return setSignUpForm((prev) => ({
+        ...prev,
+        [event.target.name]: referenceCode,
+      }));
+    }
+
     setSignUpForm((prev) => ({
       ...prev,
       [event.target.name]: event.target.value,
@@ -375,6 +400,13 @@ export default function SignUp() {
                 Username
               </FormLabel>
             </FormControl>
+            <InputRightElement
+              pointerEvents={signUpForm.username ? "unset" : "none"}
+            >
+              {!userNameRight && (
+                <Icon as={BiError} fontSize="20px" color="red" />
+              )}
+            </InputRightElement>
           </InputGroup>
 
           <InputGroup>
@@ -442,6 +474,33 @@ export default function SignUp() {
                 my="2.5"
               >
                 Age
+              </FormLabel>
+            </FormControl>
+          </InputGroup>
+
+          <InputGroup>
+            <FormControl variant="floating">
+              <Input
+                required
+                name="referenceCode"
+                type="text"
+                autoComplete="new-password"
+                mb={2}
+                onChange={onChange}
+                _hover={{
+                  border: "1px solid",
+                  borderColor: "blue.500",
+                }}
+                bg="gray.50"
+                placeholder=" "
+              />
+              <FormLabel
+                bg="rgba(248,250,252,1)"
+                textColor="gray.500"
+                fontSize="10pt"
+                my="2.5"
+              >
+                Reference Code
               </FormLabel>
             </FormControl>
           </InputGroup>
@@ -571,7 +630,11 @@ export default function SignUp() {
           type="submit"
           isLoading={signUpLoading}
           isDisabled={
-            !userNameRight || !passwordStrong || !fullnameRight || !emailRight
+            !userNameRight ||
+            !passwordStrong ||
+            !fullnameRight ||
+            !emailRight ||
+            !referenceCodeRight
           }
           _hover={{
             bg: "black",

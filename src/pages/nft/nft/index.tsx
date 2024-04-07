@@ -28,7 +28,7 @@ export default function index({ nftInformation }: Props) {
     });
   }, []);
 
-  if (!nftInformation) {
+  if (!nftInformation || nftInformation.length === 0) {
     return (
       <Flex
         justify="center"
@@ -37,7 +37,7 @@ export default function index({ nftInformation }: Props) {
         minHeight={innerHeight}
       >
         <Text as="b" textColor="white" fontSize="20pt">
-          NFT's couldn&apos;t be got.
+          No NFT&apos;s to show.
         </Text>
       </Flex>
     );

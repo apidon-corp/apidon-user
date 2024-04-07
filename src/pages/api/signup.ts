@@ -18,6 +18,39 @@ export default async function handler(
 ) {
   const requestBody: SignUpRequestBody = req.body;
 
+  const referenceCode = requestBody.referenceCode;
+  if (!referenceCode) {
+    console.log("Reference code is not valid.");
+    return res.status(422).send("Invalid Prop or Props");
+  }
+
+  let referenceDoc: FirebaseFirestore.DocumentSnapshot<
+    FirebaseFirestore.DocumentData,
+    FirebaseFirestore.DocumentData
+  >;
+  try {
+    referenceDoc = await firestore.doc(`/references/${referenceCode}`).get();
+    if (!referenceDoc.exists) {
+      throw new Error("Reference code is unknown");
+    }
+    const docData = referenceDoc.data();
+
+    if (docData === undefined) throw new Error("Doc data is undefined");
+
+    const inProcess = docData.inProcess;
+    const isUsed = docData.isUsed;
+
+    if (isUsed) throw new Error("Given code is already used.");
+    if (inProcess) throw new Error("Given code is already in a process.");
+
+    await referenceDoc.ref.update({
+      inProcess: true,
+    });
+  } catch (error) {
+    console.error("Error while verifying reference code: \n", error);
+    return res.status(500).send("Internal Server Error");
+  }
+
   let response: Response;
   try {
     response = await fetch(
@@ -151,6 +184,20 @@ export default async function handler(
       console.error("Error while signup. (We were creating docs)", error);
       return res.status(503).send(error);
     }
+
+    // Disabling reference code for further usage.
+    try {
+      referenceDoc.ref.update({
+        inProcess: false,
+        isUsed: true,
+        ts: Date.now(),
+        whoUsed: requestBody.username,
+      });
+    } catch (error) {
+      console.error("Error while disabling reference code.");
+      return res.status(500).send("Internal Server Error");
+    }
+
     return res.status(200).json(newUserData);
   });
 }

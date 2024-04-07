@@ -27,8 +27,12 @@ export default async function handler(
   let postsThatCovertedNFTsPathsArray: string[] = [];
   try {
     const nftDocCollectionSnapshot = await firestore.collection(`/nfts`).get();
-    if (nftDocCollectionSnapshot.empty)
-      throw new Error("There is no nft doc at nft collection");
+    if (nftDocCollectionSnapshot.empty) {
+      return res.status(200).json({
+        postItemDatasArray: [],
+      });
+    }
+
     for (const nftDoc of nftDocCollectionSnapshot.docs) {
       postsThatCovertedNFTsPathsArray.push(
         (nftDoc.data() as NftDocDataInServer).postDocPath
