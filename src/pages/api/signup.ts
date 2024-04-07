@@ -21,7 +21,7 @@ export default async function handler(
   let response: Response;
   try {
     response = await fetch(
-      `https://www.google.com/recaptcha/api/siteverify?secret=${process.env.NEXT_PUBLIC_RECAPTCHA_SECRET_KEY}&response=${requestBody.captchaToken}`,
+      `https://www.google.com/recaptcha/api/siteverify?secret=${process.env.RECAPTCHA_SECRET_KEY}&response=${requestBody.captchaToken}`,
       {
         method: "POST",
       }
@@ -54,7 +54,7 @@ export default async function handler(
     ) {
       return res.status(422).send("Invalid Fullname");
     }
-    const usernameRegex = /^[a-z0-9]{3,20}$/;
+    const usernameRegex = /^[a-z0-9]{4,20}$/;
     if (!usernameRegex.test(requestBody.username)) {
       return res.status(422).json("Invalid Username");
     }
@@ -138,6 +138,13 @@ export default async function handler(
       batch.set(
         firestore.doc(`users/${requestBody.username}/personal/profile`),
         newUserPersonalData
+      );
+      batch.set(
+        firestore.doc(`users/${requestBody.username}/nftTrade/nftTrade`),
+        {
+          boughtNFTs: [],
+          soldNFTs: [],
+        }
       );
       await batch.commit();
     } catch (error) {

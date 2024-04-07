@@ -760,6 +760,7 @@ export default function Header({ userInformation }: Props) {
                     isOpen: true,
                   });
                 }}
+                isDisabled
               >
                 NFT Trade
               </Button>

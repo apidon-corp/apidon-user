@@ -8,7 +8,6 @@ import NotificationModal from "../Modals/User/NotificationModal";
 import ChooseProviderModal from "../Modals/User/Provider/ChooseProviderModal";
 import CurrentProviderModal from "../Modals/User/Provider/CurrentProviderModal";
 import Navbar from "../Navbar/Navbar";
-import SystemStatus from "../system-status/SystemStatus";
 import useLogin from "@/hooks/authHooks/useLogin";
 import DataAnalysisPreferencesModal from "../Modals/User/DataAnalysisPreferencesModal";
 import CollectedDataInformationModal from "../Modals/User/CollectedDataInformationModal";
@@ -71,7 +70,6 @@ export default function Layout({ children }: Props) {
           <CollectedDataInformationModal />
           <TradedNFTsModal />
           <Footer />
-          <SystemStatus />
         </Box>
       )}
     </>

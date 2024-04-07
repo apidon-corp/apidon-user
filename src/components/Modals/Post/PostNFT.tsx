@@ -16,7 +16,6 @@ import {
 } from "@/components/types/Post";
 import useNFT from "@/hooks/nftHooks/useNFT";
 import useGetFirebase from "@/hooks/readHooks/useGetFirebase";
-import { apidonNFTMumbaiContractAddress } from "@/web3/NFT/ApidonNFTApp";
 import {
   AspectRatio,
   Button,
@@ -60,12 +59,14 @@ import { useRecoilValue, useSetRecoilState } from "recoil";
 
 import { MdSell } from "react-icons/md";
 
-
 type Props = {
   openPanelNameValue: OpenPanelName;
   openPanelNameValueSetter: React.Dispatch<SetStateAction<OpenPanelName>>;
   postInformation: PostItemData;
 };
+
+const apidonNFTSepoliaContractAddress = process.env
+  .NEXT_PUBLIC_APIDON_NFT_CONTRACT_ADDRESS as string;
 
 export default function PostNFT({
   openPanelNameValue,
@@ -183,8 +184,6 @@ export default function PostNFT({
 
     // We have a valid nft metadata data.
     setNftMetadataState(nftMetadaDataResult);
-
-    console.log(nftDocData);
 
     // We need to show nft information to user
     setNftPanelViewState("created");
@@ -617,6 +616,7 @@ export default function PostNFT({
                     onClick={() => {
                       handleTransferButton();
                     }}
+                    isDisabled // We are disabling nft transferring.
                   >
                     Transfer Your NFT
                   </Button>
@@ -771,6 +771,7 @@ export default function PostNFT({
                             handleBuyNftButton();
                           }}
                           size="sm"
+                          isDisabled // Buying NFT is disabled.
                         >
                           Buy
                         </Button>
@@ -789,7 +790,7 @@ export default function PostNFT({
                   cursor="pointer"
                   onClick={() => {
                     window.open(
-                      `https://testnets.opensea.io/assets/mumbai/${apidonNFTMumbaiContractAddress}/${nftDocDataState.tokenId}`,
+                      `https://testnets.opensea.io/assets/sepolia/${apidonNFTSepoliaContractAddress}/${nftDocDataState.tokenId}`,
                       "blank"
                     );
                   }}
@@ -860,13 +861,11 @@ export default function PostNFT({
                     </AspectRatio>
 
                     <Text color="white" fontSize="11pt">
-                      {`${apidonNFTMumbaiContractAddress.slice(
-                        0,
-                        5
-                      )}...${apidonNFTMumbaiContractAddress.slice(
-                        apidonNFTMumbaiContractAddress.length - 3,
-                        apidonNFTMumbaiContractAddress.length
-                      )}`}
+                      {apidonNFTSepoliaContractAddress.slice(0, 5)}...$
+                      {apidonNFTSepoliaContractAddress.slice(
+                        apidonNFTSepoliaContractAddress.length - 3,
+                        apidonNFTSepoliaContractAddress.length
+                      )}
                     </Text>
                     <Icon
                       as={MdContentCopy}
@@ -875,7 +874,7 @@ export default function PostNFT({
                       cursor="pointer"
                       onClick={() => {
                         navigator.clipboard.writeText(
-                          apidonNFTMumbaiContractAddress
+                          apidonNFTSepoliaContractAddress
                         );
                       }}
                     />

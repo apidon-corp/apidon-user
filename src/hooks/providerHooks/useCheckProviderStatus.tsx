@@ -13,6 +13,7 @@ export default function useCheckProviderStatus() {
     );
     if (!currentProviderDocResult) {
       console.error("Error while getting current provider doc");
+      
       return "server-error";
     }
 

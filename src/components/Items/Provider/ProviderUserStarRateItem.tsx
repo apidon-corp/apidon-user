@@ -19,7 +19,6 @@ export default function ProviderUserStarRateItem({ value }: Props) {
     setIsProviderRateLoading(true);
     setCandicateValue(value);
     const operationResult = await rateProvider(value);
-    console.log(operationResult);
     setIsProviderRateLoading(false);
   };
 

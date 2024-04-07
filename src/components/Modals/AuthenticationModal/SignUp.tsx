@@ -9,7 +9,6 @@ import {
   InputGroup,
   InputRightElement,
   Select,
-  Spinner,
   Text,
 } from "@chakra-ui/react";
 
@@ -28,8 +27,8 @@ import {
   genders_list,
 } from "@/components/types/User";
 import useSignUp from "@/hooks/authHooks/useSignUp";
-import ReCAPTCHA from "react-google-recaptcha";
 import useGetFirebase from "@/hooks/readHooks/useGetFirebase";
+import ReCAPTCHA from "react-google-recaptcha";
 
 export default function SignUp() {
   const age_input = useRef<HTMLInputElement>(null);
@@ -48,9 +47,7 @@ export default function SignUp() {
   const setAuthModalState = useSetRecoilState(authModalStateAtom);
 
   const [userNameLowerCaseValue, setUsernameLowercaseValue] = useState("");
-  const [userNameTakenState, setUserNameTakenState] = useState(false);
-  const [userNameTakenStateLoading, setUserNameTakenStateLoading] =
-    useState(false);
+
   const [userNameRight, setUserNameRight] = useState(true);
 
   const [passwordStrong, setPassordStrong] = useState(true);
@@ -74,14 +71,6 @@ export default function SignUp() {
   const { initiateSignUp } = useSignUp();
 
   const { getDocServer } = useGetFirebase();
-
-  const isUserNameTaken = async (susUsername: string) => {
-    if (!susUsername) return false;
-    const docResult = await getDocServer(`/usernames/${susUsername}`);
-    if (!docResult) return;
-
-    return docResult.isExists;
-  };
 
   const handleCaptcha = async () => {
     if (!captchaRef.current) {
@@ -130,18 +119,11 @@ export default function SignUp() {
       setError("Fullname is invalid");
       return;
     }
-    const usernameRegex = /^[a-z0-9]{3,20}$/;
+    const usernameRegex = /^[a-z0-9]{4,20}$/;
     if (!usernameRegex.test(signUpForm.username)) {
       setUserNameRight(false);
       setSignUpLoading(false);
       setError("Username is invalid");
-      return;
-    }
-    const taken = await isUserNameTaken(signUpForm.username);
-    if (taken) {
-      setUserNameTakenState(true);
-      setSignUpLoading(false);
-      setError("Username is taken");
       return;
     }
 
@@ -203,7 +185,6 @@ export default function SignUp() {
         // To prevent bad ui
         setUserNameRight(true);
         setUsernameLowercaseValue("");
-        setUserNameTakenState(false);
 
         zeroFlag = true;
       }
@@ -211,7 +192,7 @@ export default function SignUp() {
       if (!zeroFlag) {
         setUsernameLowercaseValue(event.target.value.toLowerCase());
         let regexFailFlag = false;
-        const usernameRegex = /^[a-z0-9]{3,20}$/;
+        const usernameRegex = /^[a-z0-9]{4,20}$/;
 
         if (!usernameRegex.test(event.target.value.toLowerCase())) {
           setUserNameRight(false);
@@ -219,14 +200,6 @@ export default function SignUp() {
         }
         if (!regexFailFlag) {
           setUserNameRight(true);
-
-          setUserNameTakenStateLoading(true);
-          const isTaken = (await isUserNameTaken(
-            event.target.value
-          )) as boolean;
-
-          setUserNameTakenState(isTaken);
-          setUserNameTakenStateLoading(false);
         }
       }
     }
@@ -385,9 +358,7 @@ export default function SignUp() {
                 pr={signUpForm.username ? "9" : "2"}
                 value={userNameLowerCaseValue}
                 onChange={onChange}
-                borderColor={
-                  userNameTakenState || !userNameRight ? "red" : "gray.200"
-                }
+                borderColor={!userNameRight ? "red" : "gray.200"}
                 _hover={{
                   border: "1px solid",
                   borderColor: "blue.500",
@@ -404,23 +375,6 @@ export default function SignUp() {
                 Username
               </FormLabel>
             </FormControl>
-            <InputRightElement
-              pointerEvents={signUpForm.username ? "unset" : "none"}
-            >
-              {userNameTakenStateLoading ? (
-                <Spinner size="sm" />
-              ) : userNameTakenState || !userNameRight ? (
-                <Icon as={BiError} fontSize="20px" color="red" />
-              ) : (
-                signUpForm.username.length !== 0 && (
-                  <Icon
-                    as={AiOutlineCheckCircle}
-                    fontSize="20px"
-                    color="green"
-                  />
-                )
-              )}
-            </InputRightElement>
           </InputGroup>
 
           <InputGroup>
@@ -528,6 +482,7 @@ export default function SignUp() {
                     country: e.target.value as Countries,
                   }));
                 }}
+                defaultValue={"Turkey" as Countries}
               >
                 {country_list.map((value, i) => (
                   <option key={i}>{value}</option>
@@ -614,17 +569,13 @@ export default function SignUp() {
           bg="black"
           textColor="white"
           type="submit"
-          isLoading={signUpLoading || userNameTakenStateLoading}
+          isLoading={signUpLoading}
           isDisabled={
-            !userNameRight ||
-            userNameTakenState ||
-            !passwordStrong ||
-            !fullnameRight ||
-            !emailRight
+            !userNameRight || !passwordStrong || !fullnameRight || !emailRight
           }
           _hover={{
-            bg: !userNameTakenState && "black",
-            textColor: !userNameTakenState && "white",
+            bg: "black",
+            textColor: "white",
           }}
         >
           Sign Up

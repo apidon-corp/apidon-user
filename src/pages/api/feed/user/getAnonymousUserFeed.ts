@@ -9,6 +9,9 @@ export default async function handler(
   const { authorization } = req.headers;
   const { username } = req.body;
 
+  // We are disabling anonymous feed.
+  return res.status(500).send("Anonymous user feed disabled temporarily.");
+
   if (!username) return res.status(422).send("Invalid Prop or Props");
 
   if (

@@ -11,7 +11,10 @@ export default function useGetFirebase() {
   const getDocServer = async (docPath: string) => {
     let idToken = "";
     try {
-      idToken = (await auth.currentUser?.getIdToken()) as string;
+      if (!auth.currentUser) {
+        throw new Error("There is no current user for reading operations.");
+      }
+      idToken = await auth.currentUser.getIdToken();
     } catch (error) {
       console.error(
         "Error on read database. We were authenticating user...: ",
@@ -54,7 +57,10 @@ export default function useGetFirebase() {
   ) => {
     let idToken = "";
     try {
-      idToken = (await auth.currentUser?.getIdToken()) as string;
+      if (!auth.currentUser) {
+        throw new Error("There is no current user for reading operations.");
+      }
+      idToken = await auth.currentUser.getIdToken();
     } catch (error) {
       console.error(
         "Error on getCollectionDocDatas. We were authenticating user...: ",

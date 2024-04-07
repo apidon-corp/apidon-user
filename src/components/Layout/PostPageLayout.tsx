@@ -22,7 +22,6 @@ export default function PostPageLayout({ postInformation }: Props) {
    */
   useEffect(() => {
     setPostsAtView([postInformation]);
-    console.log(postInformation)
   }, [postInformation]);
 
   return (
@@ -48,9 +47,9 @@ export default function PostPageLayout({ postInformation }: Props) {
           minHeight={innerHeight}
           pt={10}
         >
-        {
-          postsAtview.map((a,i)=> (<PostItem postItemData={a} key={i} />))
-        } 
+          {postsAtview.map((a, i) => (
+            <PostItem postItemData={a} key={i} />
+          ))}
         </Flex>
 
         <Flex

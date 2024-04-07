@@ -53,16 +53,26 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   let postItemDatasArray: PostItemData[] = [];
   try {
+    const authSessionToken = context.req.cookies["firebase-auth.session-token"];
+    if (authSessionToken === undefined) {
+      throw new Error("There is no valid user to read database for nft's.");
+    }
+
     const response = await fetch(
-      `${process.env.USER_PANEL_BASE_URL}/api/feed/nft/getPersonalizedNftFeed`,
+      `${process.env.NEXT_PUBLIC_USER_PANEL_BASE_URL}/api/feed/nft/getPersonalizedNftFeed`,
       {
         method: "POST",
         headers: {
-          authorization: `Bearer ${context.req.cookies["firebase-auth.session-token"]}`,
+          authorization: `Bearer ${authSessionToken}`,
           "Content-Type": "application/json",
         },
       }
     );
+    if (!response.ok) {
+      throw new Error(
+        `Response from getPersonalizedNftFeed is not okay: ${await response.text()}`
+      );
+    }
     const result = (await response.json()) as GetPersonalizedNftFeedResponse;
     postItemDatasArray = result.postItemDatasArray;
   } catch (error) {

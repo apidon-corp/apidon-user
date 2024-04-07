@@ -20,4 +20,4 @@ export const firestore = admin.firestore();
 export const fieldValue = admin.firestore.FieldValue;
 export const bucket = admin
   .storage()
-  .bucket(process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET_ID as string);
+  .bucket(process.env.FIREBASE_STORAGE_BUCKET_ID as string);

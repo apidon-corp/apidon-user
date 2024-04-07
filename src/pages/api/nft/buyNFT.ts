@@ -12,6 +12,11 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  /**
+   * NFT buying is disabled.
+   */
+  return res.status(500).send("NFT buying is temporarily disabled.");
+
   const { authorization } = req.headers;
   const { postDocPath } = req.body;
 
@@ -47,6 +52,7 @@ export default async function handler(
   let nftDocData: NftDocDataInServer;
   let nftDoc: FirebaseFirestore.DocumentSnapshot<FirebaseFirestore.DocumentData>;
   try {
+    // @ts-ignore: Unreachable code error
     nftDoc = await firestore.doc(postDocData.nftStatus.nftDocPath).get();
     if (!nftDoc.exists) {
       throw new Error(

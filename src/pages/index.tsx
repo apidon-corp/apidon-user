@@ -1,5 +1,7 @@
+import { authModalStateAtom } from "@/components/atoms/authModalAtom";
 import { currentUserStateAtom } from "@/components/atoms/currentUserAtom";
 import { postsStatusAtom } from "@/components/atoms/postsStatusAtom";
+import { providerModalStateAtom } from "@/components/atoms/providerModalAtom";
 import MainPageLayout from "@/components/Layout/MainPageLayout";
 import { PostItemData } from "@/components/types/Post";
 import { IPagePreviewData } from "@/components/types/User";
@@ -13,16 +15,24 @@ export default function Home() {
   const [postsDatasInServer, setPostDatasInServer] = useState<PostItemData[]>(
     []
   );
+  const setProviderModalState = useSetRecoilState(providerModalStateAtom);
+
+  /**
+   * Disabling anonymous main feed.
+   */
+  const setAuthModal = useSetRecoilState(authModalStateAtom);
 
   const setPostStatus = useSetRecoilState(postsStatusAtom);
 
   useEffect(() => {
-    if (currentUserState.isThereCurrentUser) {
-      handlePersonalizedMainFeed();
-    } else {
-      handleAnonymousMainFeed();
+    if (!currentUserState.isThereCurrentUser) {
+      return setAuthModal({ open: true, view: "logIn" });
     }
-  }, [currentUserState.isThereCurrentUser]);
+    if (!currentUserState.hasProvider)
+      return setProviderModalState({ open: true, view: "chooseProvider" });
+
+    handlePersonalizedMainFeed();
+  }, [currentUserState.isThereCurrentUser, currentUserState.hasProvider]);
 
   const shufflePosts = (postsDatasArray: PostItemData[]) => {
     let currentIndex = postsDatasArray.length,

@@ -41,6 +41,7 @@ To execute this project on your local machine or system, you are required to con
       ```
 
     - Find your **main "folder-path"** in **Firebase Storage** section. It is something like: _"gs://---.appspot.com"_.
+
       - **Then add these enviroment variables to ".env" or ".env.local" file as below.**
 
         ```ts
@@ -71,15 +72,15 @@ To execute this project on your local machine or system, you are required to con
       - **Then add enviroment variables to ".env" or ".env.local" file as below.**
 
         ```ts
-        NEXT_PUBLIC_OWNER_PUBLIC_ADDRESS = "your-web3-public-address";
-        NEXT_PUBLIC_PRIVATE_KEY = "your-web3-private-key";
+        WEB3_PUBLIC_WALLET_ADDRESS = "your-web3-public-address";
+        WEB3_PRIVATE_WALLET_ADDRESS = "your-web3-private-key";
         ```
 
     - You need to have an API key for accessing to _Polygon Mumbai_ network.
       - Create new "app" from [alchemy](https://www.alchemy.com/) for **"Polygon-Mumbai"** network. (You don't have to use "alchemy". Use any service you want.). Then find your API key.
       - **Then add an enviroment variable to ".env" or ".env.local" file as below.**
         ```ts
-        NEXT_PUBLIC_MUMBAI_API = "mumbai-api";
+        ALCHEMY_AMOY_API_KEY = "mumbai-api";
         ```
 
   - **Recoil Section**
@@ -103,7 +104,7 @@ To execute this project on your local machine or system, you are required to con
 
   - **ReCaptcha Section**
 
-    - Because project has **human verification** process on  **sign up** , we should set up **reCaptcha v3 with "challange v2" and "I am not robot checkbox" method.**
+    - Because project has **human verification** process on **sign up** , we should set up **reCaptcha v3 with "challange v2" and "I am not robot checkbox" method.**
     - **Register new website on [Google Recaptcha V3](https://www.google.com/recaptcha) and add enviroment variables to ".env" or ".env.local" file as below.**
 
       ```ts
@@ -122,7 +123,7 @@ To execute this project on your local machine or system, you are required to con
     - Because _"apidon-user"_ depends _"apidon-provider"_, project uses **"common"** key for validation if request comes from one of Apidon projects. **You can set any value you want.**
     - **Add an enviroment variable to ".env" or ".env.local" file as below.**
       ```ts
-      NEXT_PUBLIC_API_KEY_BETWEEN_SERVICES = "your-preffered-key";
+      API_KEY_BETWEEN_SERVICES = "your-preffered-key";
       ```
 
   - **apidon-provider-api-address Section**

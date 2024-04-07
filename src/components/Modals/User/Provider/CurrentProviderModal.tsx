@@ -24,6 +24,7 @@ import { providerModalStateAtom } from "../../../atoms/providerModalAtom";
 import ProviderScoreStarItem from "@/components/Items/Provider/ProviderScoreStarItem";
 import WithdrawArea from "./WithdrawArea";
 import useGetFirebase from "@/hooks/readHooks/useGetFirebase";
+import { auth } from "@/firebase/clientApp";
 
 export default function CurrentProviderModal() {
   const [providerModalState, setProvideModalState] = useRecoilState(
@@ -140,22 +141,32 @@ export default function CurrentProviderModal() {
   const getGeneralInformationAboutCurrentProvider = async (
     currentProviderName: string
   ) => {
+    if (!auth.currentUser) {
+      console.error("There is no currect user.");
+      return false;
+    }
+    let idToken;
+    try {
+      idToken = await auth.currentUser.getIdToken();
+    } catch (error) {
+      console.error("Id Token couldn't be got.");
+      return false;
+    }
+
+
+
     let response: Response;
     try {
-      response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_ENDPOINT_TO_APIDON_PROVIDER_SERVER}/client/provideProviderInformation`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            authorization: process.env
-              .NEXT_PUBLIC_API_KEY_BETWEEN_SERVICES as string,
-          },
-          body: JSON.stringify({
-            providerName: currentProviderName,
-          }),
-        }
-      );
+      response = await fetch("/api/provider/getProviderInformation", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `Bearer ${idToken}`,
+        },
+        body: JSON.stringify({
+          providerName: currentProviderName,
+        }),
+      });
     } catch (error) {
       console.error(
         "Error while 'fetching' to 'provideProviderInformation' API"

@@ -60,7 +60,7 @@ export default function CollectedDataInformationModal() {
       const senderUsername = (postDoc.data as PostServerData).senderUsername;
 
       const postId = postDoc.ref.id;
-      const postURL = `https://apidon.com/${senderUsername}/${postId}`;
+      const postURL = `${process.env.NEXT_PUBLIC_USER_PANEL_BASE_URL}/${senderUsername}/posts/${postId}`;
 
       const timestamp = (likeInformationDoc.data as LikeDataForUsersPersonal)
         .ts;
@@ -107,7 +107,7 @@ export default function CollectedDataInformationModal() {
         const postSenderUsername = postDocData.senderUsername;
 
         const postId = postDoc.ref.id;
-        const postURL = `https://apidon.com/${postSenderUsername}/${postId}`;
+        const postURL = `${process.env.NEXT_PUBLIC_USER_PANEL_BASE_URL}/${postSenderUsername}/posts/${postId}`;
 
         // Getting comment text....
         const commentDocAtPost = await getDocServer(

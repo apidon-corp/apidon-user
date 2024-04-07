@@ -88,6 +88,21 @@ const useLogin = () => {
 
     currentUserDataOnServer = signedInUserDocResult.data as UserInServer;
 
+    const operationResult = await checkProviderStatusOnLogin(
+      user.displayName as string
+    );
+
+    let hasProvider = false;
+
+    if (operationResult === "server-error") return false;
+    else if (operationResult === "no-current-provider")
+      setProviderModalState({ open: true, view: "chooseProvider" });
+    else if (operationResult === "expired")
+      setProviderModalState({ open: true, view: "currentProvider" });
+    else {
+      hasProvider = true;
+    }
+
     const currentUserDataTemp: CurrentUser = {
       isThereCurrentUser: true,
 
@@ -99,18 +114,9 @@ const useLogin = () => {
 
       email: currentUserDataOnServer.email,
       uid: currentUserDataOnServer.uid,
+
+      hasProvider: hasProvider,
     };
-
-    const operationResult = await checkProviderStatusOnLogin(
-      user.displayName as string
-    );
-
-    if (operationResult === "server-error") return false;
-    if (operationResult === "no-current-provider")
-      setProviderModalState({ open: true, view: "chooseProvider" });
-
-    if (operationResult === "expired")
-      setProviderModalState({ open: true, view: "currentProvider" });
 
     // State Updates
     setCurrentUserState(currentUserDataTemp);

@@ -8,7 +8,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { bucket, fieldValue, firestore } from "../../../firebase/adminApp";
 import {
   apidonNFT,
-  apidonNFTMumbaiContractAddress,
+  apidonNFTSepoliaContractAddress,
 } from "@/web3/NFT/ApidonNFTApp";
 import { UploadNFTResponse } from "@/components/types/API";
 
@@ -140,8 +140,9 @@ export default async function handler(
       console.error("Error while uploading NFT. (TX is null)", txReceipt);
       return res.status(503).send("Chain Error");
     }
-    const tokenId = parseInt(txReceipt.logs[1].topics[2], 16);
-    const openSeaLinkCreated = `https://testnets.opensea.io/assets/mumbai/${apidonNFTMumbaiContractAddress}/${tokenId}`;
+
+    const tokenId = parseInt(txReceipt.logs[0].topics[3], 16);
+    const openSeaLinkCreated = `https://testnets.opensea.io/assets/sepolia/${apidonNFTSepoliaContractAddress}/${tokenId}`;
 
     try {
       await firestore.doc(`users/${operationFromUsername}`).update({
@@ -161,7 +162,7 @@ export default async function handler(
       name: metadata.name,
       description: metadata.description,
       tokenId: tokenId,
-      contractAddress: apidonNFTMumbaiContractAddress,
+      contractAddress: apidonNFTSepoliaContractAddress,
       openseaUrl: openSeaLinkCreated,
       transferStatus: {
         isTransferred: false,

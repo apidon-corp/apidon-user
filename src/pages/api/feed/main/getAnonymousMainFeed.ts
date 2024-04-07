@@ -8,6 +8,9 @@ export default async function handler(
 ) {
   const { authorization } = req.headers;
 
+  // We are disabling anonymous feed.
+  return res.status(500).send("Anonymous main feed disabled temporarily.");
+
   if (
     authorization !==
     (process.env.NEXT_PUBLIC_ANONYMOUS_ENTERANCE_KEY as string)

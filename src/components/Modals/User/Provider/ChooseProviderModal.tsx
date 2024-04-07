@@ -45,19 +45,27 @@ export default function ChooseProviderModal() {
   const handleGetActiveProviders = async () => {
     setGettingAvaliableProviders(true);
 
+    if (!auth.currentUser) {
+      console.error("There is no currect user.");
+      return false;
+    }
+    let idToken;
+    try {
+      idToken = await auth.currentUser.getIdToken();
+    } catch (error) {
+      console.error("Id Token couldn't be got.");
+      return false;
+    }
+
     let response: Response;
     try {
-      response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_ENDPOINT_TO_APIDON_PROVIDER_SERVER}/client/provideShowcase`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            authorization: process.env
-              .NEXT_PUBLIC_API_KEY_BETWEEN_SERVICES as string,
-          },
-        }
-      );
+      response = await fetch("/api/provider/getProviderShowcase", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `Bearer ${idToken}`,
+        },
+      });
     } catch (error) {
       console.error("Error while 'fetching' to 'provideShowcase' API");
       return false;

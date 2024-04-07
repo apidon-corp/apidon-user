@@ -1,3 +1,4 @@
+import { collectedDataInformationModalAtom } from "@/components/atoms/CollectedDataInformationModalAtom";
 import { authModalStateAtom } from "@/components/atoms/authModalAtom";
 import { currentUserStateAtom } from "@/components/atoms/currentUserAtom";
 import { CommentedItemData } from "@/components/types/User";
@@ -22,6 +23,10 @@ export default function CommentedItem({
 
   const currentUserState = useRecoilValue(currentUserStateAtom);
   const setAuthModalState = useSetRecoilState(authModalStateAtom);
+
+  const setCollectedDataModelState = useSetRecoilState(
+    collectedDataInformationModalAtom
+  );
 
   const [loading, setLoading] = useState<boolean>(false);
   const [iconType, setIconType] = useState<"not-deleted" | "deleted">(
@@ -118,6 +123,7 @@ export default function CommentedItem({
             textDecoration="underline"
             cursor="pointer"
             onClick={() => {
+              setCollectedDataModelState(false);
               router.push(postURL);
             }}
           >

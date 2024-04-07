@@ -2,22 +2,18 @@ import { ethers } from "ethers";
 
 import apidonNFTContract from "./ApidonNFTContract.json";
 
-const apidonNFTMumbaiContractAddress = "0xB7F85699b9Ba123cd82A9f4dD552Cd519e11a0E8"
+export const apidonNFTSepoliaContractAddress = process.env
+  .NEXT_PUBLIC_APIDON_NFT_CONTRACT_ADDRESS as string;
 
-const provider = new ethers.AlchemyProvider(
-  "maticmum",
-  process.env.NEXT_PUBLIC_MUMBAI_API
+const provider = new ethers.JsonRpcProvider(
+  process.env.ALCHEMY_SEPOLIA_URL_ENDPOINT
 );
 
-const wallet = new ethers.Wallet(
-  process.env.NEXT_PUBLIC_PRIVATE_KEY as string,
-  provider
-);
+const walletPrivateAddress = process.env.WEB3_PRIVATE_WALLET_ADDRESS as string;
+const wallet = new ethers.Wallet(walletPrivateAddress, provider);
 
-const apidonNFT = new ethers.Contract(
-  apidonNFTMumbaiContractAddress,
+export const apidonNFT = new ethers.Contract(
+  apidonNFTSepoliaContractAddress,
   apidonNFTContract.abi,
   wallet
 );
-
-export { apidonNFT, apidonNFTMumbaiContractAddress };

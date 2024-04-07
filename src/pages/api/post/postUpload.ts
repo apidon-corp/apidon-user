@@ -156,7 +156,7 @@ export default async function handler(
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            authorization: `${process.env.NEXT_PUBLIC_API_KEY_BETWEEN_SERVICES}`,
+            authorization: `${process.env.API_KEY_BETWEEN_SERVICES}`,
           },
           body: JSON.stringify({ ...bodyContent }),
         }

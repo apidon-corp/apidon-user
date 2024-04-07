@@ -1,3 +1,4 @@
+import { collectedDataInformationModalAtom } from "@/components/atoms/CollectedDataInformationModalAtom";
 import { authModalStateAtom } from "@/components/atoms/authModalAtom";
 import { currentUserStateAtom } from "@/components/atoms/currentUserAtom";
 import { LikedItemData } from "@/components/types/User";
@@ -25,6 +26,10 @@ export default function LikedItem({
 
   const [loading, setLoading] = useState<boolean>(false);
   const [likeIconType, setLikeIconType] = useState<"outline" | "fill">("fill");
+
+  const setCollectedDataModelState = useSetRecoilState(
+    collectedDataInformationModalAtom
+  );
 
   const handleLikeOrDeLike = async (postDocPath: string, opCode: -1 | 1) => {
     if (!currentUserState.isThereCurrentUser) {
@@ -102,6 +107,7 @@ export default function LikedItem({
             textDecoration="underline"
             cursor="pointer"
             onClick={() => {
+              setCollectedDataModelState(false);
               router.push(postURL);
             }}
           >

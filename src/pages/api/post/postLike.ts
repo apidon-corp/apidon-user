@@ -184,7 +184,7 @@ export default async function handler(
             method: "POST",
             headers: {
               authorization: process.env
-                .NEXT_PUBLIC_API_KEY_BETWEEN_SERVICES as string,
+                .API_KEY_BETWEEN_SERVICES as string,
               "Content-Type": "application/json",
             },
             body: JSON.stringify({ ...likeActionBody }),

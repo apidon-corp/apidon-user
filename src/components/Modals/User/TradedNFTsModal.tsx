@@ -61,8 +61,6 @@ export default function TradedNFTsModal() {
     setBoughtNFTsArrayState(tradedDocResult.data.boughtNFTs);
     setSoldNFTsArrayState(tradedDocResult.data.soldNFTs);
 
-    console.log(tradedDocResult.data);
-
     setModalStatusState("showContent");
   };
 

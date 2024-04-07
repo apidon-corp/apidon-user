@@ -1,3 +1,4 @@
+import { authModalStateAtom } from "@/components/atoms/authModalAtom";
 import { currentUserStateAtom } from "@/components/atoms/currentUserAtom";
 import { postsStatusAtom } from "@/components/atoms/postsStatusAtom";
 import UserPageLayout from "@/components/Layout/UserPageLayout";
@@ -30,6 +31,8 @@ export default function UserPage({ userInformation }: Props) {
     []
   );
 
+  const setAuthModalState = useSetRecoilState(authModalStateAtom);
+
   const router = useRouter();
 
   useEffect(() => {
@@ -40,7 +43,11 @@ export default function UserPage({ userInformation }: Props) {
     if (currentUserState.isThereCurrentUser) {
       handlePersonalizedUserFeed();
     } else {
-      handleAnonymousUserFeed();
+      /**
+       * Disabling anonymous feed.
+       */
+      //handleAnonymousUserFeed();
+      setAuthModalState({ open: true, view: "signUp" });
     }
   }, [currentUserState.isThereCurrentUser, router.asPath]);
 
@@ -198,7 +205,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     title: `${userInformation.username}'s Apidon`,
     description: `${userInformation.followerCount} followers, ${userInformation.nftCount} NFT's`,
     type: "website",
-    url: `https://apidon.vercel.app/${userInformation.username}`,
+    url: `${process.env.NEXT_PUBLIC_USER_BASE_URL}/${userInformation.username}`,
     image: userInformation.profilePhoto,
   };
 

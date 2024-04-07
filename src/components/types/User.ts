@@ -43,6 +43,8 @@ export interface CurrentUser {
 
   email: string;
   uid: string;
+
+  hasProvider : boolean;
 }
 
 export const defaultCurrentUserState: CurrentUser = {
@@ -56,6 +58,8 @@ export const defaultCurrentUserState: CurrentUser = {
 
   email: "",
   uid: "",
+
+  hasProvider : false
 };
 
 export interface INotificationServerData {

@@ -6,7 +6,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { firestore } from "../../../firebase/adminApp";
 import {
   apidonNFT,
-  apidonNFTMumbaiContractAddress,
+apidonNFTSepoliaContractAddress  
 } from "@/web3/NFT/ApidonNFTApp";
 import { NftDocDataInServer } from "@/components/types/NFT";
 
@@ -16,6 +16,12 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  /**
+   * We are disabling transferNFT for "mercury" production.
+   */
+
+  return res.status(500).send("Trasnfer NFT API is disabled temporarily");
+
   const { authorization } = req.headers;
   const { postDocId, transferAddress } = req.body;
 
@@ -91,7 +97,7 @@ export default async function handler(
 
     try {
       const tx = await apidonNFT.approve(
-        apidonNFTMumbaiContractAddress,
+        apidonNFTSepoliaContractAddress,
         nftDocData.tokenId
       );
       const r = await tx.wait(1);
@@ -108,7 +114,7 @@ export default async function handler(
 
     try {
       const nftMintTx = await apidonNFT.safeTransferFrom(
-        process.env.NEXT_PUBLIC_OWNER_PUBLIC_ADDRESS,
+        process.env.WEB3_PUBLIC_WALLET_ADDRESS,
         transferAddress,
         nftDocData.tokenId
       );
