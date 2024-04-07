@@ -1,4 +1,4 @@
-import { Box, Button, Flex, Text } from "@chakra-ui/react";
+import { Box, Button, Flex, Image, Text } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 import Authentication from "./Authentication/Authentication";
 import NotificationButton from "./SearchBar/NotificationButton";
@@ -35,18 +35,8 @@ export default function Navbar() {
           lg: "none",
         }}
       >
-        <Box>
-          <Flex>
-            <Text
-              color="white"
-              fontWeight={700}
-              fontSize="20pt"
-              cursor="pointer"
-              onClick={() => router.push("/")}
-            >
-              apidon
-            </Text>
-          </Flex>
+        <Box height="100%" justifyContent="center" alignContent="center">
+          <Image src="/og.png" height="80%" />
         </Box>
 
         <Box flex="1" ml={1}>
@@ -55,7 +45,6 @@ export default function Navbar() {
 
         <Box>
           <Flex align="center" gap={2}>
-            <NFTButton />
             <NotificationButton />
             <PostCreateButton />
             <Authentication />
