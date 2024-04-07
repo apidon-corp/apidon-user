@@ -163,8 +163,8 @@ export default function DataAnalysisPreferencesModal() {
                 fontWeight="600"
               >
                 Your privacy matters here. Choose what information you share
-                with us, understanding exactly how it's used to improve your
-                experience. Your trust and choices are our top priority.
+                with us, understanding exactly how it&apos;s used to improve
+                your experience. Your trust and choices are our top priority.
               </Text>
               <Flex direction="column" gap="15px">
                 <Flex gap="5px" direction="column">
