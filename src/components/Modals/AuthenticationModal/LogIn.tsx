@@ -1,6 +1,5 @@
 import { authModalStateAtom } from "@/components/atoms/authModalAtom";
 import useLogin from "@/hooks/authHooks/useLogin";
-
 import {
   Button,
   Flex,

@@ -20,7 +20,7 @@
     "bytes": "^3.1.2",
     "crypto-js": "^4.2.0",
     "date-fns": "^3.6.0",
-    "eslint": "9.0.0",
+    "eslint": "^8.57.0",
     "eslint-config-next": "14.1.4",
     "ethers": "^6.11.1",
     "firebase": "^10.10.0",
