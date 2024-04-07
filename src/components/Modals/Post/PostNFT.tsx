@@ -567,7 +567,7 @@ export default function PostNFT({
 
                 <Flex id="nft-description-data" align="center">
                   <Text color="gray.300" fontSize="10pt" fontWeight="700">
-                    "{nftDocDataState.description}"
+                    &quot;{nftDocDataState.description}&quot;
                   </Text>
                 </Flex>
                 <Flex align="center" justify="center" gap="10px">
@@ -1174,7 +1174,7 @@ export default function PostNFT({
 
                 <Flex id="nft-description-data" align="center">
                   <Text color="gray.300" fontSize="10pt" fontWeight="700">
-                    "{nftDocDataState.description}"
+                    &quot;{nftDocDataState.description}&quot;
                   </Text>
                 </Flex>
               </Flex>
