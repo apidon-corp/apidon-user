@@ -11,7 +11,7 @@ type Props = {
   nftInformation: PostItemData[] | null;
 };
 
-export default function index({ nftInformation }: Props) {
+export default function Home({ nftInformation }: Props) {
   const [innerHeight, setInnerHeight] = useState<string>("");
 
   const setPostStatus = useSetRecoilState(postsStatusAtom);
