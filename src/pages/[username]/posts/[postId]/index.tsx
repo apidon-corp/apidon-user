@@ -100,8 +100,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       : "https://apidon.vercel.app/og.png",
   };
 
-  console.log("Page Preview Data: ",pagePreviewData)
-
   return {
     props: {
       postInformation: postInformation,

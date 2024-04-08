@@ -31,8 +31,6 @@ export default function App({ Component, pageProps }: AppProps) {
     ? fetchedPagePreviewData.image
     : "https://app.apidon.com/og.png";
 
-  console.log(fetchedPagePreviewData)
-
   return (
     <>
       <Head>
