@@ -1,5 +1,6 @@
 import { getApp, getApps, initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
+import { getAnalytics } from "firebase/analytics";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -14,5 +15,10 @@ const firebaseConfig = {
 // Initialize Firebase for Server Side Rendering
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const auth = getAuth(app);
+
+if (typeof window !== "undefined") {
+  // Initialize analytics only on the client-side
+  getAnalytics(app);
+}
 
 export { auth };
