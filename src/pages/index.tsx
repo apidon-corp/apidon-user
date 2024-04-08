@@ -157,10 +157,10 @@ export default function Home() {
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const pagePreviewData: IPagePreviewData = {
     title: "Apidon",
-    description: "Create NFTs from your posts and much more!",
+    description: "Socialize, choose your algorithm, earn rewards and create NFTs!",
     type: "website",
-    url: "https://apidon.vercel.app",
-    image: "https://apidon.vercel.app/og.png",
+    url: "https://app.apidon.com",
+    image: "https://app.apidon.com/og.png",
   };
 
   return {

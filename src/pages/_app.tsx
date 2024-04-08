@@ -20,16 +20,16 @@ export default function App({ Component, pageProps }: AppProps) {
     : "Apdion";
   const description: string = fetchedPagePreviewData?.description
     ? fetchedPagePreviewData.description
-    : "Create NFT's from your posts and much more!";
+    : "Socialize, choose your algorithm, earn rewards and create NFTs!";
   const type: string = fetchedPagePreviewData?.type
     ? fetchedPagePreviewData.type
     : "website";
   const url: string = fetchedPagePreviewData?.url
     ? fetchedPagePreviewData.url
-    : "https://apidon.vercel.app";
+    : "https://app.apidon.com";
   const image: string = fetchedPagePreviewData?.image
     ? fetchedPagePreviewData.image
-    : "https://apdion.vercel.app/og.png";
+    : "https://app.apidon.com/og.png";
 
   return (
     <>

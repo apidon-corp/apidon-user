@@ -4,6 +4,7 @@ import { firestore } from "@/firebase/adminApp";
 import { Flex, Text } from "@chakra-ui/react";
 import { GetServerSidePropsContext } from "next";
 import getDisplayName from "@/apiUtils";
+import { IPagePreviewData } from "@/components/types/User";
 
 type Props = {
   postInformation: PostItemData | undefined;
@@ -87,17 +88,22 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     senderUsername: postInformationServer.senderUsername,
   };
 
-  // const pagePreviewData: IPagePreviewData = {
-  //   title: "Apidon",
-  //   description: "Create NFTs from your posts and much more!",
-  //   type: "website",
-  //   url: "https://apidon.vercel.app",
-  //   image: "https://apidon.vercel.app/og.png",
-  // };
+  const pagePreviewData: IPagePreviewData = {
+    title: "Apidon",
+    description: postInformation.description
+      ? postInformation.description
+      : `Look at ${postInformation.senderUsername}'s post!`,
+    type: "website",
+    url: `${process.env.NEXT_PUBLIC_USER_BASE_URL}/${postInformation.senderUsername}/posts/${postInformation.postDocId}`,
+    image: postInformation.image
+      ? postInformation.image
+      : "https://apidon.vercel.app/og.png",
+  };
 
   return {
     props: {
       postInformation: postInformation,
+      pagePreviewData: pagePreviewData,
     },
   };
 }
