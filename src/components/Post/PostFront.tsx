@@ -535,7 +535,7 @@ export default function PostFront({
               cursor="pointer"
               onClick={() => {
                 navigator.clipboard.writeText(
-                  `http://localhost:3001/${postFrontData.senderUsername}/posts/${postFrontData.postDocId}`
+                  `${process.env.NEXT_PUBLIC_USER_PANEL_BASE_URL}/${postFrontData.senderUsername}/posts/${postFrontData.postDocId}`
                 );
               }}
             >
