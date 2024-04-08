@@ -26,7 +26,7 @@ export default function App({ Component, pageProps }: AppProps) {
     : "website";
   const url: string = fetchedPagePreviewData?.url
     ? fetchedPagePreviewData.url
-    : "https://apidon.vercel.app";
+    : "https://app.apidon.com";
   const image: string = fetchedPagePreviewData?.image
     ? fetchedPagePreviewData.image
     : "https://app.apidon.com/og.png";
