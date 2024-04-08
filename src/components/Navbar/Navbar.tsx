@@ -35,7 +35,13 @@ export default function Navbar() {
           lg: "none",
         }}
       >
-        <Flex height="100%" align="center" justify="center">
+        <Flex
+          height="100%"
+          align="center"
+          justify="center"
+          cursor="pointer"
+          onClick={() => router.push("/")}
+        >
           <Image src="/og.png" height="75%" />
         </Flex>
 
