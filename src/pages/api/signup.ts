@@ -23,6 +23,27 @@ export default async function handler(
 ) {
   const requestBody: SignUpRequestBody = req.body;
 
+  let response: Response;
+  try {
+    response = await fetch(
+      `https://www.google.com/recaptcha/api/siteverify?secret=${process.env.RECAPTCHA_SECRET_KEY}&response=${requestBody.captchaToken}`,
+      {
+        method: "POST",
+      }
+    );
+  } catch (error) {
+    console.error(
+      "Error on signUp.(We were fetching to 'googleRepactchaService'.)",
+      error
+    );
+    return res.status(503).send("Recaptcha Error");
+  }
+
+  if (!(await response.json()).success)
+    return res.status(401).send("reCaptcha human verification resulted false.");
+
+  if (req.method !== "POST") return res.status(405).send("Method Not Allowed");
+
   const referenceCode = requestBody.referenceCode;
   if (!referenceCode) {
     console.log("Reference code is not valid.");
@@ -55,27 +76,6 @@ export default async function handler(
     console.error("Error while verifying reference code: \n", error);
     return res.status(500).send("Internal Server Error");
   }
-
-  let response: Response;
-  try {
-    response = await fetch(
-      `https://www.google.com/recaptcha/api/siteverify?secret=${process.env.RECAPTCHA_SECRET_KEY}&response=${requestBody.captchaToken}`,
-      {
-        method: "POST",
-      }
-    );
-  } catch (error) {
-    console.error(
-      "Error on signUp.(We were fetching to 'googleRepactchaService'.)",
-      error
-    );
-    return res.status(503).send("Recaptcha Error");
-  }
-
-  if (!(await response.json()).success)
-    return res.status(401).send("reCaptcha human verification resulted false.");
-
-  if (req.method !== "POST") return res.status(405).send("Method Not Allowed");
 
   await lock.acquire(`signupAPI-${requestBody.username}`, async () => {
     const emailRegex =
