@@ -5,6 +5,11 @@ import { firestore } from "../../../firebase/adminApp";
 
 const lock = new AsyncLock();
 
+export const config = {
+  runtime: "nodejs",
+  maxDuration: 120,
+};
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse

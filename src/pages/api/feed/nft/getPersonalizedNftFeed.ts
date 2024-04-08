@@ -5,6 +5,11 @@ import { PostItemData } from "@/components/types/Post";
 import { firestore } from "@/firebase/adminApp";
 import { NextApiRequest, NextApiResponse } from "next";
 
+export const config = {
+  runtime: "nodejs",
+  maxDuration: 120,
+};
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse

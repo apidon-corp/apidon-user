@@ -14,6 +14,11 @@ import AsyncLock from "async-lock";
 
 const lock = new AsyncLock();
 
+export const config = {
+  runtime: "nodejs",
+  maxDuration: 120,
+};
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse

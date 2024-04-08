@@ -2,6 +2,11 @@ import getDisplayName from "@/apiUtils";
 import { NextApiRequest, NextApiResponse } from "next";
 import { firestore } from "../../../firebase/adminApp";
 
+export const config = {
+  runtime: "nodejs",
+  maxDuration: 120,
+};
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse

@@ -12,6 +12,11 @@ import { PostLikeActionAPIBody } from "@/components/types/API";
 
 const lock = new AsyncLock();
 
+export const config = {
+  runtime: "nodejs",
+  maxDuration: 120,
+};
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
@@ -183,8 +188,7 @@ export default async function handler(
           {
             method: "POST",
             headers: {
-              authorization: process.env
-                .API_KEY_BETWEEN_SERVICES as string,
+              authorization: process.env.API_KEY_BETWEEN_SERVICES as string,
               "Content-Type": "application/json",
             },
             body: JSON.stringify({ ...likeActionBody }),
