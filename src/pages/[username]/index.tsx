@@ -205,7 +205,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     title: `${userInformation.username}'s Apidon`,
     description: `${userInformation.followerCount} followers, ${userInformation.nftCount} NFT's`,
     type: "website",
-    url: `${process.env.NEXT_PUBLIC_USER_BASE_URL}/${userInformation.username}`,
+    url: `${process.env.NEXT_PUBLIC_USER_PANEL_BASE_URL}/${userInformation.username}`,
     image: userInformation.profilePhoto,
   };
 

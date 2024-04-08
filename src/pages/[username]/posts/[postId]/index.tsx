@@ -94,11 +94,13 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       ? postInformation.description
       : `Look at ${postInformation.senderUsername}'s post!`,
     type: "website",
-    url: `${process.env.NEXT_PUBLIC_USER_BASE_URL}/${postInformation.senderUsername}/posts/${postInformation.postDocId}`,
+    url: `${process.env.NEXT_PUBLIC_USER_PANEL_BASE_URL}/${postInformation.senderUsername}/posts/${postInformation.postDocId}`,
     image: postInformation.image
       ? postInformation.image
       : "https://apidon.vercel.app/og.png",
   };
+
+  console.log("Page Preview Data: ",pagePreviewData)
 
   return {
     props: {
