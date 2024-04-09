@@ -146,8 +146,6 @@ export default async function handler(
       return res.status(500).send("Internal Server Error");
     }
 
-    console.log("We coming to here...")
-
     // I don't care response.
     const bodyContent: PostClassifyBody = {
       imageURL: postImagePublicURL,
