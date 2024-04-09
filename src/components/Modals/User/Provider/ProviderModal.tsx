@@ -553,8 +553,8 @@ export default function ProviderModal() {
                     textAlign="center"
                     fontWeight="600"
                   >
-                    You've earned a reward for contributing your valuable data
-                    to the Apidon system. We highly appreciate your
+                    You&apos;ve earned a reward for contributing your valuable
+                    data to the Apidon system. We highly appreciate your
                     participation and want to make sure you get what you
                     deserve.
                   </Text>
@@ -564,8 +564,9 @@ export default function ProviderModal() {
                     textAlign="center"
                     fontWeight="600"
                   >
-                    Once you withdraw your reward, you'll need to select a new
-                    provider to keep enjoying the benefits of data contribution.
+                    Once you withdraw your reward, you&apos;ll need to select a
+                    new provider to keep enjoying the benefits of data
+                    contribution.
                   </Text>
 
                   <Flex gap="5px" align="center" justify="center">
