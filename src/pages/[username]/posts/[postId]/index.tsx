@@ -89,15 +89,13 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   };
 
   const pagePreviewData: IPagePreviewData = {
-    title: "Apidon",
+    title: `${postInformation.senderUsername}'s post`,
     description: postInformation.description
       ? postInformation.description
       : `Look at ${postInformation.senderUsername}'s post!`,
     type: "website",
     url: `${process.env.NEXT_PUBLIC_USER_PANEL_BASE_URL}/${postInformation.senderUsername}/posts/${postInformation.postDocId}`,
-    image: postInformation.image
-      ? postInformation.image
-      : "https://apidon.vercel.app/og.png",
+    image: postInformation.image,
   };
 
   return {
