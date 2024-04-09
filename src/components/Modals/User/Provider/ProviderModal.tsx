@@ -1,6 +1,7 @@
 import ProviderCardItem from "@/components/Items/Provider/ProviderCardItem";
 import ProviderScoreStarItem from "@/components/Items/Provider/ProviderScoreStarItem";
 import ProviderUserStarRateItem from "@/components/Items/Provider/ProviderUserStarRateItem";
+import { currentUserStateAtom } from "@/components/atoms/currentUserAtom";
 import { providerModalStateAtom } from "@/components/atoms/providerModalAtom";
 import {
   ActiveProviderInformation,
@@ -37,7 +38,7 @@ import { AiOutlineCheckCircle } from "react-icons/ai";
 import { BiError } from "react-icons/bi";
 import { BsCalendar4, BsCalendarCheckFill } from "react-icons/bs";
 import { FaGift } from "react-icons/fa6";
-import { useRecoilState } from "recoil";
+import { useRecoilState, useSetRecoilState } from "recoil";
 
 export default function ProviderModal() {
   const [modalViewState, setModalViewState] = useState<
@@ -55,6 +56,7 @@ export default function ProviderModal() {
   const [progressRate, setProgressRate] = useState(0);
 
   const [selectedProvider, setSelectedProvider] = useState("");
+  const setCurrentUserState = useSetRecoilState(currentUserStateAtom);
 
   const [providerModalState, setProviderModalState] = useRecoilState(
     providerModalStateAtom
@@ -69,6 +71,10 @@ export default function ProviderModal() {
     if (modalViewState === "initialLoading" && providerModalState.isOpen)
       getInitialProviderData();
   }, [providerModalState.isOpen, modalViewState]);
+
+  useEffect(() => {
+    if (providerModalState.isOpen) setModalViewState("initialLoading");
+  }, [providerModalState.isOpen]);
 
   const getInitialProviderData = async () => {
     setModalViewState("initialLoading");
@@ -107,8 +113,6 @@ export default function ProviderModal() {
       );
       return setModalViewState("initialLoading");
     }
-
-    console.log(activeProviderInformation);
 
     setActiveProviderData(activeProviderInformation);
 
@@ -193,10 +197,10 @@ export default function ProviderModal() {
         );
       }
 
-      console.log("Choosing Provider is successfull.");
-
       // We need to close this modal.
       setModalViewState("initialLoading");
+      setProviderModalState({ isOpen: false });
+      setCurrentUserState((prev) => ({ ...prev, hasProvider: true }));
     } catch (error) {
       console.error("Error while choosing provider: \n", error);
       return setModalViewState("initialLoading");
@@ -241,9 +245,18 @@ export default function ProviderModal() {
     <Modal
       isOpen={providerModalState.isOpen}
       onClose={() => {
-        setProviderModalState({
-          isOpen: false,
-        });
+        if (
+          !(
+            modalViewState === "initialLoading" ||
+            modalViewState === "chooseProvider" ||
+            modalViewState === "choosingProvider" ||
+            modalViewState === "withdraw" ||
+            modalViewState === "withdrawing"
+          )
+        )
+          setProviderModalState({
+            isOpen: false,
+          });
       }}
       autoFocus={false}
       size={{
@@ -289,7 +302,7 @@ export default function ProviderModal() {
           modalViewState === "withdrawing"
         ) && <ModalCloseButton color="white" />}
 
-        <ModalBody display="flex" pr="0">
+        <ModalBody display="flex">
           {modalViewState === "initialLoading" && (
             <Flex
               id="initial-loading-flex"

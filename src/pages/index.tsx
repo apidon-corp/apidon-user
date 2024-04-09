@@ -1,7 +1,6 @@
 import { authModalStateAtom } from "@/components/atoms/authModalAtom";
 import { currentUserStateAtom } from "@/components/atoms/currentUserAtom";
 import { postsStatusAtom } from "@/components/atoms/postsStatusAtom";
-import { providerModalStateAtom } from "@/components/atoms/providerModalAtom";
 import MainPageLayout from "@/components/Layout/MainPageLayout";
 import { PostItemData } from "@/components/types/Post";
 import { IPagePreviewData } from "@/components/types/User";
@@ -15,7 +14,6 @@ export default function Home() {
   const [postsDatasInServer, setPostDatasInServer] = useState<PostItemData[]>(
     []
   );
-  const setProviderModalState = useSetRecoilState(providerModalStateAtom);
 
   /**
    * Disabling anonymous main feed.
@@ -28,8 +26,10 @@ export default function Home() {
     if (!currentUserState.isThereCurrentUser) {
       return setAuthModal({ open: true, view: "logIn" });
     }
-    if (!currentUserState.hasProvider)
-      return setProviderModalState({ isOpen: true });
+    // Disabling main feed when there is no provider.
+    if (!currentUserState.hasProvider) {
+      return;
+    }
 
     handlePersonalizedMainFeed();
   }, [currentUserState.isThereCurrentUser, currentUserState.hasProvider]);

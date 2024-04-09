@@ -96,23 +96,34 @@ export default async function handler(
       const postInteractionsDoc = await firestore
         .doc(`users/${operationFromUsername}/personal/postInteractions`)
         .get();
+
       if (postInteractionsDoc.exists) {
-        const likedPostsArray = postInteractionsDoc.data()!
-          .likedPostsArray as LikedPostArrayObject[];
-        const commentedPostsArray = postInteractionsDoc.data()!
-          .commentedPostsArray as CommentedPostArrayObject[];
-        const uploadedPostsArray = postInteractionsDoc.data()!
-          .uploadedPostsArray as UploadedPostArrayObject[];
+        const postInteractionsDocData = postInteractionsDoc.data();
 
-        interactedPostObjectsArray = [
-          ...likedPostsArray,
-          ...commentedPostsArray,
-          ...uploadedPostsArray,
-        ];
+        if (postInteractionsDocData !== undefined) {
+          const likedPostsArray = postInteractionsDocData.likedPostsArray
+            ? postInteractionsDocData.likedPostsArray
+            : [];
 
-        interactedPostObjectsArray = Array.from(
-          new Set([...interactedPostObjectsArray])
-        );
+          const commentedPostsArray =
+            postInteractionsDocData.commentedPostsArray
+              ? postInteractionsDocData.commentedPostsArray
+              : [];
+
+          const uploadedPostsArray = postInteractionsDocData.uploadedPostsArray
+            ? postInteractionsDocData.uploadedPostsArray
+            : [];
+
+          interactedPostObjectsArray = [
+            ...likedPostsArray,
+            ...commentedPostsArray,
+            ...uploadedPostsArray,
+          ];
+
+          interactedPostObjectsArray = Array.from(
+            new Set([...interactedPostObjectsArray])
+          );
+        }
       }
     } catch (error) {
       console.error(

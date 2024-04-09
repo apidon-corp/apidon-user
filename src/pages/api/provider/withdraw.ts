@@ -5,8 +5,6 @@ import { apidonPayment } from "@/web3/Payment/ApidonSimplePaymentApp";
 import { TransactionReceipt, ethers } from "ethers";
 import { NextApiRequest, NextApiResponse } from "next";
 
-
-
 export const config = {
   runtime: "nodejs",
   maxDuration: 120,
@@ -74,34 +72,6 @@ export default async function handler(
     return res.status(503).send("Internal Server Error");
   }
 
-  let withdrawTx;
-  try {
-    const yieldValueInWei = ethers.parseUnits(yieldValue.toString(), "ether");
-    withdrawTx = await apidonPayment.withdraw(yieldValueInWei, withdrawAddress);
-  } catch (error) {
-    console.error(
-      "Error on withdraw. We were sending request to blockchain",
-      error
-    );
-    return res.status(503).send("Internal Server Error");
-  }
-
-  let withdrawTxReceipt: TransactionReceipt;
-  try {
-    withdrawTxReceipt = await withdrawTx.wait(1);
-  } catch (error) {
-    console.error(
-      "Error on withdraw. We were waiting for confirmation.",
-      error
-    );
-    return res.status(503).send("Internal Server Error");
-  }
-
-  if (!withdrawTxReceipt) {
-    console.error("Error on withdraw. TxRecipt is null.", withdrawTxReceipt);
-    return res.status(503).send("Chain Error");
-  }
-
   const currentProviderName = currentProviderDocOfUser.data()?.name as string;
 
   try {
@@ -160,6 +130,37 @@ export default async function handler(
       await response.text()
     );
     return res.status(503).send("Internal Server Error");
+  }
+
+  // I had to displace withdrawing to the end. Because of re-attrenct attacks.
+  // But we need to use control simultaneous operations.
+
+  let withdrawTx;
+  try {
+    const yieldValueInWei = ethers.parseUnits(yieldValue.toString(), "ether");
+    withdrawTx = await apidonPayment.withdraw(yieldValueInWei, withdrawAddress);
+  } catch (error) {
+    console.error(
+      "Error on withdraw. We were sending request to blockchain",
+      error
+    );
+    return res.status(503).send("Internal Server Error");
+  }
+
+  let withdrawTxReceipt: TransactionReceipt;
+  try {
+    withdrawTxReceipt = await withdrawTx.wait(1);
+  } catch (error) {
+    console.error(
+      "Error on withdraw. We were waiting for confirmation.",
+      error
+    );
+    return res.status(503).send("Internal Server Error");
+  }
+
+  if (!withdrawTxReceipt) {
+    console.error("Error on withdraw. TxRecipt is null.", withdrawTxReceipt);
+    return res.status(503).send("Chain Error");
   }
 
   return res.status(200).send("Success");
