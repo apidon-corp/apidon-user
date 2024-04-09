@@ -717,11 +717,13 @@ export default function PostNFT({
                           borderWidth="1px"
                           borderColor="gray"
                           borderRadius="10px"
+                          overflow="auto"
                         >
                           <Text
                             color="green.500"
                             fontWeight="700"
                             fontSize="20pt"
+                            maxWidth="100px"
                           >
                             ${nftDocDataState.listStatus.price}
                           </Text>
@@ -753,11 +755,13 @@ export default function PostNFT({
                           borderWidth="1px"
                           borderColor="gray"
                           borderRadius="10px"
+                          overflow="auto"
                         >
                           <Text
                             color="green.500"
                             fontWeight="700"
                             fontSize="20pt"
+                            maxWidth="100px"
                           >
                             ${nftDocDataState.listStatus.price}
                           </Text>

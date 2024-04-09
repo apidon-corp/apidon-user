@@ -202,7 +202,7 @@ export default function PostComments({
         </Flex>
 
         <ModalBody>
-          <Stack gap={1} hidden={gettingComments}>
+          <Stack gap={3} hidden={gettingComments}>
             {commentsDatasWithCommentDocPath.map((cdwcdi, i) => (
               <CommentItem
                 key={JSON.stringify(cdwcdi)}
