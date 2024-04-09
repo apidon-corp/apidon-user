@@ -73,11 +73,11 @@ export default function NotificationModal() {
         unSeenNotificationsDocsIds.push(notificationDoc.ref.id);
     }
 
+    tempNotifications.sort((a, b) => b.notificationTime - a.notificationTime);
     setNotificationData(tempNotifications);
 
     if (unSeenNotificationsDocsIds.length > 0) {
       if (!notificationState.notificationPanelOpen) {
-        console.log("There is unseen messages...");
         return setNotificationState((prev) => ({
           ...prev,
           allNotificationsRead: false,
@@ -85,7 +85,6 @@ export default function NotificationModal() {
         }));
       }
 
-      // I put making loading false here too becasue api is fucking slow so I don't want users to wait so long...
       setNotificationsLoading(false);
 
       setNotificationState((prev) => {
