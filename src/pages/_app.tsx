@@ -13,8 +13,10 @@ export default function App({ Component, pageProps }: AppProps) {
 
   // Last settings for links preview...
   // "undefined" for error pages (400 and 500). They don't have any metatags. (At least I don't set meta-tags for them)
+
   const fetchedPagePreviewData: IPagePreviewData | undefined =
     pageProps.pagePreviewData;
+  console.log(fetchedPagePreviewData);
   const title: string = fetchedPagePreviewData?.title
     ? fetchedPagePreviewData.title
     : "Apdion";
@@ -34,23 +36,19 @@ export default function App({ Component, pageProps }: AppProps) {
   return (
     <>
       <Head>
-        <title>
-          {router.asPath === "/"
-            ? "Apidon"
-            : `${router.asPath.split("/")[1]} - Apidon`}
-        </title>
+        <title>{title}</title>
         <link rel="icon" href="/favicon.ico" />
 
-        <meta
-          property="description"
-          content="Apidon is a social media platform that allows users to truly own and control their data while utilizing blockchain technology"
-        />
-
+        <meta property="description" content={description} />
         <meta property="og:title" content={title} key="title" />
         <meta property="og:description" content={description} key="desc" />
         <meta property="og:type" content={type} key="type" />
         <meta property="og:url" content={url} key="url" />
         <meta property="og:image" content={image} key="image" />
+
+        <meta name="twitter:title" content={title} />
+        <meta name="twitter:description" content={description} />
+        <meta name="twitter:image" content={image} />
       </Head>
       <RecoilRoot>
         <ChakraProvider theme={theme}>
