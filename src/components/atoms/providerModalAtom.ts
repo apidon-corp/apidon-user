@@ -1,14 +1,12 @@
 import { atom } from "recoil";
 
-interface IProviderModalState {
-  view: "chooseProvider" | "currentProvider";
-  open: boolean;
-}
+type IProviderModalState = {
+  isOpen: boolean;
+};
 
 export const providerModalStateAtom = atom<IProviderModalState>({
   key: "providerModalAtom",
   default: {
-    view: "chooseProvider",
-    open: false,
+    isOpen: false,
   },
 });

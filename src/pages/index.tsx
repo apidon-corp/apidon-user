@@ -29,7 +29,7 @@ export default function Home() {
       return setAuthModal({ open: true, view: "logIn" });
     }
     if (!currentUserState.hasProvider)
-      return setProviderModalState({ open: true, view: "chooseProvider" });
+      return setProviderModalState({ isOpen: true });
 
     handlePersonalizedMainFeed();
   }, [currentUserState.isThereCurrentUser, currentUserState.hasProvider]);
@@ -157,7 +157,8 @@ export default function Home() {
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const pagePreviewData: IPagePreviewData = {
     title: "Apidon",
-    description: "Socialize, choose your algorithm, earn rewards and create NFTs!",
+    description:
+      "Socialize, choose your algorithm, earn rewards and create NFTs!",
     type: "website",
     url: "https://app.apidon.com",
     image: "https://app.apidon.com/og.png",

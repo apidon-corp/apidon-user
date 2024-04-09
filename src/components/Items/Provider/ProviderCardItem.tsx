@@ -74,10 +74,7 @@ export default function ProviderCardItem({
       <Text color="gray.200" fontSize="9pt" fontWeight="700">
         &quot;{description}&quot;
       </Text>
-      <ProviderScoreStarItem
-        key={score}
-        value={score as 0 | 1 | 2 | 3 | 4 | 5}
-      />
+      <ProviderScoreStarItem fontSize="20pt" key={score} value={score} />
       <Flex gap="3">
         <Flex direction="column" align="center">
           <Text color="gray.500" fontSize="9pt" fontWeight="700">

@@ -35,6 +35,55 @@ export default async function handler(
   await lock.acquire(`chooseProvider-${operationFromUsername}`, async () => {
     let response;
 
+    // We need to check first if user has already a provider
+    try {
+      const currentProviderDoc = await firestore
+        .doc(`/users/${operationFromUsername}/provider/currentProvider`)
+        .get();
+
+      if (!currentProviderDoc.exists) {
+        console.log("There is no current provider doc. We are alright.");
+        // Contuntie
+      } else {
+        console.warn(
+          "There is a current provider doc. We need to check endTime field"
+        );
+
+        const currentProviderDocData = currentProviderDoc.data();
+
+        if (currentProviderDocData === undefined) {
+          throw new Error("currentProviderDoc data is undefined.");
+        }
+
+        const endTime = currentProviderDocData.endTime;
+
+        if (!endTime || endTime === undefined) {
+          throw new Error(
+            "endTime variable from currentProviderDoc data is inavalid."
+          );
+        }
+
+        // endTimeComparing
+
+        const currentTime = Date.now();
+
+        if (currentTime >= endTime) {
+          // Okay we can contuniue
+          console.log(
+            "Needed time passed for choosing provider, proceeding..."
+          );
+        } else {
+          // We need to revert.
+          throw new Error(
+            "Not enough time passed for choosing new provider, aborting."
+          );
+        }
+      }
+    } catch (error) {
+      console.error("Error while choosing provider: \n", error);
+      return res.status(500).send("Internal Server Error");
+    }
+
     /**
      * We'll create interactedPostDocPathArray
      * 1-) Getting like and comment informations from "commentedPostsArray" array, "likedPostsArray" array and "uploadedPostsArray"...
