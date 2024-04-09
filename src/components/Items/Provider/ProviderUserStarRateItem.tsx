@@ -3,12 +3,13 @@ import { Flex, Icon, Spinner } from "@chakra-ui/react";
 import { useState } from "react";
 
 type Props = {
-  value: 0 | 1 | 2 | 3 | 4 | 5;
+  value: number;
+  fontSize: string;
 };
 
 import { AiFillStar, AiOutlineStar } from "react-icons/ai";
 
-export default function ProviderUserStarRateItem({ value }: Props) {
+export default function ProviderUserStarRateItem({ value, fontSize }: Props) {
   const [candicateValue, setCandicateValue] = useState(value);
 
   const [isProviderRateLoading, setIsProviderRateLoading] = useState(false);
@@ -29,7 +30,7 @@ export default function ProviderUserStarRateItem({ value }: Props) {
           <Spinner color="white" size="md" />
         </Flex>
       ) : (
-        <Flex gap="1">
+        <Flex gap="1" fontSize={fontSize}>
           <Icon
             id="first-star"
             as={candicateValue >= 1 ? AiFillStar : AiOutlineStar}
@@ -37,7 +38,6 @@ export default function ProviderUserStarRateItem({ value }: Props) {
             onClick={() => {
               handleRate(1);
             }}
-            fontSize="30px"
             cursor="pointer"
           />
           <Icon
@@ -47,7 +47,6 @@ export default function ProviderUserStarRateItem({ value }: Props) {
             onClick={() => {
               handleRate(2);
             }}
-            fontSize="30px"
             cursor="pointer"
           />
           <Icon
@@ -57,7 +56,6 @@ export default function ProviderUserStarRateItem({ value }: Props) {
             onClick={() => {
               handleRate(3);
             }}
-            fontSize="30px"
             cursor="pointer"
           />
           <Icon
@@ -67,7 +65,6 @@ export default function ProviderUserStarRateItem({ value }: Props) {
             onClick={() => {
               handleRate(4);
             }}
-            fontSize="30px"
             cursor="pointer"
           />
           <Icon
@@ -77,7 +74,6 @@ export default function ProviderUserStarRateItem({ value }: Props) {
             onClick={() => {
               handleRate(5);
             }}
-            fontSize="30px"
             cursor="pointer"
           />
         </Flex>

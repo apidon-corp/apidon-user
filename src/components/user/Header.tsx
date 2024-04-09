@@ -724,8 +724,7 @@ export default function Header({ userInformation }: Props) {
                 size="sm"
                 onClick={() => {
                   setProviderModalState({
-                    open: true,
-                    view: "currentProvider",
+                    isOpen: true,
                   });
                 }}
               >

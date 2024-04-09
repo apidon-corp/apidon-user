@@ -631,3 +631,54 @@ export type PostClassifyBody = {
   providerId: string;
   startTime: number;
 };
+
+/**
+ * Can be used on getProviderInformation API.
+ */
+export type ActiveProviderInformation = {
+  isThereActiveProvider: boolean;
+
+  /**
+   * If user has no provider, we will send provider options to make him-her choose.
+   */
+  providerOptions?: IProviderShowcaseItem[];
+
+  providerData?: {
+    dueDatePassed: boolean;
+    withdrawn: boolean;
+    additionalProviderData: {
+      name: string;
+      description: string;
+      image: string;
+      clientCount: number;
+      score: number;
+      userScore: number;
+      yield: number;
+      duration: {
+        startTime: number;
+        endTime: number;
+      };
+    };
+  };
+};
+
+export const activeProviderInformationPlaceholder: ActiveProviderInformation = {
+  isThereActiveProvider: false,
+  providerData: {
+    dueDatePassed: false,
+    withdrawn: false,
+    additionalProviderData: {
+      name: "Placeholder Name",
+      description: "Placeholder Description",
+      image: "placeholder-image.jpg",
+      clientCount: 0,
+      score: 0,
+      userScore: 0,
+      yield: 0,
+      duration: {
+        startTime: 0,
+        endTime: 0,
+      },
+    },
+  },
+};

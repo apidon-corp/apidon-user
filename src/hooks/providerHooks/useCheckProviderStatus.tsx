@@ -1,25 +1,36 @@
+import { auth } from "@/firebase/clientApp";
 import useGetFirebase from "../readHooks/useGetFirebase";
 
 export default function useCheckProviderStatus() {
   const { getDocServer } = useGetFirebase();
 
-  const checkProviderStatusOnLogin = async (username: string) => {
-    const currentProviderDocResult = await getDocServer(
-      `users/${username}/provider/currentProvider`
-    );
-    if (!currentProviderDocResult) {
-      console.error("Error while getting current provider doc");
+  const checkProviderStatus = async () => {
+    const currentUserAuthObject = auth.currentUser;
 
-      return "server-error";
+    if (!currentUserAuthObject) {
+      console.error("Current User has no auth object.");
+      return false;
     }
 
-    if (!currentProviderDocResult.isExists) return "no-current-provider";
+    if (!currentUserAuthObject.displayName) {
+      console.error("Current User has no displayName field");
+      return false;
+    }
+
+    const displayName = currentUserAuthObject.displayName;
+
+    const currentProviderDocResult = await getDocServer(
+      `users/${displayName}/provider/currentProvider`
+    );
+    if (!currentProviderDocResult) return false;
+
+    if (!currentProviderDocResult.isExists) return false;
 
     const endTimeInServer = currentProviderDocResult.data.endTime;
-    if (Date.now() >= endTimeInServer) return "expired";
+    if (Date.now() >= endTimeInServer) return false;
 
-    return "good-to-go";
+    return true;
   };
 
-  return { checkProviderStatusOnLogin };
+  return { checkProviderStatus };
 }
