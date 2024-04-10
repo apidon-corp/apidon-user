@@ -1,33 +1,30 @@
 import { auth } from "@/firebase/clientApp";
-import { Box, Center, Flex, Image, Text } from "@chakra-ui/react";
+import useCookie from "@/hooks/cookieHooks/useCookie";
+import useCheckProviderStatus from "@/hooks/providerHooks/useCheckProviderStatus";
+import useGetFirebase from "@/hooks/readHooks/useGetFirebase";
+import { Box, Center, Flex, Image } from "@chakra-ui/react";
+import { User } from "firebase/auth";
 import { ReactNode, useEffect, useState } from "react";
+import { useSetRecoilState } from "recoil";
 import Footer from "../Footer/Footer";
 import AuthenticationModal from "../Modals/AuthenticationModal/AuthenticationModal";
 import PostCreateModal from "../Modals/Post/PostCreateModal";
-import NotificationModal from "../Modals/User/NotificationModal";
-import Navbar from "../Navbar/Navbar";
-import useLogin from "@/hooks/authHooks/useLogin";
-import DataAnalysisPreferencesModal from "../Modals/User/DataAnalysisPreferencesModal";
 import CollectedDataInformationModal from "../Modals/User/CollectedDataInformationModal";
-import useCookie from "@/hooks/cookieHooks/useCookie";
-import TradedNFTsModal from "../Modals/User/TradedNFTsModal";
+import DataAnalysisPreferencesModal from "../Modals/User/DataAnalysisPreferencesModal";
+import NotificationModal from "../Modals/User/NotificationModal";
 import ProviderModal from "../Modals/User/Provider/ProviderModal";
-import { User } from "firebase/auth";
-import useGetFirebase from "@/hooks/readHooks/useGetFirebase";
-import useCheckProviderStatus from "@/hooks/providerHooks/useCheckProviderStatus";
-import { CurrentUser, UserInServer } from "../types/User";
-import { useSetRecoilState } from "recoil";
+import TradedNFTsModal from "../Modals/User/TradedNFTsModal";
+import Navbar from "../Navbar/Navbar";
 import { authModalStateAtom } from "../atoms/authModalAtom";
 import { currentUserStateAtom } from "../atoms/currentUserAtom";
 import { providerModalStateAtom } from "../atoms/providerModalAtom";
+import { CurrentUser, UserInServer } from "../types/User";
 
 type Props = {
   children: ReactNode;
 };
 
 export default function Layout({ children }: Props) {
-  const [innerHeight, setInnerHeight] = useState("95vh");
-
   const [loading, setLoading] = useState(true);
 
   const { setCookie } = useCookie();
@@ -41,7 +38,22 @@ export default function Layout({ children }: Props) {
   const setProviderModalState = useSetRecoilState(providerModalStateAtom);
 
   useEffect(() => {
-    setInnerHeight(`${window.innerHeight}px`);
+    // Function to calculate viewport height excluding bottom bars on mobile Safari
+    const calculateViewportHeight = () => {
+      let vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty("--vh", `${vh}px`);
+    };
+
+    // Initial calculation
+    calculateViewportHeight();
+
+    // Recalculate on window resize
+    window.addEventListener("resize", calculateViewportHeight);
+
+    // Clean up the event listener
+    return () => {
+      window.removeEventListener("resize", calculateViewportHeight);
+    };
   }, []);
 
   useEffect(() => {
@@ -105,7 +117,7 @@ export default function Layout({ children }: Props) {
     <>
       {loading ? (
         <>
-          <Center height={innerHeight}>
+          <Center height="calc(var(--vh, 1vh) * 100)">
             <Image src="/og.png" align="center" width="90px" />
           </Center>
         </>
@@ -116,7 +128,6 @@ export default function Layout({ children }: Props) {
           <PostCreateModal />
           <AuthenticationModal />
           <NotificationModal />
-          {/* <CurrentProviderModal/> */}
           <ProviderModal />
           <DataAnalysisPreferencesModal />
           <CollectedDataInformationModal />

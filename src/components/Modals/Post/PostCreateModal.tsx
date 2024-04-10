@@ -1,6 +1,5 @@
 import getCroppedImg from "@/components/utils/GetCroppedImage";
 import usePostUpload from "@/hooks/postHooks/usePostUpload";
-
 import {
   AspectRatio,
   Button,

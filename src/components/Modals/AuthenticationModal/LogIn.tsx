@@ -18,7 +18,7 @@ export default function LogIn() {
     password: "",
   });
 
-  const { logSignedOutUserIn } = useLogin();
+  const { logUserIn } = useLogin();
 
   const [loading, setLoading] = useState(false);
 
@@ -32,7 +32,7 @@ export default function LogIn() {
   const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setLoading(true);
-    await logSignedOutUserIn(loginForm.emailOrUsername, loginForm.password);
+    await logUserIn(loginForm.emailOrUsername, loginForm.password);
     setLoading(false);
   };
 

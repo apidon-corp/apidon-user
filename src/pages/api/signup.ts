@@ -161,7 +161,7 @@ export default async function handler(
         followerCount: 0,
         nftCount: 0,
 
-        email: requestBody.fullname || "",
+        email: requestBody.email,
         uid: createdUid,
       };
 
