@@ -4,19 +4,15 @@ import { IPagePreviewData } from "@/components/types/User";
 import { ChakraProvider } from "@chakra-ui/react";
 import type { AppProps } from "next/app";
 import Head from "next/head";
-import { useRouter } from "next/router";
 import NextNProgress from "nextjs-progressbar";
 import { RecoilRoot } from "recoil";
 
 export default function App({ Component, pageProps }: AppProps) {
-  const router = useRouter();
-
   // Last settings for links preview...
   // "undefined" for error pages (400 and 500). They don't have any metatags. (At least I don't set meta-tags for them)
 
   const fetchedPagePreviewData: IPagePreviewData | undefined =
     pageProps.pagePreviewData;
-  console.log(fetchedPagePreviewData);
   const title: string = fetchedPagePreviewData?.title
     ? fetchedPagePreviewData.title
     : "Apdion";

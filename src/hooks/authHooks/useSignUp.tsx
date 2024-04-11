@@ -2,7 +2,7 @@ import { InitialSignUpForm, SignUpRequestBody } from "@/components/types/User";
 import useLogin from "./useLogin";
 
 export default function useSignUp() {
-  const { logSignedOutUserIn } = useLogin();
+  const { logUserIn } = useLogin();
 
   const initiateSignUp = async (
     signUpForm: InitialSignUpForm,
@@ -12,7 +12,7 @@ export default function useSignUp() {
 
     if (!handleSignUpResult) return false;
 
-    const operationResult = await logSignedOutUserIn(
+    const operationResult = await logUserIn(
       signUpForm.email,
       signUpForm.password
     );
