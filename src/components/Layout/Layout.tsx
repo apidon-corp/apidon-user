@@ -5,7 +5,7 @@ import useGetFirebase from "@/hooks/readHooks/useGetFirebase";
 import { Box, Center, Flex, Image } from "@chakra-ui/react";
 import { User } from "firebase/auth";
 import { ReactNode, useEffect, useState } from "react";
-import { useSetRecoilState } from "recoil";
+import { useRecoilState, useSetRecoilState } from "recoil";
 import Footer from "../Footer/Footer";
 import PostCreateModal from "../Modals/Post/PostCreateModal";
 import CollectedDataInformationModal from "../Modals/User/CollectedDataInformationModal";
@@ -35,7 +35,8 @@ export default function Layout({ children }: Props) {
   const { checkProviderStatus } = useCheckProviderStatus();
 
   const setCurrentUserState = useSetRecoilState(currentUserStateAtom);
-  const setAuthModalState = useSetRecoilState(authModalStateAtom);
+  const [authModalState, setAuthModalState] =
+    useRecoilState(authModalStateAtom);
   const setProviderModalState = useSetRecoilState(providerModalStateAtom);
 
   useEffect(() => {
@@ -127,8 +128,14 @@ export default function Layout({ children }: Props) {
           <Navbar />
           <Flex justifyContent="center">{children}</Flex>
           <PostCreateModal />
-          <LoginModal />
-          <SignupModal />
+
+          {authModalState.open && authModalState.view === "signUp" && (
+            <SignupModal />
+          )}
+          {authModalState.open && authModalState.view === "logIn" && (
+            <LoginModal />
+          )}
+
           <NotificationModal />
           <ProviderModal />
           <DataAnalysisPreferencesModal />

@@ -1,5 +1,5 @@
 import { PersonalDataInServer, UserInServer } from "@/components/types/User";
-import { auth, firestore } from "@/firebase/adminApp";
+import { auth, firestore, appCheck } from "@/firebase/adminApp";
 import { NextApiRequest, NextApiResponse } from "next";
 
 export default async function handler(
@@ -9,7 +9,22 @@ export default async function handler(
   const { authorization } = req.headers;
   const { referralCode, email, password, username, fullname } = req.body;
 
-  // authorization => recaptcha test
+  // authorization
+  if (!authorization) {
+    return res.status(401).json({
+      cause: "auth",
+      message: "Authentication cannot be established.",
+    });
+  }
+
+  try {
+    await appCheck.verifyToken(authorization);
+  } catch (error) {
+    return res.status(401).json({
+      cause: "auth",
+      message: "Authentication cannot be established.",
+    });
+  }
 
   if (req.method !== "POST")
     return res.status(405).json({
@@ -26,7 +41,7 @@ export default async function handler(
 
   // Regex Check
   const regexTestResult = quickRegexCheck(email, password, username, fullname);
-  if (!regexTestResult) {
+  if (regexTestResult !== true) {
     return res.status(422).json({
       cause: regexTestResult,
       message: "Invalid Prop",
@@ -77,28 +92,31 @@ export default async function handler(
 
   // email validity
   try {
-    const userCred = await auth.getUserByEmail(email);
-    if (userCred.displayName) {
-      await releaseReferralCode(referralCode);
-      return res.status(422).json({
-        cause: "email",
-        message: "This email is used by another account.",
-      });
-    }
+    await auth.getUserByEmail(email);
+
+    // If there is no error throwed from above line we are going back.
+    await releaseReferralCode(referralCode);
+
+    return res.status(422).json({
+      cause: "email",
+      message: "This email is used by another account.",
+    });
   } catch (error) {
     // Normal Situation
-    console.log("Everyting alright");
+    // There is no account linked with requested email.
   }
 
   // username validity check (If it is taken or not.)
   try {
     const userDocSnapshot = await firestore.doc(`usernames/${username}`).get();
     if (userDocSnapshot.exists) {
+      await releaseReferralCode(referralCode);
       return res.status(422).json({
         cause: "username",
         message: "Username is taken.",
       });
     }
+    // So If there is no doc, no problem.
   } catch (error) {
     console.error(
       "Error on checking username validity: (If it is valid or not.): \n",

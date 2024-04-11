@@ -1,4 +1,5 @@
 import { authModalStateAtom } from "@/components/atoms/authModalAtom";
+import { appCheck } from "@/firebase/clientApp";
 import useLogin from "@/hooks/authHooks/useLogin";
 import {
   Button,
@@ -19,6 +20,7 @@ import {
   Spinner,
   Text,
 } from "@chakra-ui/react";
+import { getToken } from "firebase/app-check";
 import React, { ChangeEvent, useRef, useState } from "react";
 import { BiError, BiErrorCircle } from "react-icons/bi";
 import { useRecoilState } from "recoil";
@@ -73,12 +75,15 @@ export default function SignupModal() {
     setModalViewState("verifyingReferralCode");
 
     try {
+      const appCheckTokenResult = await getToken(appCheck);
+      const token = appCheckTokenResult.token;
+
       const response = await fetch(
         "/api/user/authentication/signup/checkReferralCode",
         {
           method: "POST",
           headers: {
-            authorization: "sdaf",
+            authorization: token,
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
@@ -204,6 +209,18 @@ export default function SignupModal() {
   const handleSignUpButton = async () => {
     setModalViewState("verifyingEPUF");
 
+    // Clearing the errors we there is
+    setEmailError("");
+    setPasswordStatus({
+      digit: true,
+      eightCharacter: true,
+      lowercase: true,
+      special: true,
+      uppercase: true,
+    });
+    setUsernameError("");
+    setFullnameError("");
+
     // Quick Regex Check
     const regexTestResult = quickRegexCheck();
     if (!regexTestResult) {
@@ -212,10 +229,13 @@ export default function SignupModal() {
     }
 
     try {
+      const appCheckTokenResult = await getToken(appCheck);
+      const token = appCheckTokenResult.token;
+
       const response = await fetch("/api/user/authentication/signup/signup", {
         method: "POST",
         headers: {
-          authentication: "",
+          authorization: token,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
@@ -233,7 +253,16 @@ export default function SignupModal() {
           message: string;
         };
 
-        console.log(result);
+        console.log("Result from 'responseNotOkay': ", result);
+
+        if (result.cause === "auth") {
+          setModalViewState("epuf");
+          // Because fullname error is at the bottom, I am changing it.
+          setFullnameError(
+            "Authentication cannot be established. Try again later."
+          );
+          return;
+        }
 
         if (result.cause === "server") {
           setModalViewState("epuf");
@@ -289,6 +318,9 @@ export default function SignupModal() {
           setReferralCodeError(result.message);
           return;
         }
+
+        // Just in case, we couldn't catch error codes.
+        return;
       }
 
       // We need to log user in with these new credentals.
@@ -305,6 +337,9 @@ export default function SignupModal() {
 
       // Error come from fetch operation.
       setModalViewState("epuf");
+
+      // Because fullname error is at the bottom, I am changing it to show "unexpected error" error to users.
+      setFullnameError("Internal server error. Try again later.");
       return;
     }
   };
@@ -514,6 +549,25 @@ export default function SignupModal() {
                   </Button>
                 </Flex>
               </form>
+              <Flex
+                id="have-account-text-flex"
+                width="100%"
+                align="center"
+                justify="center"
+              >
+                <Text
+                  color="blue.500"
+                  fontSize="10pt"
+                  as="b"
+                  textDecor="underline"
+                  cursor="pointer"
+                  onClick={() => {
+                    setAuthModalState({ open: true, view: "logIn" });
+                  }}
+                >
+                  Have an account? Log In!
+                </Text>
+              </Flex>
             </Flex>
           )}
           {modalViewState === "verifyingReferralCode" && (
@@ -869,6 +923,25 @@ export default function SignupModal() {
                   </Button>
                 </Flex>
               </form>
+              <Flex
+                id="have-account-text-flex"
+                width="100%"
+                align="center"
+                justify="center"
+              >
+                <Text
+                  color="blue.500"
+                  fontSize="10pt"
+                  as="b"
+                  textDecor="underline"
+                  cursor="pointer"
+                  onClick={() => {
+                    setAuthModalState({ open: true, view: "logIn" });
+                  }}
+                >
+                  Have an account? Log In!
+                </Text>
+              </Flex>
             </Flex>
           )}
 

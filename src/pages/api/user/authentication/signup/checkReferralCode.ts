@@ -1,4 +1,4 @@
-import { firestore } from "@/firebase/adminApp";
+import { appCheck, firestore } from "@/firebase/adminApp";
 import { NextApiRequest, NextApiResponse } from "next";
 
 export default async function handler(
@@ -7,6 +7,16 @@ export default async function handler(
 ) {
   const { authorization } = req.headers;
   const { referralCode } = req.body;
+
+  // authorization
+  if (!authorization) {
+    return res.status(401).send("Authentication cannot be established.");
+  }
+  try {
+    await appCheck.verifyToken(authorization);
+  } catch (error) {
+    return res.status(401).send("Authentication cannot be established.");
+  }
 
   if (req.method !== "POST") return res.status(405).send("Method not allowed!");
 

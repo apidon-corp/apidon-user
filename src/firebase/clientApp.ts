@@ -2,6 +2,13 @@ import { getApp, getApps, initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getAnalytics } from "firebase/analytics";
 
+import {
+  AppCheck,
+  getToken,
+  initializeAppCheck,
+  ReCaptchaEnterpriseProvider,
+} from "firebase/app-check";
+
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
@@ -16,9 +23,16 @@ const firebaseConfig = {
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const auth = getAuth(app);
 
+let appCheck: AppCheck;
 if (typeof window !== "undefined") {
   // Initialize analytics only on the client-side
   getAnalytics(app);
+  appCheck = initializeAppCheck(app, {
+    provider: new ReCaptchaEnterpriseProvider(
+      process.env.NEXT_PUBLIC_RECAPTCHA_ENTERPRISE_SITE_KEY as string
+    ),
+    isTokenAutoRefreshEnabled: true,
+  });
 }
 
-export { auth };
+export { auth, appCheck };

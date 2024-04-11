@@ -41,14 +41,5 @@ export const theme = extendTheme({
         },
       },
     },
-    Input: {
-      baseStyle: {
-        field: {
-          _autofill: {
-            transition: "background-color 0s 600000s, color 0s 600000s",
-          },
-        },
-      },
-    },
   },
 });

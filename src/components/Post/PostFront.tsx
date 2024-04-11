@@ -91,6 +91,7 @@ export default function PostFront({
   const { getDocServer } = useGetFirebase();
 
   useEffect(() => {
+    if (!currentUserState.isThereCurrentUser) return;
     handleGetPostSenderData(postFrontData.senderUsername);
   }, [currentUserState.username]);
 

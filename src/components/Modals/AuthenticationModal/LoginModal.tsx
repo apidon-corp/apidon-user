@@ -1,4 +1,5 @@
 import { authModalStateAtom } from "@/components/atoms/authModalAtom";
+import { appCheck } from "@/firebase/clientApp";
 import useLogin from "@/hooks/authHooks/useLogin";
 import {
   Button,
@@ -19,6 +20,7 @@ import {
   Spinner,
   Text,
 } from "@chakra-ui/react";
+import { getToken } from "firebase/app-check";
 import { ChangeEvent, useRef, useState } from "react";
 import { BiError } from "react-icons/bi";
 import { useRecoilState } from "recoil";
@@ -116,13 +118,16 @@ export default function LoginModal() {
 
     // We need to check If there is an account linked with this email or username.
     try {
+      const appCheckTokenResult = await getToken(appCheck);
+      const token = appCheckTokenResult.token;
+
       const response = await fetch(
         "/api/user/authentication/login/checkIsThereLinkedAccount",
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            authorization: "",
+            authorization: token,
           },
           body: JSON.stringify({
             eu: eu.toString(),
@@ -356,11 +361,7 @@ export default function LoginModal() {
                         fontSize="12pt"
                         my={2}
                       >
-                        {loginType === "email"
-                          ? "Email"
-                          : loginType === "username"
-                          ? "Username"
-                          : "Email or Username"}
+                        {loginType === "email" ? "Email" : "Email or Username"}
                       </FormLabel>
                     </FormControl>
                     <InputRightElement hidden={eu.length === 0}>
@@ -403,6 +404,25 @@ export default function LoginModal() {
                   </Button>
                 </Flex>
               </form>
+              <Flex
+                id="dont-have-account-text-flex"
+                width="100%"
+                align="center"
+                justify="center"
+              >
+                <Text
+                  color="blue.500"
+                  fontSize="10pt"
+                  as="b"
+                  textDecor="underline"
+                  cursor="pointer"
+                  onClick={() => {
+                    setAuthenticationModalState({ open: true, view: "signUp" });
+                  }}
+                >
+                  Don't have an account? Sign Up!
+                </Text>
+              </Flex>
             </Flex>
           )}
           {modalViewState === "verifyingEU" && (
@@ -560,6 +580,25 @@ export default function LoginModal() {
                   </Button>
                 </Flex>
               </form>
+              <Flex
+                id="dont-have-account-text-flex"
+                width="100%"
+                align="center"
+                justify="center"
+              >
+                <Text
+                  color="blue.500"
+                  fontSize="10pt"
+                  as="b"
+                  textDecor="underline"
+                  cursor="pointer"
+                  onClick={() => {
+                    setAuthenticationModalState({ open: true, view: "signUp" });
+                  }}
+                >
+                  Don't have an account? Sign Up!
+                </Text>
+              </Flex>
             </Flex>
           )}
           {modalViewState === "verifyingPassword" && (
