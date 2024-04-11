@@ -312,7 +312,7 @@ export default function LoginModal() {
                   textAlign="center"
                 >
                   To continue, please enter your email address or username.
-                  You'll be prompted for your password on the next screen.
+                  You&apos;ll be prompted for your password on the next screen.
                 </Text>
               </Flex>
               <form
@@ -420,7 +420,7 @@ export default function LoginModal() {
                     setAuthenticationModalState({ open: true, view: "signUp" });
                   }}
                 >
-                  Don't have an account? Sign Up!
+                  Don&apos;t have an account? Sign Up!
                 </Text>
               </Flex>
             </Flex>
@@ -596,7 +596,7 @@ export default function LoginModal() {
                     setAuthenticationModalState({ open: true, view: "signUp" });
                   }}
                 >
-                  Don't have an account? Sign Up!
+                  Don&apos;t have an account? Sign Up!
                 </Text>
               </Flex>
             </Flex>

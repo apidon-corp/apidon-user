@@ -456,7 +456,7 @@ export default function SignupModal() {
                   fontSize="10pt"
                   textAlign="center"
                 >
-                  To continue, please enter your referral code. You'll be
+                  To continue, please enter your referral code. You&apos;ll be
                   prompted for your email and password on the next screen.
                 </Text>
               </Flex>
