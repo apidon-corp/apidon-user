@@ -13,6 +13,7 @@ import {
   ModalOverlay,
   Spinner,
   Stack,
+  Text,
 } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
@@ -144,6 +145,7 @@ export default function NotificationModal() {
         }))
       }
       autoFocus={false}
+      scrollBehavior="inside"
     >
       <ModalOverlay backdropFilter="auto" backdropBlur="8px" />
       <ModalContent

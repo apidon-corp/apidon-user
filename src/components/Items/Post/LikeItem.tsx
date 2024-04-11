@@ -60,6 +60,7 @@ export default function LikeItem({
       console.log("Login First to Follow");
       return setAuthModalState((prev) => ({
         ...prev,
+        view: "logIn",
         open: true,
       }));
     }

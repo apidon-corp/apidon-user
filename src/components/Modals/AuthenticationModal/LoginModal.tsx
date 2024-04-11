@@ -23,7 +23,7 @@ import { ChangeEvent, useRef, useState } from "react";
 import { BiError } from "react-icons/bi";
 import { useRecoilState } from "recoil";
 
-export default function AuthenticationModal() {
+export default function LoginModal() {
   const [modalViewState, setModalViewState] = useState<
     "loginEU" | "verifyingEU" | "loginPassword" | "verifyingPassword"
   >("loginEU");
@@ -240,7 +240,10 @@ export default function AuthenticationModal() {
 
   return (
     <Modal
-      isOpen={authenticationModalState.open}
+      isOpen={
+        authenticationModalState.open &&
+        authenticationModalState.view === "logIn"
+      }
       onClose={() => {
         if (
           !(
@@ -259,6 +262,7 @@ export default function AuthenticationModal() {
         lg: "lg",
       }}
       scrollBehavior="inside"
+      allowPinchZoom={true}
     >
       <ModalOverlay backdropFilter="auto" backdropBlur="10px" />
       <ModalContent

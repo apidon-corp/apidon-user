@@ -7,7 +7,6 @@ import { User } from "firebase/auth";
 import { ReactNode, useEffect, useState } from "react";
 import { useSetRecoilState } from "recoil";
 import Footer from "../Footer/Footer";
-import AuthenticationModal from "../Modals/AuthenticationModal/AuthenticationModal";
 import PostCreateModal from "../Modals/Post/PostCreateModal";
 import CollectedDataInformationModal from "../Modals/User/CollectedDataInformationModal";
 import DataAnalysisPreferencesModal from "../Modals/User/DataAnalysisPreferencesModal";
@@ -19,6 +18,8 @@ import { authModalStateAtom } from "../atoms/authModalAtom";
 import { currentUserStateAtom } from "../atoms/currentUserAtom";
 import { providerModalStateAtom } from "../atoms/providerModalAtom";
 import { CurrentUser, UserInServer } from "../types/User";
+import LoginModal from "../Modals/AuthenticationModal/LoginModal";
+import SignupModal from "../Modals/AuthenticationModal/SignupModal";
 
 type Props = {
   children: ReactNode;
@@ -126,7 +127,8 @@ export default function Layout({ children }: Props) {
           <Navbar />
           <Flex justifyContent="center">{children}</Flex>
           <PostCreateModal />
-          <AuthenticationModal />
+          <LoginModal />
+          <SignupModal />
           <NotificationModal />
           <ProviderModal />
           <DataAnalysisPreferencesModal />
