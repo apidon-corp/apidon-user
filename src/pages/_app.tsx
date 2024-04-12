@@ -15,7 +15,7 @@ export default function App({ Component, pageProps }: AppProps) {
     pageProps.pagePreviewData;
   const title: string = fetchedPagePreviewData?.title
     ? fetchedPagePreviewData.title
-    : "Apdion";
+    : "Apidon";
   const description: string = fetchedPagePreviewData?.description
     ? fetchedPagePreviewData.description
     : "Socialize, choose your algorithm, earn rewards and create NFTs!";
