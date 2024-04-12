@@ -20,6 +20,7 @@ import { providerModalStateAtom } from "../atoms/providerModalAtom";
 import { CurrentUser, UserInServer } from "../types/User";
 import LoginModal from "../Modals/AuthenticationModal/LoginModal";
 import SignupModal from "../Modals/AuthenticationModal/SignupModal";
+import ResetPasswordModal from "../Modals/AuthenticationModal/ResetPasswordModal";
 
 type Props = {
   children: ReactNode;
@@ -118,11 +119,9 @@ export default function Layout({ children }: Props) {
   return (
     <>
       {loading ? (
-        <>
-          <Center height="calc(var(--vh, 1vh) * 100)">
-            <Image src="/og.png" align="center" width="90px" />
-          </Center>
-        </>
+        <Center height="calc(var(--vh, 1vh) * 100)">
+          <Image src="/og.png" align="center" width="90px" />
+        </Center>
       ) : (
         <Box>
           <Navbar />
@@ -134,6 +133,9 @@ export default function Layout({ children }: Props) {
           )}
           {authModalState.open && authModalState.view === "logIn" && (
             <LoginModal />
+          )}
+          {authModalState.open && authModalState.view === "resetPassword" && (
+            <ResetPasswordModal />
           )}
 
           <NotificationModal />
