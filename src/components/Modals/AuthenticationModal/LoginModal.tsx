@@ -57,7 +57,7 @@ export default function LoginModal() {
     useRecoilState(authModalStateAtom);
 
   const handleEUChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const input = event.target.value;
+    let input = event.target.value;
 
     // Clear error text
     setEuError("");
@@ -72,12 +72,10 @@ export default function LoginModal() {
 
     // Help to users for 'lowercasering'
     if (input !== input.toLowerCase()) {
-      if (loginEUInputRef.current) {
-        loginEUInputRef.current.value = input.toLowerCase();
-      }
-      setEu(input.toLowerCase());
-      return;
+      input = input.toLowerCase();
     }
+
+    setEu(input);
 
     // Email
     if (input.includes("@")) {
@@ -89,9 +87,6 @@ export default function LoginModal() {
         /^[A-Za-z0-9._%+-]+@(gmail|yahoo|outlook|aol|icloud|protonmail|yandex|mail|zoho)\.(com|net|org)$/i;
       const regexTestResult = emailRegex.test(input);
       setEuValid(regexTestResult);
-
-      // update-other-states
-      setEu(input);
 
       return;
     }
@@ -105,9 +100,6 @@ export default function LoginModal() {
       const usernameRegex = /^[a-z0-9]{4,20}$/;
       const regexTestResult = usernameRegex.test(input);
       setEuValid(regexTestResult);
-
-      // update-other-state
-      setEu(input);
 
       return;
     }
@@ -581,7 +573,7 @@ export default function LoginModal() {
                 </Flex>
               </form>
               <Flex
-                id="dont-have-account-text-flex"
+                id="forgot-your-password-button"
                 width="100%"
                 align="center"
                 justify="center"
@@ -593,10 +585,13 @@ export default function LoginModal() {
                   textDecor="underline"
                   cursor="pointer"
                   onClick={() => {
-                    setAuthenticationModalState({ open: true, view: "signUp" });
+                    setAuthenticationModalState({
+                      open: true,
+                      view: "resetPassword",
+                    });
                   }}
                 >
-                  Don&apos;t have an account? Sign Up!
+                  Forgot your password? Reset it!
                 </Text>
               </Flex>
             </Flex>
