@@ -444,6 +444,8 @@ export default function PostFront({
                 <Icon as={BsImage} fontSize="8xl" color="white" />
               </Flex>
             }
+            draggable={false}
+            userSelect="none"
           />
         </AspectRatio>
       )}

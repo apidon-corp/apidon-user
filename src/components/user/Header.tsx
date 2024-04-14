@@ -728,7 +728,7 @@ export default function Header({ userInformation }: Props) {
                   });
                 }}
               >
-                Data Ownership
+                Provider Panel
               </Button>
               <Button
                 colorScheme="blue"

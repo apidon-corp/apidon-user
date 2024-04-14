@@ -163,6 +163,7 @@ export default function PostCreateModal() {
         setPostCreatModaleState({ isOpen: false });
       }}
       autoFocus={false}
+      scrollBehavior="inside"
     >
       <ModalOverlay backdropFilter="auto" backdropBlur="8px" />
       <ModalContent bg="black">

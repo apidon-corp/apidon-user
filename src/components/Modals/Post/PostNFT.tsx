@@ -397,6 +397,7 @@ export default function PostNFT({
         md: "lg",
         lg: "lg",
       }}
+      scrollBehavior="inside"
     >
       <ModalOverlay backdropFilter="auto" backdropBlur="8px" />
       <ModalContent

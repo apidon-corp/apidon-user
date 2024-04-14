@@ -160,6 +160,7 @@ export default function CollectedDataInformationModal() {
       onClose={() => {
         setModalOpenState(false);
       }}
+      scrollBehavior="inside"
     >
       <ModalOverlay backdropFilter="auto" backdropBlur="8px" />
       <ModalContent

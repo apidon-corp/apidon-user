@@ -32,7 +32,8 @@ const usePostCreate = () => {
       return console.log("Only Images");
     }
 
-    if (file.size > 5 * 10 ** 6) {
+    // 50mb
+    if (file.size > 50 * 10 ** 6) {
       return console.error("This image is too high quality");
     }
 

@@ -170,6 +170,7 @@ export default function PostComments({
       }}
       isOpen={openPanelNameValue === "comments"}
       autoFocus={false}
+      scrollBehavior="inside"
     >
       <ModalOverlay />
       <ModalContent
