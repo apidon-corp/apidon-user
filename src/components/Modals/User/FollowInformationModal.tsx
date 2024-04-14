@@ -91,6 +91,7 @@ export default function FollowInformationModal({
         }))
       }
       autoFocus={false}
+      scrollBehavior="inside"
     >
       <ModalOverlay backdropFilter="auto" backdropBlur="8px" />
       <ModalContent

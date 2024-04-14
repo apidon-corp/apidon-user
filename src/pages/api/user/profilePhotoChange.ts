@@ -8,6 +8,11 @@ const lock = new AsyncLock();
 export const config = {
   runtime: "nodejs",
   maxDuration: 120,
+  api: {
+    bodyParser: {
+      sizeLimit: "50mb",
+    },
+  },
 };
 
 export default async function handler(

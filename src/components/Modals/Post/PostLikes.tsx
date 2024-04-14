@@ -86,6 +86,7 @@ export default function PostLikes({
       }}
       isOpen={openPanelNameValue === "likes"}
       autoFocus={false}
+      scrollBehavior="inside"
     >
       <ModalOverlay />
       <ModalContent
