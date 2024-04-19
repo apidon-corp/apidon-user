@@ -21,14 +21,25 @@ import {
   Text,
 } from "@chakra-ui/react";
 import { getToken } from "firebase/app-check";
-import React, { ChangeEvent, useRef, useState } from "react";
+import React, {
+  ChangeEvent,
+  createRef,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { BiError, BiErrorCircle } from "react-icons/bi";
 import { useRecoilState } from "recoil";
 
 export default function SignupModal() {
   // epuf refers to => Email, Password, Username and Fullname
   const [modalViewState, setModalViewState] = useState<
-    "referralCode" | "verifyingReferralCode" | "epuf" | "verifyingEPUF"
+    | "referralCode"
+    | "verifyingReferralCode"
+    | "epuf"
+    | "sendingEmailVerificationCode"
+    | "enterEmailVerificationCode"
+    | "verifyingEPUF"
   >("referralCode");
   const referralCodeInputRef = useRef<HTMLInputElement>(null);
   const [referralCode, setReferralCode] = useState("");
@@ -59,6 +70,17 @@ export default function SignupModal() {
   const [isFullnameValid, setIsFullnameValid] = useState(false);
   const [fullname, setFullname] = useState("");
   const [fullnameError, setFullnameError] = useState("");
+
+  const templateArray = [0, 0, 0, 0, 0, 0];
+
+  const [verificationCodeInputRefs, setVerificationCodeInputRefs] = useState<
+    Array<React.RefObject<HTMLInputElement>>
+  >([]);
+
+  const [verificationCode, setVerificationCode] = useState(
+    new Array(6).fill("")
+  );
+  const [verificationCodeError, setVerificationCodeError] = useState("");
 
   const { logUserIn } = useLogin();
 
@@ -206,7 +228,234 @@ export default function SignupModal() {
       );
   };
 
+  const handleVerificationCodeChange = (
+    event: ChangeEvent<HTMLInputElement>,
+    index: number
+  ) => {
+    const input = event.target.value;
+
+    setVerificationCodeError("");
+
+    if (input !== "") {
+      const verificationCodeRegex = /^[0-9]$/;
+      const regexTestResult = verificationCodeRegex.test(input);
+      if (!regexTestResult) {
+        return;
+      }
+    }
+
+    const newCode = [...verificationCode];
+    newCode[index] = input;
+
+    setVerificationCode(newCode);
+
+    // Focusing to the next.
+    if (input !== "" && index < templateArray.length - 1) {
+      setTimeout(() => {
+        if (
+          verificationCodeInputRefs[index + 1] &&
+          verificationCodeInputRefs[index + 1].current
+        ) {
+          verificationCodeInputRefs[index + 1].current?.focus();
+        }
+      }, 0);
+    }
+  };
+
+  const handleKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>,
+    index: number
+  ) => {
+    if (e.key === "Backspace" && index > 0 && verificationCode[index] === "") {
+      setTimeout(() => {
+        if (
+          verificationCodeInputRefs[index - 1] &&
+          verificationCodeInputRefs[index - 1].current
+        )
+          verificationCodeInputRefs[index - 1].current?.focus();
+      }, 0);
+    }
+  };
+
   const handleSignUpButton = async () => {
+    // Clearing the errors we there is
+    setEmailError("");
+    setPasswordStatus({
+      digit: true,
+      eightCharacter: true,
+      lowercase: true,
+      special: true,
+      uppercase: true,
+    });
+    setUsernameError("");
+    setFullnameError("");
+    setVerificationCodeError("");
+
+    // Quick Regex Check
+    const regexTestResult = quickRegexCheck();
+    if (!regexTestResult) {
+      console.log("Regex test result is not okay.");
+      setModalViewState("epuf");
+      return;
+    }
+
+    setModalViewState("sendingEmailVerificationCode");
+
+    // Verification Code Sending
+    try {
+      const appCheckTokenResult = await getToken(appCheck);
+      const token = appCheckTokenResult.token;
+
+      const response = await fetch(
+        "/api/user/authentication/signup/verificationCodeSend",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            authorization: token,
+          },
+          body: JSON.stringify({
+            referralCode: referralCode,
+            email: email,
+            password: password,
+            username: username,
+            fullname: fullname,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const result = (await response.json()) as {
+          cause: string;
+          message: string;
+        };
+
+        console.log("Result from 'verificationCodeSend': ", result);
+
+        if (result.cause === "auth") {
+          setModalViewState("epuf");
+          // Because fullname error is at the bottom, I am changing it.
+          setFullnameError(
+            "Authentication cannot be established. Try again later."
+          );
+          return;
+        }
+
+        if (result.cause === "server") {
+          setModalViewState("epuf");
+          return;
+        }
+
+        if (result.cause === "email") {
+          // We need to open epuf screen.
+          setModalViewState("epuf");
+
+          // We need to set error
+          setIsEmailValid(false);
+          setEmailError(result.message);
+
+          return;
+        }
+
+        if (result.cause === "password") {
+          // We need to open epuf screen.
+          setModalViewState("epuf");
+
+          // We need to set error
+          setIsPasswordValid(false);
+          setPasswordStatus((prev) => ({ ...prev }));
+          return;
+        }
+
+        if (result.cause === "username") {
+          // We need to open epuf screen.
+          setModalViewState("epuf");
+
+          // We need to set error
+          setIsUsernameValid(false);
+          setUsernameError(result.message);
+          return;
+        }
+
+        if (result.cause === "fullname") {
+          // We need to open epuf screen.
+          setModalViewState("epuf");
+
+          // We need to set error
+          setIsFullnameValid(false);
+          setFullnameError(result.message);
+          return;
+        }
+
+        if (result.cause === "referralCode") {
+          // We need to open epuf screen.
+          setModalViewState("referralCode");
+
+          // We need to set error
+          setReferralCodeError(result.message);
+          return;
+        }
+
+        // Just in case, we couldn't catch error codes.
+        console.error("Invalid response came from 'sendVerificationEmail' API");
+        return setModalViewState("epuf");
+      }
+
+      // Everthing is alright.
+
+      return setModalViewState("enterEmailVerificationCode");
+    } catch (error) {
+      console.error("Error on sending email verification code: \n", error);
+      return setModalViewState("epuf");
+    }
+  };
+
+  const quickRegexCheck = () => {
+    // Email
+    const emailRegex =
+      /^[A-Za-z0-9._%+-]+@(gmail|yahoo|outlook|aol|icloud|protonmail|yandex|mail|zoho)\.(com|net|org)$/i;
+    const regexTestResultE = emailRegex.test(email);
+    setIsEmailValid(regexTestResultE);
+    if (!regexTestResultE) return false;
+
+    // Password
+    const passwordRegex =
+      /^(?=.*?\p{Lu})(?=.*?\p{Ll})(?=.*?\d)(?=.*?[^\w\s]|[_]).{12,}$/u;
+    const regexTestResultP = passwordRegex.test(password);
+    setIsPasswordValid(regexTestResultP);
+    setPasswordStatus({
+      digit: /^(?=.*?\d)/u.test(password),
+      lowercase: /^(?=.*?\p{Ll})/u.test(password),
+      uppercase: /^(?=.*?\p{Lu})/u.test(password),
+      eightCharacter: /^.{12,}$/u.test(password),
+      special: /^(?=.*?[^\w\s]|[_])/u.test(password),
+    });
+    if (!regexTestResultP) return false;
+
+    // Username
+    const usernameRegex = /^[a-z0-9]{4,20}$/;
+    const regexTestResultU = usernameRegex.test(username);
+    setIsUsernameValid(regexTestResultU);
+    if (!regexTestResultU)
+      setUsernameError(
+        "Please enter a username consisting of 4 to 20 characters, using only lowercase letters (a-z) and digits (0-9)."
+      );
+    if (!regexTestResultU) return false;
+
+    // Fullname
+    const fullnameRegex = /^\p{L}{3,20}(?: \p{L}{1,20})*$/u;
+    const regexTestResultF = fullnameRegex.test(fullname);
+    setIsFullnameValid(regexTestResultF);
+    if (!regexTestResultF)
+      setFullnameError(
+        "Please enter your full name consisting of 3 to 20 characters, using letters and spaces."
+      );
+    if (!regexTestResultF) return false;
+
+    return true;
+  };
+
+  const handleVerifyButton = async () => {
     setModalViewState("verifyingEPUF");
 
     // Clearing the errors we there is
@@ -220,11 +469,22 @@ export default function SignupModal() {
     });
     setUsernameError("");
     setFullnameError("");
+    setVerificationCodeError("");
 
     // Quick Regex Check
     const regexTestResult = quickRegexCheck();
     if (!regexTestResult) {
       setModalViewState("epuf");
+      return;
+    }
+
+    const verificationCodeRegex = /^\d{6}$/;
+    const regexTestResultV = verificationCodeRegex.test(
+      verificationCode.join("")
+    );
+    if (!regexTestResultV) {
+      setVerificationCodeError("Verification code is invalid");
+      setModalViewState("enterEmailVerificationCode");
       return;
     }
 
@@ -244,6 +504,7 @@ export default function SignupModal() {
           password: password,
           username: username,
           fullname: fullname,
+          verificationCode: verificationCode.join(""),
         }),
       });
 
@@ -319,6 +580,15 @@ export default function SignupModal() {
           return;
         }
 
+        if (result.cause === "verificationCode") {
+          // We need to open epuf screen.
+          setModalViewState("enterEmailVerificationCode");
+
+          // We need to set error
+          setVerificationCodeError(result.message);
+          return;
+        }
+
         // Just in case, we couldn't catch error codes.
         return;
       }
@@ -344,50 +614,13 @@ export default function SignupModal() {
     }
   };
 
-  const quickRegexCheck = () => {
-    // Email
-    const emailRegex =
-      /^[A-Za-z0-9._%+-]+@(gmail|yahoo|outlook|aol|icloud|protonmail|yandex|mail|zoho)\.(com|net|org)$/i;
-    const regexTestResultE = emailRegex.test(email);
-    setIsEmailValid(regexTestResultE);
-    if (!regexTestResultE) return false;
-
-    // Password
-    const passwordRegex =
-      /^(?=.*?\p{Lu})(?=.*?\p{Ll})(?=.*?\d)(?=.*?[^\w\s]|[_]).{12,}$/u;
-    const regexTestResultP = passwordRegex.test(password);
-    setIsPasswordValid(regexTestResultP);
-    setPasswordStatus({
-      digit: /^(?=.*?\d)/u.test(password),
-      lowercase: /^(?=.*?\p{Ll})/u.test(password),
-      uppercase: /^(?=.*?\p{Lu})/u.test(password),
-      eightCharacter: /^.{12,}$/u.test(password),
-      special: /^(?=.*?[^\w\s]|[_])/u.test(password),
-    });
-    if (!regexTestResultP) return false;
-
-    // Username
-    const usernameRegex = /^[a-z0-9]{4,20}$/;
-    const regexTestResultU = usernameRegex.test(username);
-    setIsUsernameValid(regexTestResultU);
-    if (!regexTestResultU)
-      setUsernameError(
-        "Please enter a username consisting of 4 to 20 characters, using only lowercase letters (a-z) and digits (0-9)."
-      );
-    if (!regexTestResultU) return false;
-
-    // Fullname
-    const fullnameRegex = /^\p{L}{3,20}(?: \p{L}{1,20})*$/u;
-    const regexTestResultF = fullnameRegex.test(fullname);
-    setIsFullnameValid(regexTestResultF);
-    if (!regexTestResultF)
-      setFullnameError(
-        "Please enter your full name consisting of 3 to 20 characters, using letters and spaces."
-      );
-    if (!regexTestResultF) return false;
-
-    return true;
-  };
+  useEffect(() => {
+    setVerificationCodeInputRefs((ref) =>
+      Array(templateArray.length)
+        .fill("0")
+        .map((_, i) => verificationCodeInputRefs[i] || createRef())
+    );
+  }, [templateArray.length]);
 
   return (
     <Modal
@@ -396,6 +629,7 @@ export default function SignupModal() {
         if (
           !(
             modalViewState === "verifyingReferralCode" ||
+            modalViewState === "sendingEmailVerificationCode" ||
             modalViewState === "verifyingEPUF"
           )
         )
@@ -405,7 +639,6 @@ export default function SignupModal() {
             view: "signUp",
           }));
       }}
-      initialFocusRef={referralCodeInputRef}
       size={{
         base: "full",
         sm: "full",
@@ -941,6 +1174,141 @@ export default function SignupModal() {
                 >
                   Have an account? Log In!
                 </Text>
+              </Flex>
+            </Flex>
+          )}
+
+          {modalViewState === "sendingEmailVerificationCode" && (
+            <Flex
+              id="sendingEmailVerificationCode-flex"
+              width="100%"
+              align="center"
+              justify="center"
+            >
+              <Spinner width="75px" height="75px" color="white" />
+            </Flex>
+          )}
+
+          {modalViewState === "enterEmailVerificationCode" && (
+            <Flex
+              id="enterEmailVerificationCode"
+              width="100%"
+              align="center"
+              justify="center"
+              direction="column"
+              gap="20px"
+            >
+              <Image src="/og.png" width="20%" />
+              <Flex
+                id="verification-code-desc"
+                direction="column"
+                align="center"
+                justify="center"
+                gap="5px"
+              >
+                <Text color="white" fontWeight="600" fontSize="20pt">
+                  Verify Your Account
+                </Text>
+                <Text
+                  color="gray.500"
+                  fontWeight="600"
+                  fontSize="10pt"
+                  textAlign="center"
+                >
+                  To continue, please enter your verification code. We&apos;ve
+                  sent it to{" "}
+                  <span
+                    style={{
+                      color: "#3182CE",
+                      fontSize: "10pt",
+                      textAlign: "center",
+                    }}
+                  >
+                    {email}
+                  </span>
+                </Text>
+              </Flex>
+
+              <Flex
+                id="verification-code-input-error"
+                direction="column"
+                width="100%"
+                align="center"
+                justify="center"
+                gap="20px"
+              >
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleVerifyButton();
+                  }}
+                  style={{
+                    width: "100%",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "20px",
+                  }}
+                >
+                  <Flex
+                    id="digit-inputs"
+                    width="100%"
+                    align="center"
+                    justify="space-between"
+                  >
+                    {templateArray.map((_, i) => (
+                      <Input
+                        key={i}
+                        ref={verificationCodeInputRefs[i]}
+                        color="white"
+                        width="50px"
+                        height="50px"
+                        rounded="full"
+                        textAlign="center"
+                        fontSize="25px"
+                        fontWeight="700"
+                        value={verificationCode[i]}
+                        onChange={(e) => {
+                          handleVerificationCodeChange(e, i);
+                        }}
+                        onKeyDown={(e) => {
+                          handleKeyDown(e, i);
+                        }}
+                      />
+                    ))}
+                  </Flex>
+
+                  <Flex id="verification-code-error-message" justify="center">
+                    <Text
+                      color="red"
+                      fontSize="10pt"
+                      fontWeight="400"
+                      textAlign="center"
+                    >
+                      {verificationCodeError}
+                    </Text>
+                  </Flex>
+                  <Flex id="verify-button" justify="center">
+                    <Button
+                      bg="white"
+                      color="black"
+                      border="1px solid white"
+                      _hover={{
+                        bg: "black",
+                        color: "white",
+                        border: "1px solid white",
+                      }}
+                      _focus={{
+                        bg: "#343434",
+                        color: "white",
+                        border: "1px solid #343434",
+                      }}
+                      isDisabled={!/^\d{6}$/.test(verificationCode.join(""))}
+                      type="submit"
+                    >
+                      Verify
+                    </Button>
+                  </Flex>
+                </form>
               </Flex>
             </Flex>
           )}
