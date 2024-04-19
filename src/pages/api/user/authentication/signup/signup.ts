@@ -7,7 +7,14 @@ export default async function handler(
   res: NextApiResponse
 ) {
   const { authorization } = req.headers;
-  const { referralCode, email, password, username, fullname } = req.body;
+  const {
+    referralCode,
+    email,
+    password,
+    username,
+    fullname,
+    verificationCode,
+  } = req.body;
 
   // authorization
   if (!authorization) {
@@ -40,7 +47,13 @@ export default async function handler(
   }
 
   // Regex Check
-  const regexTestResult = quickRegexCheck(email, password, username, fullname);
+  const regexTestResult = quickRegexCheck(
+    email,
+    password,
+    username,
+    fullname,
+    verificationCode
+  );
   if (regexTestResult !== true) {
     return res.status(422).json({
       cause: regexTestResult,
@@ -129,6 +142,57 @@ export default async function handler(
     });
   }
 
+  // Verification Code Checking
+  try {
+    const verificationCodeDoc = await firestore
+      .doc(`/emailVerifications/${email}`)
+      .get();
+
+    const verificationCodeDocData = verificationCodeDoc.data();
+
+    if (verificationCodeDocData === undefined) {
+      console.error(
+        "There is a verification doc but there is no data in it: ",
+        email
+      );
+      await releaseReferralCode(referralCode);
+      return res.status(500).json({
+        cause: "server",
+        message: "Internal server error",
+      });
+    }
+
+    let code = verificationCodeDocData.code;
+
+    if (!code) {
+      console.error("Code is empty even there is verificaton code doc.");
+      await releaseReferralCode(referralCode);
+      return res.status(500).json({
+        cause: "server",
+        message: "Internal server error",
+      });
+    }
+
+    code = code.toString();
+
+    // Verification Code Testing....
+    if (verificationCode !== code) {
+      console.warn("Verification code is invalid for: ", email);
+      await releaseReferralCode(referralCode);
+      return res.status(500).json({
+        cause: "verificationCode",
+        message: "Verification code is invalid.",
+      });
+    }
+  } catch (error) {
+    console.log("Error on verification code checking: \n", error);
+    await releaseReferralCode(referralCode);
+    return res.status(500).json({
+      cause: "server",
+      messae: "Internal server error",
+    });
+  }
+
   // User Creation
   let mainUserDocData: UserInServer;
   let uid;
@@ -144,6 +208,7 @@ export default async function handler(
       email: email,
       password: password,
       displayName: username,
+      emailVerified: true,
     });
     uid = createdUID;
   } catch (error) {
@@ -230,6 +295,27 @@ export default async function handler(
     });
   }
 
+  // Deleting verification doc
+  try {
+    await firestore.doc(`emailVerifications/${email}`).delete();
+  } catch (error) {
+    console.error("Error while deleting used verification doc: \n", error);
+
+    await releaseReferralCode(referralCode);
+    await releaseAccount(uid);
+    await deleteUserDocs(username, [
+      `usernames/${username}`,
+      `users/${username}`,
+      `users/${username}/personal/profie`,
+      `users/${username}/nftTrade/nftTrade`,
+    ]);
+
+    return res.status(500).json({
+      cause: "server",
+      message: "Internal Server Error",
+    });
+  }
+
   return res.status(200).send(`New user successfully created: ${username}`);
 }
 
@@ -237,7 +323,8 @@ const quickRegexCheck = (
   email: string,
   password: string,
   username: string,
-  fullname: string
+  fullname: string,
+  verificationCode: string
 ) => {
   // Email
   const emailRegex =
@@ -264,6 +351,13 @@ const quickRegexCheck = (
   const regexTestResultF = fullnameRegex.test(fullname);
 
   if (!regexTestResultF) return "fullname";
+
+  // Verification Code
+  const verificationCodeRegex = /^\d{6}$/;
+  const regexTestResultV = verificationCodeRegex.test(verificationCode);
+  if (!regexTestResultV) {
+    return "verificationCode";
+  }
 
   return true;
 };

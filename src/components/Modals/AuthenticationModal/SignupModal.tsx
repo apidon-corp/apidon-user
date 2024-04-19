@@ -231,11 +231,15 @@ export default function SignupModal() {
     index: number
   ) => {
     const input = event.target.value;
-    if (isNaN(+input)) return;
 
-    if (input.length > 1) {
-      console.log(input);
-      return;
+    setVerificationCodeError("");
+
+    if (input !== "") {
+      const verificationCodeRegex = /^[0-9]$/;
+      const regexTestResult = verificationCodeRegex.test(input);
+      if (!regexTestResult) {
+        return;
+      }
     }
 
     const newCode = [...verificationCode];
@@ -276,10 +280,12 @@ export default function SignupModal() {
     });
     setUsernameError("");
     setFullnameError("");
+    setVerificationCodeError("");
 
     // Quick Regex Check
     const regexTestResult = quickRegexCheck();
     if (!regexTestResult) {
+      console.log("Regex test result is not okay.");
       setModalViewState("epuf");
       return;
     }
@@ -300,7 +306,11 @@ export default function SignupModal() {
             authorization: token,
           },
           body: JSON.stringify({
+            referralCode: referralCode,
             email: email,
+            password: password,
+            username: username,
+            fullname: fullname,
           }),
         }
       );
@@ -311,7 +321,7 @@ export default function SignupModal() {
           message: string;
         };
 
-        console.log("Result from 'responseNotOkay': ", result);
+        console.log("Result from 'verificationCodeSend': ", result);
 
         if (result.cause === "auth") {
           setModalViewState("epuf");
@@ -454,11 +464,22 @@ export default function SignupModal() {
     });
     setUsernameError("");
     setFullnameError("");
+    setVerificationCodeError("");
 
     // Quick Regex Check
     const regexTestResult = quickRegexCheck();
     if (!regexTestResult) {
       setModalViewState("epuf");
+      return;
+    }
+
+    const verificationCodeRegex = /^\d{6}$/;
+    const regexTestResultV = verificationCodeRegex.test(
+      verificationCode.join("")
+    );
+    if (!regexTestResultV) {
+      setVerificationCodeError("Verification code is invalid");
+      setModalViewState("enterEmailVerificationCode");
       return;
     }
 
@@ -478,6 +499,7 @@ export default function SignupModal() {
           password: password,
           username: username,
           fullname: fullname,
+          verificationCode: verificationCode.join(""),
         }),
       });
 
@@ -550,6 +572,19 @@ export default function SignupModal() {
 
           // We need to set error
           setReferralCodeError(result.message);
+          return;
+        }
+
+        if (result.cause === "verificationCode") {
+          // We need to open epuf screen.
+          setModalViewState("enterEmailVerificationCode");
+          setTimeout(() => {
+            // @ts-ignore
+            verificationCodeInputRefs[5].current.focus();
+          }, 0);
+
+          // We need to set error
+          setVerificationCodeError(result.message);
           return;
         }
 
@@ -1193,28 +1228,30 @@ export default function SignupModal() {
                   </span>
                 </Text>
               </Flex>
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  //
-                }}
-                style={{
-                  width: "100%",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "20px",
-                }}
+
+              <Flex
+                id="verification-code-input-error"
+                direction="column"
+                width="100%"
+                align="center"
+                justify="center"
+                gap="20px"
               >
-                <Flex
-                  id="verification-code-input-error"
-                  direction="column"
-                  width="100%"
-                  align="center"
-                  justify="center"
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleVerifyButton();
+                  }}
+                  style={{
+                    width: "100%",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "20px",
+                  }}
                 >
                   <Flex
-                    width="100%"
                     id="digit-inputs"
+                    width="100%"
                     align="center"
                     justify="space-between"
                   >
@@ -1227,7 +1264,6 @@ export default function SignupModal() {
                         width="50px"
                         height="50px"
                         rounded="full"
-                        type="number"
                         textAlign="center"
                         fontSize="25px"
                         fontWeight="700"
@@ -1242,7 +1278,7 @@ export default function SignupModal() {
                     ))}
                   </Flex>
 
-                  <Flex id="verification-code-error-message">
+                  <Flex id="verification-code-error-message" justify="center">
                     <Text
                       color="red"
                       fontSize="10pt"
@@ -1252,30 +1288,29 @@ export default function SignupModal() {
                       {verificationCodeError}
                     </Text>
                   </Flex>
-                </Flex>
-
-                <Flex id="referral-contuniue-button" justify="center">
-                  <Button
-                    bg="white"
-                    color="black"
-                    border="1px solid white"
-                    _hover={{
-                      bg: "black",
-                      color: "white",
-                      border: "1px solid white",
-                    }}
-                    _focus={{
-                      bg: "#343434",
-                      color: "white",
-                      border: "1px solid #343434",
-                    }}
-                    isDisabled={referralCodeError.length > 0}
-                    type="submit"
-                  >
-                    Continue
-                  </Button>
-                </Flex>
-              </form>
+                  <Flex id="verify-button" justify="center">
+                    <Button
+                      bg="white"
+                      color="black"
+                      border="1px solid white"
+                      _hover={{
+                        bg: "black",
+                        color: "white",
+                        border: "1px solid white",
+                      }}
+                      _focus={{
+                        bg: "#343434",
+                        color: "white",
+                        border: "1px solid #343434",
+                      }}
+                      isDisabled={!/^\d{6}$/.test(verificationCode.join(""))}
+                      type="submit"
+                    >
+                      Verify
+                    </Button>
+                  </Flex>
+                </form>
+              </Flex>
             </Flex>
           )}
 
