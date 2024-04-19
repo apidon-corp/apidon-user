@@ -72,9 +72,11 @@ export default function SignupModal() {
   const [fullnameError, setFullnameError] = useState("");
 
   const templateArray = [0, 0, 0, 0, 0, 0];
+
   const [verificationCodeInputRefs, setVerificationCodeInputRefs] = useState<
-    HTMLInputElement[]
+    Array<React.RefObject<HTMLInputElement>>
   >([]);
+
   const [verificationCode, setVerificationCode] = useState(
     new Array(6).fill("")
   );
@@ -250,8 +252,12 @@ export default function SignupModal() {
     // Focusing to the next.
     if (input !== "" && index < templateArray.length - 1) {
       setTimeout(() => {
-        //@ts-ignore
-        verificationCodeInputRefs[index + 1].current?.focus();
+        if (
+          verificationCodeInputRefs[index + 1] &&
+          verificationCodeInputRefs[index + 1].current
+        ) {
+          verificationCodeInputRefs[index + 1].current?.focus();
+        }
       }, 0);
     }
   };
@@ -262,8 +268,11 @@ export default function SignupModal() {
   ) => {
     if (e.key === "Backspace" && index > 0 && verificationCode[index] === "") {
       setTimeout(() => {
-        // @ts-ignore
-        verificationCodeInputRefs[index - 1].current?.focus(); // Use optional chaining here
+        if (
+          verificationCodeInputRefs[index - 1] &&
+          verificationCodeInputRefs[index - 1].current
+        )
+          verificationCodeInputRefs[index - 1].current?.focus();
       }, 0);
     }
   };
@@ -394,11 +403,7 @@ export default function SignupModal() {
 
       // Everthing is alright.
 
-      setModalViewState("enterEmailVerificationCode");
-      return setTimeout(() => {
-        // @ts-ignore
-        verificationCodeInputRefs[0].current?.focus();
-      }, 0);
+      return setModalViewState("enterEmailVerificationCode");
     } catch (error) {
       console.error("Error on sending email verification code: \n", error);
       return setModalViewState("epuf");
@@ -578,10 +583,6 @@ export default function SignupModal() {
         if (result.cause === "verificationCode") {
           // We need to open epuf screen.
           setModalViewState("enterEmailVerificationCode");
-          setTimeout(() => {
-            // @ts-ignore
-            verificationCodeInputRefs[5].current.focus();
-          }, 0);
 
           // We need to set error
           setVerificationCodeError(result.message);
@@ -638,7 +639,6 @@ export default function SignupModal() {
             view: "signUp",
           }));
       }}
-      initialFocusRef={referralCodeInputRef}
       size={{
         base: "full",
         sm: "full",
@@ -1258,7 +1258,6 @@ export default function SignupModal() {
                     {templateArray.map((_, i) => (
                       <Input
                         key={i}
-                        // @ts-ignore
                         ref={verificationCodeInputRefs[i]}
                         color="white"
                         width="50px"

@@ -21,6 +21,8 @@ import { CurrentUser, UserInServer } from "../types/User";
 import LoginModal from "../Modals/AuthenticationModal/LoginModal";
 import SignupModal from "../Modals/AuthenticationModal/SignupModal";
 import ResetPasswordModal from "../Modals/AuthenticationModal/ResetPasswordModal";
+import VerifyModal from "../Modals/AuthenticationModal/VerifyModal";
+import { verificationModalAtom } from "../atoms/verificationModalAtom";
 
 type Props = {
   children: ReactNode;
@@ -40,6 +42,13 @@ export default function Layout({ children }: Props) {
     useRecoilState(authModalStateAtom);
   const setProviderModalState = useSetRecoilState(providerModalStateAtom);
 
+  const [verificationModalState, setVerificationModalState] = useRecoilState(
+    verificationModalAtom
+  );
+
+  /**
+   * Setting width and height for company logo on start screen.
+   */
   useEffect(() => {
     // Function to calculate viewport height excluding bottom bars on mobile Safari
     const calculateViewportHeight = () => {
@@ -59,6 +68,9 @@ export default function Layout({ children }: Props) {
     };
   }, []);
 
+  /**
+   * Handling signing in and out's after opearions.
+   */
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
       setLoading(true);
@@ -109,9 +121,17 @@ export default function Layout({ children }: Props) {
       username: userDocDataInServer.username,
     };
 
+    console.log(
+      `Is ${user.displayName}'s email verified: `,
+      user.emailVerified
+    );
+
+    const isEmailVerified = user.emailVerified;
+
     setCurrentUserState(currentUserData);
     setAuthModalState((prev) => ({ ...prev, open: false }));
     setProviderModalState({ isOpen: !hasProvider });
+    setVerificationModalState({ isOpen: !isEmailVerified });
 
     return setLoading(false);
   };
@@ -137,6 +157,8 @@ export default function Layout({ children }: Props) {
           {authModalState.open && authModalState.view === "resetPassword" && (
             <ResetPasswordModal />
           )}
+
+          {verificationModalState.isOpen && <VerifyModal />}
 
           <NotificationModal />
           <ProviderModal />

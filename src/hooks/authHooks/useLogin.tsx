@@ -3,7 +3,7 @@ import { UserCredential, signInWithEmailAndPassword } from "firebase/auth";
 
 const useLogin = () => {
   /**
-   *
+   * Auth.
    * This function is used by login and signup operations.
    * At signup, after creating user, we make user login.
    * After this login function, on layout page; we are getting additional data for user and updates states.
