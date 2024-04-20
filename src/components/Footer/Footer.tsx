@@ -16,6 +16,9 @@ export default function Footer() {
       <Text as="b" textColor="gray.300" fontSize="9pt">
         Made with ❤️ in Istanbul
       </Text>
+      <Text as="b" textColor="gray.300" fontSize="9pt">
+        Version: Mercury
+      </Text>
       <Flex
         align="center"
         gap={1}
