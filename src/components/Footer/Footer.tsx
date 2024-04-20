@@ -17,7 +17,10 @@ export default function Footer() {
         Made with ❤️ in Istanbul
       </Text>
       <Text as="b" textColor="gray.300" fontSize="9pt">
-        Version: Mercury
+        Version:{" "}
+        {process.env.NEXT_PUBLIC_VERSION_IDENTIFIER
+          ? process.env.NEXT_PUBLIC_VERSION_IDENTIFIER
+          : "53"}
       </Text>
       <Flex
         align="center"
