@@ -5,6 +5,7 @@ import { currentUserStateAtom } from "@/components/atoms/currentUserAtom";
 import { providerModalStateAtom } from "@/components/atoms/providerModalAtom";
 import {
   ActiveProviderInformation,
+  IProviderShowcaseItem,
   activeProviderInformationPlaceholder,
 } from "@/components/types/User";
 import { auth } from "@/firebase/clientApp";
@@ -48,6 +49,9 @@ export default function ProviderModal() {
     | "withdrawing"
     | "chooseProvider"
     | "choosingProvider"
+    | "changeProviderLoading"
+    | "changeProvider"
+    | "changingProvider"
   >("initialLoading");
 
   const [activeProviderData, setActiveProviderData] =
@@ -66,6 +70,9 @@ export default function ProviderModal() {
   const [isWithdrawAddressValid, setIsWithdrawAddressValid] = useState(true);
   const withdrawAddressInputRef = useRef<HTMLInputElement>(null);
   const { withdraw } = useWithdraw();
+
+  const [providerOptionsForChange, setProviderOptionsForChange] =
+    useState<ActiveProviderInformation["providerOptions"]>(undefined);
 
   useEffect(() => {
     if (modalViewState === "initialLoading" && providerModalState.isOpen)
@@ -241,6 +248,94 @@ export default function ProviderModal() {
     setModalViewState("initialLoading");
   };
 
+  const handleChangeYourProviderButton = async () => {
+    // Set Loading Panel Active
+    setModalViewState("changeProviderLoading");
+
+    // Get Avaliable Provider Options and show it to user.
+    try {
+      const currentUserAuthObject = auth.currentUser;
+      if (!currentUserAuthObject) {
+        console.error("Current Auth Object is null or undefined");
+        return setModalViewState("activeProvider");
+      }
+
+      const idToken = await currentUserAuthObject.getIdToken();
+
+      const response = await fetch(
+        "/api/provider/getAvaliableProviderOptionsForChange",
+        {
+          headers: {
+            "Content-Type": "application/json",
+            authorization: `Bearer ${idToken}`,
+          },
+          method: "POST",
+        }
+      );
+
+      if (!response.ok) {
+        console.error(
+          "Response from 'getAvaliableProviderOptionsForChange' is not okay: ",
+          await response.text()
+        );
+        return setModalViewState("activeProvider");
+      }
+
+      const result = await response.json();
+      const providersShowcaseDatas =
+        result.providersShowcaseDatas as IProviderShowcaseItem[];
+
+      // Update States
+      setProviderOptionsForChange(providersShowcaseDatas);
+      return setModalViewState("changeProvider");
+    } catch (error) {
+      console.error("Error while getting provider options: \n", error);
+      return setModalViewState("activeProvider");
+    }
+  };
+
+  const handleChangeProvider = async () => {
+    // Change state to "changeingProvider"
+    setModalViewState("changingProvider");
+
+    // Choose new provider backend.
+    try {
+      const currentUserAuthObject = auth.currentUser;
+      if (!currentUserAuthObject) {
+        console.error("Current Auth Object is null or undefined");
+        return setModalViewState("changeProvider");
+      }
+
+      const idToken = await currentUserAuthObject.getIdToken();
+
+      const response = await fetch("/api/provider/changeProvider", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `Bearer ${idToken}`,
+        },
+        body: JSON.stringify({
+          providerName: selectedProvider,
+        }),
+      });
+
+      if (!response.ok) {
+        console.error(
+          "Reponse from 'changeProvider' API is not okay: \n",
+          await response.text()
+        );
+        return setModalViewState("changeProvider");
+      }
+
+      // Everthing alright
+      // Refresh modal.
+      return setModalViewState("initialLoading");
+    } catch (error) {
+      console.error("Error on fethcing to 'changeProvider' API: \n", error);
+      return setModalViewState("changeProvider");
+    }
+  };
+
   return (
     <Modal
       isOpen={providerModalState.isOpen}
@@ -251,7 +346,9 @@ export default function ProviderModal() {
             modalViewState === "chooseProvider" ||
             modalViewState === "choosingProvider" ||
             modalViewState === "withdraw" ||
-            modalViewState === "withdrawing"
+            modalViewState === "withdrawing" ||
+            modalViewState === "changeProviderLoading" ||
+            modalViewState === "changingProvider"
           )
         )
           setProviderModalState({
@@ -295,12 +392,24 @@ export default function ProviderModal() {
           <ModalHeader color="white">Withdraw Reward</ModalHeader>
         )}
 
+        {modalViewState === "changeProviderLoading" && (
+          <ModalHeader color="white">Change Your Provider</ModalHeader>
+        )}
+        {modalViewState === "changeProvider" && (
+          <ModalHeader color="white">Change Your Provider</ModalHeader>
+        )}
+        {modalViewState === "changingProvider" && (
+          <ModalHeader color="white">Change Your Provider</ModalHeader>
+        )}
+
         {!(
           modalViewState === "initialLoading" ||
           modalViewState === "chooseProvider" ||
           modalViewState === "choosingProvider" ||
           modalViewState === "withdraw" ||
-          modalViewState === "withdrawing"
+          modalViewState === "withdrawing" ||
+          modalViewState === "changeProviderLoading" ||
+          modalViewState === "changingProvider"
         ) && <ModalCloseButton color="white" />}
 
         <ModalBody display="flex">
@@ -474,6 +583,16 @@ export default function ProviderModal() {
                     </Flex>
                   </Flex>
                 </Flex>
+              </Flex>
+              <Flex id="change-provider-button" align="center" justify="center">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  colorScheme="blue"
+                  onClick={handleChangeYourProviderButton}
+                >
+                  Change Your Provider
+                </Button>
               </Flex>
             </Flex>
           )}
@@ -656,6 +775,72 @@ export default function ProviderModal() {
               <Text fontSize="10pt" fontWeight="600" color="gray.500">
                 Reward is being withdrawn.
               </Text>
+            </Flex>
+          )}
+          {modalViewState === "changeProviderLoading" && (
+            <Flex
+              id="changeProviderLoading-flex"
+              width="100%"
+              align="center"
+              justify="center"
+            >
+              <Spinner width="75px" height="75px" color="white" />
+            </Flex>
+          )}
+          {modalViewState === "changeProvider" && (
+            <Flex
+              id="change-provider-flex"
+              width="100%"
+              gap="5"
+              direction="column"
+            >
+              {providerOptionsForChange?.map((psi, i) => (
+                <ProviderCardItem
+                  key={i}
+                  chooseIsDone={false}
+                  clientCount={psi.clientCount}
+                  description={psi.description}
+                  image={psi.image}
+                  name={psi.name}
+                  offer={psi.offer}
+                  score={psi.score}
+                  selectedProviderValue={selectedProvider}
+                  setSelectedProviderValue={setSelectedProvider}
+                />
+              ))}
+              <Flex align="center" justify="center">
+                <Button
+                  variant="outline"
+                  colorScheme="blue"
+                  onClick={handleChangeProvider}
+                  isLoading={false}
+                  mb="5"
+                  size="sm"
+                  isDisabled={
+                    !selectedProvider ||
+                    selectedProvider ===
+                      activeProviderData.providerData?.additionalProviderData
+                        .name
+                  }
+                >
+                  {selectedProvider ===
+                  activeProviderData.providerData?.additionalProviderData.name
+                    ? `You are already using ${selectedProvider}`
+                    : selectedProvider
+                    ? `Continue with ${selectedProvider}`
+                    : "Please choose a provider"}
+                </Button>
+              </Flex>
+            </Flex>
+          )}
+          {modalViewState === "changingProvider" && (
+            <Flex
+              id="changeProviderLoading-flex"
+              width="100%"
+              align="center"
+              justify="center"
+            >
+              <Spinner width="75px" height="75px" color="white" />
             </Flex>
           )}
         </ModalBody>
