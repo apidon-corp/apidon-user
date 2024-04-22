@@ -216,7 +216,7 @@ export default function SignupModal() {
     input = input.replace(/[^\p{L}\p{N}\s]/gu, "");
     setFullname(input);
 
-    const fullnameRegex = /^\p{L}{3,20}(?: \p{L}{1,20})*$/u;
+    const fullnameRegex = /^\p{L}{1,20}(?: \p{L}{1,20})*$/u;
     const regexTestResult = fullnameRegex.test(input);
 
     setIsFullnameValid(regexTestResult);
@@ -443,7 +443,7 @@ export default function SignupModal() {
     if (!regexTestResultU) return false;
 
     // Fullname
-    const fullnameRegex = /^\p{L}{3,20}(?: \p{L}{1,20})*$/u;
+    const fullnameRegex = /^\p{L}{1,20}(?: \p{L}{1,20})*$/u;
     const regexTestResultF = fullnameRegex.test(fullname);
     setIsFullnameValid(regexTestResultF);
     if (!regexTestResultF)

@@ -347,7 +347,7 @@ const quickRegexCheck = (
   if (!regexTestResultU) return "username";
 
   // Fullname
-  const fullnameRegex = /^\p{L}{3,20}(?: \p{L}{1,20})*$/u;
+  const fullnameRegex = /^\p{L}{1,20}(?: \p{L}{1,20})*$/u;
   const regexTestResultF = fullnameRegex.test(fullname);
 
   if (!regexTestResultF) return "fullname";

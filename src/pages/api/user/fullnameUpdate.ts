@@ -22,7 +22,7 @@ export default async function handler(
 
   if (req.method !== "POST") return res.status(405).send("Method not allowed");
 
-  const fullnameRegex = /^[\p{L}_ ]{3,20}$/u;
+  const fullnameRegex = /^\p{L}{1,20}(?: \p{L}{1,20})*$/u;
   if (!fullnameRegex.test(newRequestedUsername)) {
     console.error(
       "Error while updating fullname. (fullname regex couldn't pass)"
