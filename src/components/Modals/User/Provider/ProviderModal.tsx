@@ -47,6 +47,7 @@ export default function ProviderModal() {
     | "activeProvider"
     | "withdraw"
     | "withdrawing"
+    | "skippingWithdraw"
     | "chooseProvider"
     | "choosingProvider"
     | "changeProviderLoading"
@@ -336,6 +337,43 @@ export default function ProviderModal() {
     }
   };
 
+  const handleSkipForNowButton = async () => {
+    setModalViewState("skippingWithdraw");
+    // Make operations....
+
+    try {
+      const currentUserAuthObject = auth.currentUser;
+      if (!currentUserAuthObject) {
+        console.error("There is no auth object.");
+        return setModalViewState("initialLoading");
+      }
+
+      const idtoken = await currentUserAuthObject.getIdToken();
+
+      const response = await fetch("api/provider/skipWithdrawNow", {
+        headers: {
+          authorization: `Bearer ${idtoken}`,
+          "Content-Type": "application/json",
+        },
+        method: "POST",
+      });
+
+      if (!response.ok) {
+        console.error(
+          "Error on fetching to 'skipWithdrawNow' API: \n",
+          await response.text()
+        );
+        return setModalViewState("initialLoading");
+      }
+
+      // Everything alright
+      return setModalViewState("initialLoading");
+    } catch (error) {
+      console.error("Error on fetching to 'skipWithdrawNow' API: \n", error);
+      return setModalViewState("initialLoading");
+    }
+  };
+
   return (
     <Modal
       isOpen={providerModalState.isOpen}
@@ -348,7 +386,8 @@ export default function ProviderModal() {
             modalViewState === "withdraw" ||
             modalViewState === "withdrawing" ||
             modalViewState === "changeProviderLoading" ||
-            modalViewState === "changingProvider"
+            modalViewState === "changingProvider" ||
+            modalViewState === "skippingWithdraw"
           )
         )
           setProviderModalState({
@@ -409,7 +448,8 @@ export default function ProviderModal() {
           modalViewState === "withdraw" ||
           modalViewState === "withdrawing" ||
           modalViewState === "changeProviderLoading" ||
-          modalViewState === "changingProvider"
+          modalViewState === "changingProvider" ||
+          modalViewState === "skippingWithdraw"
         ) && <ModalCloseButton color="white" />}
 
         <ModalBody display="flex">
@@ -760,6 +800,17 @@ export default function ProviderModal() {
                   </Button>
                 </Flex>
               </Flex>
+              <Flex align="center" justify="center">
+                <Button
+                  variant="outline"
+                  type="submit"
+                  colorScheme="yellow"
+                  size="sm"
+                  onClick={handleSkipForNowButton}
+                >
+                  Skip For Now
+                </Button>
+              </Flex>
             </Flex>
           )}
           {modalViewState === "withdrawing" && (
@@ -774,6 +825,21 @@ export default function ProviderModal() {
               <Spinner width="75px" height="75px" color="green.500" />
               <Text fontSize="10pt" fontWeight="600" color="gray.500">
                 Reward is being withdrawn.
+              </Text>
+            </Flex>
+          )}
+          {modalViewState === "skippingWithdraw" && (
+            <Flex
+              id="skipping-flex"
+              width="100%"
+              align="center"
+              justify="center"
+              direction="column"
+              gap="15px"
+            >
+              <Spinner width="75px" height="75px" color="yellow.500" />
+              <Text fontSize="10pt" fontWeight="600" color="gray.500">
+                You can still withdraw your reward at a later time.
               </Text>
             </Flex>
           )}
