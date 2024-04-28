@@ -34,16 +34,6 @@ export default function index({ postInformation }: Props) {
 }
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
-  const userDisplayname = await getDisplayName(
-    `Bearer ${context.req.cookies["firebase-auth.session-token"]}`
-  );
-  if (!userDisplayname)
-    return {
-      props: {
-        postInformation: null,
-      },
-    };
-
   const username = context.query.username;
   const postDocId = context.query.postId;
 
@@ -56,7 +46,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       throw new Error("'Post Doc' does not exist");
   } catch (error) {
     console.error(
-      "Error while creating single post page. (We were getting post doc",
+      "Error while creating single post page. (We were getting post doc)",
       error
     );
     return {
@@ -69,7 +59,30 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const postInformationServer: PostServerData =
     postInformationDoc.data() as PostServerData;
 
+  const pagePreviewData: IPagePreviewData = {
+    title: `${postInformationServer.senderUsername}'s post`,
+    description: postInformationServer.description
+      ? postInformationServer.description
+      : `Look at ${postInformationServer.senderUsername}'s post!`,
+    type: "website",
+    url: `${process.env.NEXT_PUBLIC_USER_PANEL_BASE_URL}/${postInformationServer.senderUsername}/posts/${postInformationDoc.ref.id}`,
+    image: postInformationServer.image,
+  };
+
   // Get Like and Comment Status....
+  const userDisplayname = await getDisplayName(
+    `Bearer ${context.req.cookies["firebase-auth.session-token"]}`
+  );
+  if (!userDisplayname) {
+    // We are on non-apidon environment
+    return {
+      props: {
+        postInformation: null,
+        pagePreviewData: pagePreviewData,
+      },
+    };
+  }
+
   const [likeStatus, followStatus] = await Promise.all([
     handleGetLikeStatus(userDisplayname, postInformationDoc),
     handleGetFollowStatus(userDisplayname, postInformationDoc),
@@ -86,16 +99,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     nftStatus: postInformationServer.nftStatus,
     postDocId: postInformationDoc.ref.id,
     senderUsername: postInformationServer.senderUsername,
-  };
-
-  const pagePreviewData: IPagePreviewData = {
-    title: `${postInformation.senderUsername}'s post`,
-    description: postInformation.description
-      ? postInformation.description
-      : `Look at ${postInformation.senderUsername}'s post!`,
-    type: "website",
-    url: `${process.env.NEXT_PUBLIC_USER_PANEL_BASE_URL}/${postInformation.senderUsername}/posts/${postInformation.postDocId}`,
-    image: postInformation.image,
   };
 
   return {

@@ -41,6 +41,7 @@ export default function SignupModal() {
     | "enterEmailVerificationCode"
     | "verifyingEPUF"
   >("referralCode");
+
   const referralCodeInputRef = useRef<HTMLInputElement>(null);
   const [referralCode, setReferralCode] = useState("");
   const [referralCodeError, setReferralCodeError] = useState("");
@@ -228,55 +229,6 @@ export default function SignupModal() {
       );
   };
 
-  const handleVerificationCodeChange = (
-    event: ChangeEvent<HTMLInputElement>,
-    index: number
-  ) => {
-    const input = event.target.value;
-
-    setVerificationCodeError("");
-
-    if (input !== "") {
-      const verificationCodeRegex = /^[0-9]$/;
-      const regexTestResult = verificationCodeRegex.test(input);
-      if (!regexTestResult) {
-        return;
-      }
-    }
-
-    const newCode = [...verificationCode];
-    newCode[index] = input;
-
-    setVerificationCode(newCode);
-
-    // Focusing to the next.
-    if (input !== "" && index < templateArray.length - 1) {
-      setTimeout(() => {
-        if (
-          verificationCodeInputRefs[index + 1] &&
-          verificationCodeInputRefs[index + 1].current
-        ) {
-          verificationCodeInputRefs[index + 1].current?.focus();
-        }
-      }, 0);
-    }
-  };
-
-  const handleKeyDown = (
-    e: React.KeyboardEvent<HTMLInputElement>,
-    index: number
-  ) => {
-    if (e.key === "Backspace" && index > 0 && verificationCode[index] === "") {
-      setTimeout(() => {
-        if (
-          verificationCodeInputRefs[index - 1] &&
-          verificationCodeInputRefs[index - 1].current
-        )
-          verificationCodeInputRefs[index - 1].current?.focus();
-      }, 0);
-    }
-  };
-
   const handleSignUpButton = async () => {
     // Clearing the errors we there is
     setEmailError("");
@@ -407,6 +359,55 @@ export default function SignupModal() {
     } catch (error) {
       console.error("Error on sending email verification code: \n", error);
       return setModalViewState("epuf");
+    }
+  };
+
+  const handleVerificationCodeChange = (
+    event: ChangeEvent<HTMLInputElement>,
+    index: number
+  ) => {
+    const input = event.target.value;
+
+    setVerificationCodeError("");
+
+    if (input !== "") {
+      const verificationCodeRegex = /^[0-9]$/;
+      const regexTestResult = verificationCodeRegex.test(input);
+      if (!regexTestResult) {
+        return;
+      }
+    }
+
+    const newCode = [...verificationCode];
+    newCode[index] = input;
+
+    setVerificationCode(newCode);
+
+    // Focusing to the next.
+    if (input !== "" && index < templateArray.length - 1) {
+      setTimeout(() => {
+        if (
+          verificationCodeInputRefs[index + 1] &&
+          verificationCodeInputRefs[index + 1].current
+        ) {
+          verificationCodeInputRefs[index + 1].current?.focus();
+        }
+      }, 0);
+    }
+  };
+
+  const handleKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>,
+    index: number
+  ) => {
+    if (e.key === "Backspace" && index > 0 && verificationCode[index] === "") {
+      setTimeout(() => {
+        if (
+          verificationCodeInputRefs[index - 1] &&
+          verificationCodeInputRefs[index - 1].current
+        )
+          verificationCodeInputRefs[index - 1].current?.focus();
+      }, 0);
     }
   };
 
@@ -657,6 +658,7 @@ export default function SignupModal() {
         }}
       >
         <ModalHeader color="white">Sign Up</ModalHeader>
+
         {!(
           modalViewState === "verifyingReferralCode" ||
           modalViewState === "verifyingEPUF"
