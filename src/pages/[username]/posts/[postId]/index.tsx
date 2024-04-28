@@ -5,6 +5,8 @@ import { Flex, Text } from "@chakra-ui/react";
 import { GetServerSidePropsContext } from "next";
 import getDisplayName from "@/apiUtils";
 import { IPagePreviewData } from "@/components/types/User";
+import { auth } from "@/firebase/clientApp";
+import { useState } from "react";
 
 type Props = {
   postInformation: PostItemData | undefined;
@@ -69,6 +71,19 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     image: postInformationServer.image,
   };
 
+  let postInformation: PostItemData = {
+    commentCount: postInformationServer.commentCount,
+    creationTime: postInformationServer.creationTime,
+    currentUserFollowThisSender: false, // this will be changed below If there is a real user.
+    currentUserLikedThisPost: false, // this will be changed below If there is a real user
+    description: postInformationServer.description,
+    image: postInformationServer.image,
+    likeCount: postInformationServer.likeCount,
+    nftStatus: postInformationServer.nftStatus,
+    postDocId: postInformationDoc.ref.id,
+    senderUsername: postInformationServer.senderUsername,
+  };
+
   // Get Like and Comment Status....
   const userDisplayname = await getDisplayName(
     `Bearer ${context.req.cookies["firebase-auth.session-token"]}`
@@ -77,7 +92,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     // We are on non-apidon environment
     return {
       props: {
-        postInformation: null,
+        postInformation: postInformation,
         pagePreviewData: pagePreviewData,
       },
     };
@@ -88,7 +103,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     handleGetFollowStatus(userDisplayname, postInformationDoc),
   ]);
 
-  const postInformation: PostItemData = {
+  postInformation = {
     commentCount: postInformationServer.commentCount,
     creationTime: postInformationServer.creationTime,
     currentUserFollowThisSender: followStatus,
