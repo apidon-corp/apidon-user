@@ -120,4 +120,7 @@ export default async function handler(
       email: email,
     });
   }
+
+  // Normally below code shouldn't work. We should have covered all catches then added return statements. But I couldn't find what is missing.
+  return res.status(500).send("Internal Server Error");
 }

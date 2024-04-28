@@ -4,7 +4,6 @@ import { getAnalytics } from "firebase/analytics";
 
 import {
   AppCheck,
-  getToken,
   initializeAppCheck,
   ReCaptchaEnterpriseProvider,
 } from "firebase/app-check";

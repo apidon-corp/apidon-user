@@ -93,12 +93,12 @@ export default function Layout({ children }: Props) {
 
     if (!userDocInServerResult) {
       console.error("Error while getting userDoc for server.");
-      return; // I don't know what to do.
+      return setAuthModalState({ open: true, view: "logIn" });
     }
 
     if (!userDocInServerResult.isExists) {
       console.error("userDoc doesn't exist in server.");
-      return; // I don't know what to do.
+      return setAuthModalState({ open: true, view: "logIn" });
     }
 
     const userDocDataInServer = userDocInServerResult.data as UserInServer;
