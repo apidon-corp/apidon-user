@@ -28,22 +28,21 @@ import {
 } from "react-icons/ai";
 import { BsDot, BsImage } from "react-icons/bs";
 
-import { CiShare2 } from "react-icons/ci";
-
-import useFollow from "@/hooks/socialHooks/useFollow";
 import usePostDelete from "@/hooks/postHooks/usePostDelete";
+import useFollow from "@/hooks/socialHooks/useFollow";
 
 import usePostLike from "@/hooks/postHooks/usePostLike";
 
+import useGetFirebase from "@/hooks/readHooks/useGetFirebase";
 import moment from "moment";
 import { useRouter } from "next/router";
 import { CgProfile } from "react-icons/cg";
+import { IoMdLink } from "react-icons/io";
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import { authModalStateAtom } from "../atoms/authModalAtom";
 import { currentUserStateAtom } from "../atoms/currentUserAtom";
 import { postsAtViewAtom } from "../atoms/postsAtViewAtom";
 import { OpenPanelName, PostFrontData } from "../types/Post";
-import useGetFirebase from "@/hooks/readHooks/useGetFirebase";
 
 type Props = {
   postFrontData: PostFrontData;
@@ -89,6 +88,16 @@ export default function PostFront({
   const [showFollowButtonOnPost, setShowFollowButtonOnPost] = useState(false);
 
   const { getDocServer } = useGetFirebase();
+
+  const [linkCopied, setLinkCopied] = useState(false);
+
+  useEffect(() => {
+    if (linkCopied) {
+      setTimeout(() => {
+        setLinkCopied(false);
+      }, 3000);
+    }
+  }, [linkCopied]);
 
   useEffect(() => {
     if (!currentUserState.isThereCurrentUser) return;
@@ -492,7 +501,7 @@ export default function PostFront({
         </Text>
         <Flex>
           <Flex gap={3} p={2}>
-            <Flex gap="1">
+            <Flex id="like-part" gap="1">
               {postFrontData.currentUserLikedThisPost ? (
                 <Icon
                   as={AiFillHeart}
@@ -523,6 +532,7 @@ export default function PostFront({
             </Flex>
 
             <Flex
+              id="comments-part"
               gap="1"
               cursor="pointer"
               onClick={() => {
@@ -534,21 +544,34 @@ export default function PostFront({
             </Flex>
 
             <Flex
+              id="share-part"
               gap="1"
               cursor="pointer"
               onClick={() => {
                 navigator.clipboard.writeText(
                   `${process.env.NEXT_PUBLIC_USER_PANEL_BASE_URL}/${postFrontData.senderUsername}/posts/${postFrontData.postDocId}`
                 );
+                setLinkCopied(true);
               }}
+              color="white"
+              fontSize="12pt"
+              align="center"
+              justify="center"
             >
-              <Icon as={CiShare2} color="white" fontSize="25px" />
+              {linkCopied && (
+                <Text fontSize="12pt" color="white" fontWeight="600">
+                  Copied!
+                </Text>
+              )}
+              {!linkCopied && (
+                <Icon as={IoMdLink} color="white" fontSize="25px" />
+              )}
             </Flex>
           </Flex>
 
           <Flex width="100%" position="relative">
             <Button
-              hidden={!!!postFrontData.nftStatus.convertedToNft}
+              hidden={!postFrontData.nftStatus.convertedToNft}
               position="absolute"
               right="2.5"
               bottom="2"
