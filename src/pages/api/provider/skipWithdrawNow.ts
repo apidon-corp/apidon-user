@@ -93,7 +93,7 @@ export default async function handler(
   let response;
   try {
     response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_ENDPOINT_TO_APIDON_PROVIDER_SERVER}/client/finishWithdraw`,
+      `${process.env.API_ENDPOINT_TO_APIDON_PROVIDER_SERVER}/client/finishWithdraw`,
       {
         method: "POST",
         headers: {

@@ -32,7 +32,7 @@ export default async function handler(
       // We need to send avaliable options to user.
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_ENDPOINT_TO_APIDON_PROVIDER_SERVER}/client/provideShowcase`,
+        `${process.env.API_ENDPOINT_TO_APIDON_PROVIDER_SERVER}/client/provideShowcase`,
         {
           method: "POST",
           headers: {
@@ -74,7 +74,7 @@ export default async function handler(
 
     // We are communucating with provider database now.
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_ENDPOINT_TO_APIDON_PROVIDER_SERVER}/client/provideProviderInformation`,
+      `${process.env.API_ENDPOINT_TO_APIDON_PROVIDER_SERVER}/client/provideProviderInformation`,
       {
         method: "POST",
         headers: {

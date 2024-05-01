@@ -184,7 +184,7 @@ export default async function handler(
 
       try {
         let response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_ENDPOINT_TO_APIDON_PROVIDER_SERVER}/client/classification/likeAction`,
+          `${process.env.API_ENDPOINT_TO_APIDON_PROVIDER_SERVER}/client/classification/likeAction`,
           {
             method: "POST",
             headers: {

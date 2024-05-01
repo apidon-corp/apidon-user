@@ -15,7 +15,7 @@ export default async function handler(
   // Get Avaliable Provider Data from Provider Side.
   try {
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_ENDPOINT_TO_APIDON_PROVIDER_SERVER}/client/provideShowcase`,
+      `${process.env.API_ENDPOINT_TO_APIDON_PROVIDER_SERVER}/client/provideShowcase`,
       {
         method: "POST",
         headers: {

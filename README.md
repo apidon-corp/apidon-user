@@ -135,6 +135,5 @@ To execute this project on your local machine or system, you are required to con
       > Don't forget to add **"/api"** addition.
 
       ```ts
-      NEXT_PUBLIC_API_ENDPOINT_TO_APIDON_PROVIDER_SERVER =
-        "http://192.168.1.6:3000/api";
+      API_ENDPOINT_TO_APIDON_PROVIDER_SERVER = "http://192.168.1.6:3000/api";
       ```
