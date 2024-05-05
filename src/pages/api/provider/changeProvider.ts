@@ -75,7 +75,7 @@ export default async function handler(
 
     // Updating showcase and other "old" datas on provider side.
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_ENDPOINT_TO_APIDON_PROVIDER_SERVER}/client/finishWithdraw`,
+      `${process.env.API_ENDPOINT_TO_APIDON_PROVIDER_SERVER}/client/finishWithdraw`,
       {
         method: "POST",
         headers: {
@@ -158,7 +158,7 @@ export default async function handler(
     };
 
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_ENDPOINT_TO_APIDON_PROVIDER_SERVER}/client/deal`,
+      `${process.env.API_ENDPOINT_TO_APIDON_PROVIDER_SERVER}/client/deal`,
       {
         method: "POST",
         headers: {

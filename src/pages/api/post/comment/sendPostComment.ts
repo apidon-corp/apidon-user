@@ -175,7 +175,7 @@ export default async function handler(
 
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_ENDPOINT_TO_APIDON_PROVIDER_SERVER}/client/classification/commentAction`,
+        `${process.env.API_ENDPOINT_TO_APIDON_PROVIDER_SERVER}/client/classification/commentAction`,
         {
           method: "POST",
           headers: {
