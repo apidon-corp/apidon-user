@@ -2,9 +2,7 @@ import { Button } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 import React from "react";
 
-type Props = {};
-
-export default function NFTButton({}: Props) {
+export default function NFTButton() {
   const router = useRouter();
 
   const handleNFTButtonClick = () => {

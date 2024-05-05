@@ -17,10 +17,7 @@ import { MdCancel } from "react-icons/md";
 import SearchItem from "./SearchItem";
 import useGetFirebase from "@/hooks/readHooks/useGetFirebase";
 
-type Props = {};
-
-export default function SearchBar({}: Props) {
-  // const [searchInput, setSearchInput] = useState<string>("");
+export default function SearchBar() {
   const [searchListOpen, setSearchListOpen] = useState(false);
 
   const [searchLoading, setSearchLoading] = useState(false);

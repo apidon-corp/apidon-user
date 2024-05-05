@@ -1,10 +1,6 @@
-import { Flex, Icon, Image, Skeleton, SkeletonCircle } from "@chakra-ui/react";
-import React from "react";
-import { CgProfile } from "react-icons/cg";
+import { Flex, Image, Skeleton } from "@chakra-ui/react";
 
-type Props = {};
-
-export default function PostPreviewItem({}: Props) {
+export default function PostPreviewItem() {
   return (
     <Flex direction="column">
       <Image
