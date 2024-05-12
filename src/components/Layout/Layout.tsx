@@ -23,6 +23,7 @@ import SignupModal from "../Modals/AuthenticationModal/SignupModal";
 import ResetPasswordModal from "../Modals/AuthenticationModal/ResetPasswordModal";
 import VerifyModal from "../Modals/AuthenticationModal/VerifyModal";
 import { verificationModalAtom } from "../atoms/verificationModalAtom";
+import FrenletCreateModal from "../Modals/Frenlet/FrenletCreateModal";
 
 type Props = {
   children: ReactNode;
@@ -147,6 +148,7 @@ export default function Layout({ children }: Props) {
           <Navbar />
           <Flex justifyContent="center">{children}</Flex>
           <PostCreateModal />
+          <FrenletCreateModal />
 
           {authModalState.open && authModalState.view === "signUp" && (
             <SignupModal />
