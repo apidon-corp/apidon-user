@@ -6,6 +6,7 @@ import PostCreateButton from "./SearchBar/PostCreateButton";
 
 import SearchBar from "./SearchBar/SearchBar";
 import NFTButton from "./NFTButton";
+import FrenletCreateButton from "./Frenlet/FrenletCreateButton";
 
 export default function Navbar() {
   const router = useRouter();
@@ -53,6 +54,7 @@ export default function Navbar() {
           <Flex align="center" gap={2}>
             <NotificationButton />
             <PostCreateButton />
+            <FrenletCreateButton />
             <Authentication />
           </Flex>
         </Box>
@@ -97,6 +99,7 @@ export default function Navbar() {
           <NFTButton />
           <NotificationButton />
           <PostCreateButton />
+          <FrenletCreateButton />
           <Authentication />
         </Flex>
       </Flex>

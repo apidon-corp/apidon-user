@@ -129,11 +129,12 @@ export default async function handler(
   const username = await handleAuthorization(authorization);
   if (!username) return res.status(401).send("Unauthorized");
 
-  const followers = await getFollowers(username);
-  if (!followers) return res.status(500).send("Internal Server Error");
-
-  const followings = await getFollowings(username);
-  if (!followings) return res.status(500).send("Internal Server Error");
+  const [followers, followings] = await Promise.all([
+    getFollowers(username),
+    getFollowings(username),
+  ]);
+  if (!followers || !followings)
+    return res.status(500).send("Internal Server Error");
 
   const frenOptions = createFrenOptions(followers, followings);
 

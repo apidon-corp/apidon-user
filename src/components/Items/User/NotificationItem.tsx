@@ -61,6 +61,7 @@ export default function NotificationItem({
     if (cause === "like") message = `❤️ your post`;
     if (cause === "comment") message = `✍️ to your post`;
     if (cause === "follow") message = `started to 🫡 you`;
+    if (cause === "frenlet") message = `created 🤝 on you`;
 
     const tempNotificationItemObject: NotificationItemData = {
       senderUsername: sender,

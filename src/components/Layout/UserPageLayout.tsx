@@ -5,15 +5,19 @@ import Posts from "../Post/Posts";
 import { PostItemData } from "../types/Post";
 import { UserInServer } from "../types/User";
 import Header from "../user/Header";
+import { FrenletServerData } from "../types/Frenlet";
+import Frenlet from "../Items/Frenlet/Frenlet";
 
 type Props = {
   userInformation: UserInServer;
   postItemsDatas: PostItemData[];
+  frenletServerDatas: FrenletServerData[];
 };
 
 export default function UserPageLayout({
   userInformation,
   postItemsDatas,
+  frenletServerDatas,
 }: Props) {
   const [innerHeight, setInnerHeight] = useState("");
 
@@ -43,9 +47,24 @@ export default function UserPageLayout({
             lg: "550px",
           }}
           minHeight={innerHeight}
+          key={userInformation.username}
         >
           <Flex justify="center" align="center" width="100%">
             <Header userInformation={userInformation} />
+          </Flex>
+          <Flex
+            justify="center"
+            width="100%"
+            direction="column"
+            gap="2em"
+            mt="10"
+          >
+            {frenletServerDatas.map((frenletData) => (
+              <Frenlet
+                frenletData={frenletData}
+                key={frenletData.frenletDocId}
+              />
+            ))}
           </Flex>
           <Flex justify="center" width="100%">
             <Posts postsItemDatas={postItemsDatas} />

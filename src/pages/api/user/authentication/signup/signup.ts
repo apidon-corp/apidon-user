@@ -232,6 +232,7 @@ export default async function handler(
       email: email,
       followerCount: 0,
       followingCount: 0,
+      frenScore: 0,
       fullname: fullname,
       nftCount: 0,
       profilePhoto: "",

@@ -674,6 +674,14 @@ export default function Header({ userInformation }: Props) {
               NFTs
             </Text>
           </Flex>
+          <Flex gap={1}>
+            <Text as="b" fontSize="12pt" textColor="white">
+              {headerAtView.frenScore}
+            </Text>
+            <Text fontSize="12pt" textColor="gray.500">
+              Fren Score
+            </Text>
+          </Flex>
         </Flex>
 
         {isCurrentUserPage == false && (

@@ -2,6 +2,7 @@ import { authModalStateAtom } from "@/components/atoms/authModalAtom";
 import { currentUserStateAtom } from "@/components/atoms/currentUserAtom";
 import { postsStatusAtom } from "@/components/atoms/postsStatusAtom";
 import UserPageLayout from "@/components/Layout/UserPageLayout";
+import { FrenletServerData } from "@/components/types/Frenlet";
 
 import { PostItemData } from "@/components/types/Post";
 import { IPagePreviewData, UserInServer } from "@/components/types/User";
@@ -30,6 +31,10 @@ export default function UserPage({ userInformation }: Props) {
   const [postsDatasInServer, setPostDatasInServer] = useState<PostItemData[]>(
     []
   );
+
+  const [frenletServerDatas, setFrenletServerDatas] = useState<
+    FrenletServerData[]
+  >([]);
 
   const setAuthModalState = useSetRecoilState(authModalStateAtom);
 
@@ -125,12 +130,17 @@ export default function UserPage({ userInformation }: Props) {
       );
     }
 
-    const postsFromServer: PostItemData[] = (await response.json())
-      .postItemDatas;
+    const result = await response.json();
+
+    const postsFromServer = result.postItemDatas as PostItemData[];
+    const frenlets = result.frenlets as FrenletServerData[];
 
     postsFromServer.sort((a, b) => b.creationTime - a.creationTime);
-
     setPostDatasInServer(postsFromServer);
+
+    frenlets.sort((a, b) => b.ts - a.ts);
+    setFrenletServerDatas(frenlets);
+
     setPostStatus({ loading: false });
   };
 
@@ -153,6 +163,7 @@ export default function UserPage({ userInformation }: Props) {
     <UserPageLayout
       userInformation={userInformation}
       postItemsDatas={postsDatasInServer}
+      frenletServerDatas={frenletServerDatas}
     />
   );
 }
@@ -192,6 +203,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
     followingCount: userInformationDocResult.data()?.followingCount,
     followerCount: userInformationDocResult.data()?.followerCount,
+    frenScore : userInformationDocResult.data()?.frenScore,
 
     nftCount: userInformationDocResult.data()?.nftCount,
 

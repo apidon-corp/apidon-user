@@ -1,3 +1,4 @@
+import { createFrenletModalAtom } from "@/components/atoms/createFrenletModalAtom";
 import { auth } from "@/firebase/clientApp";
 import {
   Button,
@@ -14,29 +15,26 @@ import {
   Text,
   Textarea,
 } from "@chakra-ui/react";
-import {
-  ChangeEvent,
-  ChangeEventHandler,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { ChangeEvent, useEffect, useState } from "react";
+import { useRecoilState } from "recoil";
 
 export default function FrenletCreateModal() {
   const [modalViewState, setModalViewState] = useState<
     "initialLoading" | "create" | "creating"
-  >("create");
+  >("initialLoading");
 
   // message
-  const messageInputRef = useRef<HTMLInputElement>(null);
   const [message, setMessage] = useState("");
 
   // username
-  const [fren, setFren] = useState<{
-    username: string;
-    fullname: string;
-    image: string;
-  } | null>(null);
+  const [fren, setFren] = useState<
+    | {
+        username: string;
+        fullname: string;
+        image: string;
+      }
+    | undefined
+  >();
 
   const [frensData, setFrensData] = useState<
     {
@@ -46,11 +44,19 @@ export default function FrenletCreateModal() {
     }[]
   >([]);
 
+  const [createFrenletModalState, setCreateFrenletModalState] = useRecoilState(
+    createFrenletModalAtom
+  );
+
   const handleInitialLoading = async () => {
+    console.log("init");
     setModalViewState("initialLoading");
 
     const frenOptions = await handleGetFrensData();
     setFrensData(frenOptions);
+
+    setFren(undefined);
+    setMessage("");
 
     setModalViewState("create");
   };
@@ -89,8 +95,6 @@ export default function FrenletCreateModal() {
         image: string;
       }[];
 
-      console.log(frensData);
-
       return frensData;
     } catch (error) {
       console.error("Error on fetching to getFrenOptions API: \n", error);
@@ -102,9 +106,7 @@ export default function FrenletCreateModal() {
     const input = event.target.value;
 
     const fren = frensData.find((fren) => fren.username === input);
-    if (fren) setFren(fren);
-
-    console.log(fren);
+    setFren(fren);
   };
 
   const handleMessageChange = (input: string) => {
@@ -113,6 +115,16 @@ export default function FrenletCreateModal() {
 
   const handleCreateButton = async () => {
     setModalViewState("creating");
+
+    if (!fren) {
+      console.error("Fren is undefined.");
+      return setModalViewState("create");
+    }
+
+    if (message.length === 0) {
+      console.error("Message is empty.");
+      return setModalViewState("create");
+    }
 
     const currentUserAuthObject = auth.currentUser;
     if (!currentUserAuthObject) {
@@ -123,14 +135,14 @@ export default function FrenletCreateModal() {
     try {
       const idToken = await currentUserAuthObject.getIdToken();
 
-      const response = await fetch("/api/frenlet/create", {
+      const response = await fetch("/api/frenlet/createFrenlet", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           authorization: `Bearer ${idToken}`,
         },
         body: JSON.stringify({
-          frenUsername: fren?.username,
+          fren: fren.username,
           message: message,
         }),
       });
@@ -142,24 +154,29 @@ export default function FrenletCreateModal() {
         );
         return setModalViewState("create");
       }
+
+      // Everthing is alright
+      console.log((await response.json()).frenlet);
+      setModalViewState("initialLoading");
+      return setCreateFrenletModalState({ isOpen: false });
     } catch (error) {
       console.error("Error on fetching to create API: \n", error);
       return setModalViewState("create");
     }
-
-    // Everything is alright.
-    setModalViewState("create");
   };
 
   useEffect(() => {
-    handleInitialLoading();
-  }, []);
+    if (createFrenletModalState.isOpen) handleInitialLoading();
+  }, [createFrenletModalState.isOpen]);
 
   return (
     <Modal
       id="create-frenlet-modal"
-      isOpen={true}
-      onClose={() => {}}
+      isOpen={createFrenletModalState.isOpen}
+      onClose={() => {
+        if (modalViewState === "create")
+          setCreateFrenletModalState({ isOpen: false });
+      }}
       size={{
         base: "full",
         sm: "full",
@@ -178,7 +195,7 @@ export default function FrenletCreateModal() {
         }}
       >
         <ModalHeader color="white">Create Frenlet</ModalHeader>
-        <ModalCloseButton color="white" />
+        {modalViewState === "create" && <ModalCloseButton color="white" />}
         <ModalBody display="flex">
           {modalViewState === "initialLoading" && (
             <Flex
@@ -261,10 +278,32 @@ export default function FrenletCreateModal() {
                 align="center"
                 justify="center"
               >
-                <Button variant="solid" colorScheme="blue">
+                <Button
+                  variant="solid"
+                  colorScheme="blue"
+                  onClick={handleCreateButton}
+                  isDisabled={
+                    message.length === 0 || fren === undefined || fren === null
+                  }
+                >
                   Create
                 </Button>
               </Flex>
+            </Flex>
+          )}
+          {modalViewState === "creating" && (
+            <Flex
+              id="initialLoading-flex"
+              width="100%"
+              align="center"
+              justify="center"
+              direction="column"
+              gap="1em"
+            >
+              <Spinner width="75px" height="75px" color="white" />
+              <Text color="white" fontSize="12pt" fontWeight="700">
+                Creating Frenlet
+              </Text>
             </Flex>
           )}
         </ModalBody>
