@@ -20,7 +20,7 @@ function checkProps(message: string, frenletDocPath: string) {
   return true;
 }
 
-async function checkCanReply(username: string, frenletDocPath: string) {
+async function checkCanReply(replySender: string, frenletDocPath: string) {
   try {
     const frenletDocSnapshot = await firestore.doc(frenletDocPath).get();
     if (!frenletDocSnapshot.exists) {
@@ -37,9 +37,34 @@ async function checkCanReply(username: string, frenletDocPath: string) {
 
     if (
       [frenletDocData.frenletSender, frenletDocData.frenletReceiver].includes(
-        username
+        replySender
       )
-    ) {
+    )
+      return {
+        sender: frenletDocData.frenletSender,
+        receiver: frenletDocData.frenletReceiver,
+        frenletId: frenletDocData.frenletDocId,
+      };
+
+    const followersCollectionSnapshot = await firestore
+      .collection(`/users/${replySender}/followers`)
+      .get();
+    const followers = followersCollectionSnapshot.docs.map((doc) => doc.id);
+
+    const followingsCollectionSnapshot = await firestore
+      .collection(`/users/${replySender}/followings`)
+      .get();
+    const followings = followingsCollectionSnapshot.docs.map((doc) => doc.id);
+
+    const mainCharactersFollowsThisGuy =
+      followers.includes(frenletDocData.frenletSender) &&
+      followers.includes(frenletDocData.frenletReceiver);
+
+    const replySenderFollowsTheseGuys =
+      followings.includes(frenletDocData.frenletSender) &&
+      followings.includes(frenletDocData.frenletReceiver);
+
+    if (mainCharactersFollowsThisGuy && replySenderFollowsTheseGuys) {
       return {
         sender: frenletDocData.frenletSender,
         receiver: frenletDocData.frenletReceiver,

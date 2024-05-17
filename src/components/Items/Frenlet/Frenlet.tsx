@@ -6,6 +6,7 @@ import { Button, Flex, Icon, Image, Input, Text } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 import React, { useEffect, useRef, useState } from "react";
 import { FaLongArrowAltRight } from "react-icons/fa";
+import Replet from "./Replet";
 
 type FrenletProps = {
   frenletData: FrenletServerData;
@@ -25,7 +26,7 @@ export default function Frenlet({ frenletData }: FrenletProps) {
   const [frenletDataFinalLayer, setFrenletDataFinalLayer] =
     useState<FrenletServerData>(frenletData);
 
-  const { containerRef, isVisible } = useElementOnScreen({ threshold: 0.5 });
+  const { containerRef, isVisible } = useElementOnScreen({ threshold: 0.8 });
 
   useEffect(() => {
     initialLoading();
@@ -89,7 +90,7 @@ export default function Frenlet({ frenletData }: FrenletProps) {
     setFrenletDataFinalLayer(frenletData);
   };
 
-  const checkCanReply = () => {
+  const checkCanReply = async () => {
     const authObject = auth.currentUser;
     if (authObject === null) {
       console.error("Error while checking can reply.");
@@ -109,7 +110,48 @@ export default function Frenlet({ frenletData }: FrenletProps) {
     )
       return setCanReply(true);
 
-    return setCanReply(false);
+    try {
+      const idToken = await authObject.getIdToken();
+
+      const response = await fetch("/api/frenlet/getFrenOptions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `Bearer ${idToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        console.error(
+          "Response from getFrenOptions is not okay: \n",
+          await response.text()
+        );
+        return setCanReply(false);
+      }
+
+      const result = await response.json();
+
+      const frensData = result.frensData as {
+        username: string;
+        fullname: string;
+        image: string;
+      }[];
+
+      const frensUsernames = frensData.map((fren) => fren.username);
+
+      console.log(frensUsernames);
+
+      if (
+        frensUsernames.includes(frenletData.frenletSender) &&
+        frensUsernames.includes(frenletData.frenletReceiver)
+      )
+        return setCanReply(true);
+
+      return setCanReply(false);
+    } catch (error) {
+      console.error("Error while checking can reply: \n", error);
+      return setCanReply(false);
+    }
   };
 
   const handleReplyInputChange = (
@@ -297,26 +339,12 @@ export default function Frenlet({ frenletData }: FrenletProps) {
           p="1em"
         >
           {frenletDataFinalLayer.replies.map((reply) => (
-            <Flex key={reply.ts} align="center" gap="0.5em">
-              <Image
-                src={
-                  reply.sender === senderData?.username
-                    ? senderData.profilePhoto
-                    : receiverData?.profilePhoto
-                }
-                width="3em"
-                height="3em"
-                rounded="full"
-              />
-              <Flex direction="column">
-                <Text color="gray.500" fontSize="10pt" fontWeight="700">
-                  {reply.sender}
-                </Text>
-                <Text color="white" fontSize="12pt" fontWeight="700">
-                  {reply.message}
-                </Text>
-              </Flex>
-            </Flex>
+            <Replet
+              message={reply.message}
+              ts={reply.ts}
+              username={reply.sender}
+              key={reply.ts}
+            />
           ))}
         </Flex>
       )}
