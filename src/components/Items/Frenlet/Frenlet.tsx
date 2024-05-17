@@ -1,9 +1,10 @@
 import { FrenletServerData } from "@/components/types/Frenlet";
 import { UserInServer } from "@/components/types/User";
 import { auth } from "@/firebase/clientApp";
+import { useElementOnScreen } from "@/hooks/observeHooks/useElementOnScreen";
 import { Button, Flex, Icon, Image, Input, Text } from "@chakra-ui/react";
 import { useRouter } from "next/router";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { FaLongArrowAltRight } from "react-icons/fa";
 
 type FrenletProps = {
@@ -16,12 +17,15 @@ export default function Frenlet({ frenletData }: FrenletProps) {
 
   const router = useRouter();
 
+  const replyInputRef = useRef<HTMLInputElement>(null);
   const [canReply, setCanReply] = useState(false);
   const [reply, setReply] = useState("");
+  const [sendingReply, setSendingReply] = useState(false);
 
-  useEffect(() => {
-    console.log(frenletData);
-  }, []);
+  const [frenletDataFinalLayer, setFrenletDataFinalLayer] =
+    useState<FrenletServerData>(frenletData);
+
+  const { containerRef, isVisible } = useElementOnScreen({ threshold: 0.5 });
 
   useEffect(() => {
     initialLoading();
@@ -30,6 +34,11 @@ export default function Frenlet({ frenletData }: FrenletProps) {
   useEffect(() => {
     checkCanReply();
   }, [auth, frenletData]);
+
+  useEffect(() => {
+    const checkRealtimeUpdates = setInterval(handleGetRealtimeUpdates, 5000);
+    return () => clearInterval(checkRealtimeUpdates);
+  }, []);
 
   const getPersonData = async (username: string) => {
     const currentUserAuthObject = auth.currentUser;
@@ -76,6 +85,8 @@ export default function Frenlet({ frenletData }: FrenletProps) {
 
     if (senderData) setSenderData(senderData);
     if (receiverData) setReceiverData(receiverData);
+
+    setFrenletDataFinalLayer(frenletData);
   };
 
   const checkCanReply = () => {
@@ -95,11 +106,17 @@ export default function Frenlet({ frenletData }: FrenletProps) {
       [frenletData.frenletReceiver, frenletData.frenletSender].includes(
         displayName
       )
-    ) {
+    )
       return setCanReply(true);
-    }
 
     return setCanReply(false);
+  };
+
+  const handleReplyInputChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const input = event.target.value;
+    setReply(input);
   };
 
   const handleReplyButton = async () => {
@@ -108,6 +125,8 @@ export default function Frenlet({ frenletData }: FrenletProps) {
 
     const authObject = auth.currentUser;
     if (authObject === null) return;
+
+    setSendingReply(true);
 
     try {
       const idToken = await authObject.getIdToken();
@@ -129,23 +148,67 @@ export default function Frenlet({ frenletData }: FrenletProps) {
           "Response from sendReply API is not okay: : \n",
           await response.text()
         );
-        return;
+        return setSendingReply(false);
       }
 
-      console.log("It is done.");
+      let replies: FrenletServerData["replies"] = frenletDataFinalLayer.replies;
+      replies = [
+        ...replies,
+        {
+          message: reply,
+          sender: authObject.displayName!,
+          ts: Date.now(),
+        },
+      ];
 
-      return true;
+      // Everythnig is alright.
+      setFrenletDataFinalLayer((prev) => ({ ...prev, replies: replies }));
+      if (replyInputRef.current) replyInputRef.current.value = "";
+      return setSendingReply(false);
     } catch (error) {
       console.error("Error on fetching to sendReply API: \n", error);
-      return false;
+      return setSendingReply(false);
     }
   };
 
-  const handleReplyInputChange = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const input = event.target.value;
-    setReply(input);
+  const handleGetRealtimeUpdates = async () => {
+    if (!isVisible) return;
+
+    const currentUserAuthObject = auth.currentUser;
+    if (currentUserAuthObject === null) return;
+
+    try {
+      const idToken = await currentUserAuthObject.getIdToken();
+
+      const response = await fetch("/api/frenlet/getRealtimeUpdates", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `Bearer ${idToken}`,
+        },
+        body: JSON.stringify({
+          frenletDocPath: `/users/${frenletData.frenletSender}/frenlets/frenlets/outgoing/${frenletData.frenletDocId}`,
+        }),
+      });
+
+      if (!response.ok) {
+        console.error(
+          "Response from getRealtimeUpdates API is not okay: : \n",
+          await response.text()
+        );
+        return false;
+      }
+
+      const result = await response.json();
+      const updatedFrenletData = result.frenletData as FrenletServerData;
+
+      console.log(updatedFrenletData);
+
+      return setFrenletDataFinalLayer(updatedFrenletData);
+    } catch (error) {
+      console.error("Error on fetching to getRealtimeUpdates API: \n", error);
+      return false;
+    }
   };
 
   return (
@@ -158,6 +221,7 @@ export default function Frenlet({ frenletData }: FrenletProps) {
       border="1px solid white"
       borderRadius="20px"
       padding="10"
+      ref={containerRef}
     >
       <Flex
         id="top-images-flex"
@@ -219,23 +283,39 @@ export default function Frenlet({ frenletData }: FrenletProps) {
           "{frenletData.message}"
         </Text>
       </Flex>
-      {frenletData.replies && (
-        <Flex id="replies-flex" width="100%" align="center">
-          {frenletData.replies.map((reply) => (
-            <Flex key={reply.ts} justify="center" align="center" gap="5px">
+      {frenletDataFinalLayer.replies && (
+        <Flex
+          id="replies-flex"
+          width="100%"
+          direction="column"
+          gap="1em"
+          maxHeight="20em"
+          overflow="auto"
+          borderWidth="1px"
+          borderColor="gray.700"
+          borderRadius="10px"
+          p="1em"
+        >
+          {frenletDataFinalLayer.replies.map((reply) => (
+            <Flex key={reply.ts} align="center" gap="0.5em">
               <Image
                 src={
-                  senderData?.username === reply.sender
+                  reply.sender === senderData?.username
                     ? senderData.profilePhoto
                     : receiverData?.profilePhoto
                 }
-                width="2em"
-                height="2em"
+                width="3em"
+                height="3em"
                 rounded="full"
               />
-              <Text color="white" fontSize="12pt" fontWeight="700">
-                {reply.message}
-              </Text>
+              <Flex direction="column">
+                <Text color="gray.500" fontSize="10pt" fontWeight="700">
+                  {reply.sender}
+                </Text>
+                <Text color="white" fontSize="12pt" fontWeight="700">
+                  {reply.message}
+                </Text>
+              </Flex>
             </Flex>
           ))}
         </Flex>
@@ -250,6 +330,7 @@ export default function Frenlet({ frenletData }: FrenletProps) {
           gap="5px"
         >
           <Input
+            ref={replyInputRef}
             size="sm"
             color="white"
             borderRadius="10px"
@@ -261,6 +342,8 @@ export default function Frenlet({ frenletData }: FrenletProps) {
             size="sm"
             colorScheme="blue"
             onClick={handleReplyButton}
+            isLoading={sendingReply}
+            isDisabled={reply.length === 0 || !canReply}
           >
             Reply
           </Button>

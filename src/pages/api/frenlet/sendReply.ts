@@ -55,7 +55,7 @@ async function checkCanReply(username: string, frenletDocPath: string) {
 }
 
 async function createReplyForSender(
-  username: string,
+  replySender: string,
   frenletDocPath: string,
   message: string
 ) {
@@ -63,7 +63,7 @@ async function createReplyForSender(
     await firestore.doc(frenletDocPath).update({
       replies: fieldValue.arrayUnion({
         message: message,
-        sender: username,
+        sender: replySender,
         ts: Date.now(),
       }),
     });
@@ -75,7 +75,7 @@ async function createReplyForSender(
 }
 
 async function createReplyForReceiver(
-  username: string,
+  replySender: string,
   frenletDocPath: string,
   message: string
 ) {
@@ -83,7 +83,7 @@ async function createReplyForReceiver(
     await firestore.doc(frenletDocPath).update({
       replies: fieldValue.arrayUnion({
         message: message,
-        sender: username,
+        sender: replySender,
         ts: Date.now(),
       }),
     });
@@ -95,20 +95,21 @@ async function createReplyForReceiver(
 }
 
 async function createReply(
-  receiver: string,
-  sender: string,
+  frenletReceiver: string,
+  frenletSender: string,
   frenletId: string,
+  replySender: string,
   message: string
 ) {
   const [senderResult, receiverResult] = await Promise.all([
     createReplyForSender(
-      sender,
-      `/users/${sender}/frenlets/frenlets/outgoing/${frenletId}`,
+      replySender,
+      `/users/${frenletSender}/frenlets/frenlets/outgoing/${frenletId}`,
       message
     ),
     createReplyForReceiver(
-      receiver,
-      `/users/${receiver}/frenlets/frenlets/incoming/${frenletId}`,
+      replySender,
+      `/users/${frenletReceiver}/frenlets/frenlets/incoming/${frenletId}`,
       message
     ),
   ]);
@@ -126,19 +127,20 @@ export default async function handler(
 
   if (req.method !== "POST") return res.status(405).send("Method not allowed");
 
-  const username = await handleAuthorization(authorization);
-  if (!username) return res.status(401).send("Unauthorized");
+  const replySender = await handleAuthorization(authorization);
+  if (!replySender) return res.status(401).send("Unauthorized");
 
-  const checkPropsResult = checkProps(username, frenletDocPath);
+  const checkPropsResult = checkProps(replySender, frenletDocPath);
   if (!checkPropsResult) return res.status(422).send("Invalid Request");
 
-  const canReply = await checkCanReply(username, frenletDocPath);
+  const canReply = await checkCanReply(replySender, frenletDocPath);
   if (!canReply) return res.status(401).send("Unauthorized");
 
   const result = await createReply(
     canReply.receiver,
     canReply.sender,
     canReply.frenletId,
+    replySender,
     message
   );
   if (!result) return res.status(500).send("Internal Server Error");

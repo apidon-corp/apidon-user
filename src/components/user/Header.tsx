@@ -738,7 +738,7 @@ export default function Header({ userInformation }: Props) {
               >
                 Provider Panel
               </Button>
-              <Button
+              {/* <Button
                 colorScheme="blue"
                 variant="outline"
                 size="sm"
@@ -770,7 +770,7 @@ export default function Header({ userInformation }: Props) {
                 isDisabled
               >
                 NFT Trade
-              </Button>
+              </Button> */}
             </Flex>
           </Flex>
         )}
