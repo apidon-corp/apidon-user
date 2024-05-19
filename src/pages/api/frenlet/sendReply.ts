@@ -82,14 +82,15 @@ async function checkCanReply(replySender: string, frenletDocPath: string) {
 async function createReplyForSender(
   replySender: string,
   frenletDocPath: string,
-  message: string
+  message: string,
+  ts: number
 ) {
   try {
     await firestore.doc(frenletDocPath).update({
       replies: fieldValue.arrayUnion({
         message: message,
         sender: replySender,
-        ts: Date.now(),
+        ts: ts,
       }),
     });
     return true;
@@ -102,14 +103,15 @@ async function createReplyForSender(
 async function createReplyForReceiver(
   replySender: string,
   frenletDocPath: string,
-  message: string
+  message: string,
+  ts: number
 ) {
   try {
     await firestore.doc(frenletDocPath).update({
       replies: fieldValue.arrayUnion({
         message: message,
         sender: replySender,
-        ts: Date.now(),
+        ts: ts,
       }),
     });
     return true;
@@ -124,18 +126,21 @@ async function createReply(
   frenletSender: string,
   frenletId: string,
   replySender: string,
-  message: string
+  message: string,
+  ts: number
 ) {
   const [senderResult, receiverResult] = await Promise.all([
     createReplyForSender(
       replySender,
       `/users/${frenletSender}/frenlets/frenlets/outgoing/${frenletId}`,
-      message
+      message,
+      ts
     ),
     createReplyForReceiver(
       replySender,
       `/users/${frenletReceiver}/frenlets/frenlets/incoming/${frenletId}`,
-      message
+      message,
+      ts
     ),
   ]);
 
@@ -166,7 +171,8 @@ export default async function handler(
     canReply.sender,
     canReply.frenletId,
     replySender,
-    message
+    message,
+    Date.now()
   );
   if (!result) return res.status(500).send("Internal Server Error");
 

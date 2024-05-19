@@ -2,11 +2,32 @@ import { FrenletServerData } from "@/components/types/Frenlet";
 import { UserInServer } from "@/components/types/User";
 import { auth } from "@/firebase/clientApp";
 import { useElementOnScreen } from "@/hooks/observeHooks/useElementOnScreen";
-import { Button, Flex, Icon, Image, Input, Text } from "@chakra-ui/react";
+import {
+  AlertDialog,
+  AlertDialogBody,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogOverlay,
+  Button,
+  Flex,
+  Icon,
+  IconButton,
+  Image,
+  Input,
+  Menu,
+  MenuButton,
+  MenuItem,
+  MenuList,
+  SkeletonCircle,
+  Text,
+} from "@chakra-ui/react";
 import { useRouter } from "next/router";
 import React, { useEffect, useRef, useState } from "react";
 import { FaLongArrowAltRight } from "react-icons/fa";
 import Replet from "./Replet";
+import moment from "moment";
+import { SlOptionsVertical } from "react-icons/sl";
 
 type FrenletProps = {
   frenletData: FrenletServerData;
@@ -28,6 +49,12 @@ export default function Frenlet({ frenletData }: FrenletProps) {
 
   const { containerRef, isVisible } = useElementOnScreen({ threshold: 0.8 });
 
+  const [canChangeOptions, setCanChangeOptions] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const cancelButtonRef = useRef<HTMLButtonElement>(null);
+  const [frenletDeleteLoading, setFrenletDeleteLoading] = useState(false);
+  const [isThisFrenletDeleted, setIsThisFrenletDeleted] = useState(false);
+
   useEffect(() => {
     initialLoading();
   }, []);
@@ -37,9 +64,15 @@ export default function Frenlet({ frenletData }: FrenletProps) {
   }, [auth, frenletData]);
 
   useEffect(() => {
-    const checkRealtimeUpdates = setInterval(handleGetRealtimeUpdates, 5000);
+    const checkRealtimeUpdates = setInterval(() => {
+      handleGetRealtimeUpdates();
+    }, 5000);
     return () => clearInterval(checkRealtimeUpdates);
-  }, []);
+  }, [isVisible]);
+
+  useEffect(() => {
+    checkCanChangeOptions();
+  }, [auth, frenletData]);
 
   const getPersonData = async (username: string) => {
     const currentUserAuthObject = auth.currentUser;
@@ -215,6 +248,7 @@ export default function Frenlet({ frenletData }: FrenletProps) {
 
   const handleGetRealtimeUpdates = async () => {
     if (!isVisible) return;
+    if (isThisFrenletDeleted) return;
 
     const currentUserAuthObject = auth.currentUser;
     if (currentUserAuthObject === null) return;
@@ -229,7 +263,7 @@ export default function Frenlet({ frenletData }: FrenletProps) {
           authorization: `Bearer ${idToken}`,
         },
         body: JSON.stringify({
-          frenletDocPath: `/users/${frenletData.frenletSender}/frenlets/frenlets/outgoing/${frenletData.frenletDocId}`,
+          frenletDocPath: `/users/${frenletData.frenletReceiver}/frenlets/frenlets/incoming/${frenletData.frenletDocId}`,
         }),
       });
 
@@ -244,8 +278,6 @@ export default function Frenlet({ frenletData }: FrenletProps) {
       const result = await response.json();
       const updatedFrenletData = result.frenletData as FrenletServerData;
 
-      console.log(updatedFrenletData);
-
       return setFrenletDataFinalLayer(updatedFrenletData);
     } catch (error) {
       console.error("Error on fetching to getRealtimeUpdates API: \n", error);
@@ -253,130 +285,276 @@ export default function Frenlet({ frenletData }: FrenletProps) {
     }
   };
 
+  const checkCanChangeOptions = () => {
+    const authObject = auth.currentUser;
+    if (authObject === null) return setCanChangeOptions(false);
+
+    const displayName = authObject.displayName;
+    if (!displayName) return setCanChangeOptions(false);
+
+    const usersCanChangeOptions = [
+      frenletData.frenletReceiver,
+      frenletData.frenletSender,
+    ];
+
+    if (usersCanChangeOptions.includes(displayName))
+      return setCanChangeOptions(true);
+
+    return setCanChangeOptions(false);
+  };
+
+  const handleYesButtonOnDeleteDialog = async () => {
+    if (!canChangeOptions) return;
+
+    const currentUserAuthObject = auth.currentUser;
+    if (currentUserAuthObject === null) return;
+
+    setFrenletDeleteLoading(true);
+
+    try {
+      const idToken = await currentUserAuthObject.getIdToken();
+
+      const response = await fetch("/api/frenlet/deleteFrenlet", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `Bearer ${idToken}`,
+        },
+        body: JSON.stringify({
+          frenletDocPath: `/users/${frenletData.frenletSender}/frenlets/frenlets/outgoing/${frenletData.frenletDocId}`,
+        }),
+      });
+
+      if (!response.ok) {
+        console.error(
+          "Response from deleteFrenlet API is not okay: : \n",
+          await response.text()
+        );
+        return setFrenletDeleteLoading(false);
+      }
+
+      setFrenletDeleteLoading(false);
+      setDeleteDialogOpen(false);
+      return setIsThisFrenletDeleted(true);
+    } catch (error) {
+      console.error("Error on fetching to deleteFrenlet API: \n", error);
+      return setFrenletDeleteLoading(false);
+    }
+  };
+
   return (
-    <Flex
-      width="100%"
-      align="center"
-      justify="center"
-      direction="column"
-      gap="2em"
-      border="1px solid white"
-      borderRadius="20px"
-      padding="10"
-      ref={containerRef}
-    >
-      <Flex
-        id="top-images-flex"
-        width="100%"
-        align="center"
-        justify="center"
-        gap="2em"
-      >
+    <>
+      {!isThisFrenletDeleted && (
         <Flex
-          id="sender-flex"
-          align="center"
-          justify="center"
-          direction="column"
-          gap="10px"
-          onClick={() => {
-            router.push(`/${senderData?.username}`);
-          }}
-          cursor="pointer"
-        >
-          <Image
-            id="receiver-pp"
-            src={senderData?.profilePhoto}
-            width="5em"
-            height="5em"
-            rounded="full"
-          />
-          <Text color="white" fontSize="12pt" fontWeight="700">
-            {senderData?.fullname}
-          </Text>
-        </Flex>
-
-        <Icon as={FaLongArrowAltRight} color="white" fontSize="3em" />
-
-        <Flex
-          id="receiver-flex"
-          align="center"
-          justify="center"
-          direction="column"
-          gap="10px"
-          onClick={() => {
-            router.push(`/${receiverData?.username}`);
-          }}
-          cursor="pointer"
-        >
-          <Image
-            id="sender-pp"
-            src={receiverData?.profilePhoto}
-            width="5em"
-            height="5em"
-            rounded="full"
-          />
-          <Text color="white" fontSize="12pt" fontWeight="700">
-            {receiverData?.fullname}
-          </Text>
-        </Flex>
-      </Flex>
-      <Flex id="message-flex" width="100%" align="center" justify="center">
-        <Text color="white" fontSize="15pt" fontWeight="700">
-          "{frenletData.message}"
-        </Text>
-      </Flex>
-      {frenletDataFinalLayer.replies && (
-        <Flex
-          id="replies-flex"
-          width="100%"
-          direction="column"
-          gap="1em"
-          maxHeight="20em"
-          overflow="auto"
-          borderWidth="1px"
-          borderColor="gray.700"
-          borderRadius="10px"
-          p="1em"
-        >
-          {frenletDataFinalLayer.replies.map((reply) => (
-            <Replet
-              message={reply.message}
-              ts={reply.ts}
-              username={reply.sender}
-              key={reply.ts}
-            />
-          ))}
-        </Flex>
-      )}
-
-      {canReply && (
-        <Flex
-          id="reply-flex"
           width="100%"
           align="center"
           justify="center"
-          gap="5px"
+          direction="column"
+          gap="2em"
+          border="1px solid white"
+          borderRadius="20px"
+          padding="10"
+          ref={containerRef}
         >
-          <Input
-            ref={replyInputRef}
-            size="sm"
-            color="white"
-            borderRadius="10px"
-            placeholder="Reply to your fren..."
-            onChange={handleReplyInputChange}
-          />
-          <Button
-            variant="outline"
-            size="sm"
-            colorScheme="blue"
-            onClick={handleReplyButton}
-            isLoading={sendingReply}
-            isDisabled={reply.length === 0 || !canReply}
+          {canChangeOptions && (
+            <Flex id="options-icon-flex" width="100%" justify="end">
+              <Menu computePositionOnMount isLazy>
+                <MenuButton
+                  as={IconButton}
+                  icon={<SlOptionsVertical />}
+                  color="white"
+                  bg="black"
+                  _hover={{ bg: "gray.900" }}
+                  _focus={{ bg: "black" }}
+                  _active={{ bg: "black" }}
+                />
+                <MenuList>
+                  <MenuItem
+                    onClick={() => {
+                      setDeleteDialogOpen(true);
+                    }}
+                  >
+                    Delete
+                  </MenuItem>
+                </MenuList>
+              </Menu>
+              <AlertDialog
+                motionPreset={"slideInBottom"}
+                leastDestructiveRef={cancelButtonRef}
+                onClose={() => {
+                  if (!frenletDeleteLoading) setDeleteDialogOpen(false);
+                }}
+                isOpen={deleteDialogOpen}
+                isCentered
+              >
+                <AlertDialogOverlay />
+                <AlertDialogContent>
+                  <AlertDialogHeader>Delete Frenlet?</AlertDialogHeader>
+                  <AlertDialogBody>
+                    Are you sure you want to delete your frenlet?
+                  </AlertDialogBody>
+                  <AlertDialogFooter>
+                    <Button
+                      ref={cancelButtonRef}
+                      onClick={() => {
+                        setDeleteDialogOpen(false);
+                      }}
+                      isDisabled={frenletDeleteLoading}
+                    >
+                      No
+                    </Button>
+                    <Button
+                      colorScheme="red"
+                      ml={3}
+                      isLoading={frenletDeleteLoading}
+                      onClick={handleYesButtonOnDeleteDialog}
+                    >
+                      Yes
+                    </Button>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </Flex>
+          )}
+
+          <Flex
+            id="top-images-flex"
+            width="100%"
+            align="center"
+            justify="center"
+            gap="2em"
           >
-            Reply
-          </Button>
+            <Flex
+              id="sender-flex"
+              align="center"
+              justify="center"
+              direction="column"
+              gap="10px"
+              onClick={() => {
+                router.push(`/${senderData?.username}`);
+              }}
+              cursor="pointer"
+            >
+              {senderData?.profilePhoto ? (
+                <Image
+                  id="sender-pp"
+                  src={senderData.profilePhoto}
+                  width="5em"
+                  height="5em"
+                  rounded="full"
+                />
+              ) : (
+                <SkeletonCircle width="5em" height="5em" />
+              )}
+              <Text color="white" fontSize="12pt" fontWeight="700">
+                {frenletData.frenletSender}
+              </Text>
+            </Flex>
+
+            <Icon as={FaLongArrowAltRight} color="gray" fontSize="3em" />
+
+            <Flex
+              id="receiver-flex"
+              align="center"
+              justify="center"
+              direction="column"
+              gap="10px"
+              onClick={() => {
+                router.push(`/${receiverData?.username}`);
+              }}
+              cursor="pointer"
+            >
+              {receiverData?.profilePhoto ? (
+                <Image
+                  id="sender-pp"
+                  src={receiverData.profilePhoto}
+                  width="5em"
+                  height="5em"
+                  rounded="full"
+                />
+              ) : (
+                <SkeletonCircle width="5em" height="5em" />
+              )}
+
+              <Text color="white" fontSize="12pt" fontWeight="700">
+                {frenletData.frenletReceiver}
+              </Text>
+            </Flex>
+          </Flex>
+          <Flex
+            id="message-flex"
+            width="100%"
+            align="center"
+            justify="center"
+            direction="column"
+            gap="0.3em"
+          >
+            <Text color="white" fontSize="15pt" fontWeight="700">
+              "{frenletData.message}"
+            </Text>
+            <Text color="gray.500" fontSize="8pt" fontWeight="400">
+              {moment(new Date(frenletData.ts)).fromNow()}
+            </Text>
+          </Flex>
+          {frenletDataFinalLayer.replies.length !== 0 && (
+            <Flex
+              id="replies-flex"
+              width="100%"
+              direction="column"
+              gap="1em"
+              maxHeight="20em"
+              overflow="auto"
+              borderWidth="1px"
+              borderColor="gray.700"
+              borderRadius="10px"
+              p="1em"
+            >
+              {frenletDataFinalLayer.replies.map((reply) => (
+                <Replet
+                  message={reply.message}
+                  ts={reply.ts}
+                  username={reply.sender}
+                  frenletOwners={[
+                    frenletData.frenletSender,
+                    frenletData.frenletReceiver,
+                  ]}
+                  frenletDocPath={`/users/${frenletData.frenletSender}/frenlets/frenlets/outgoing/${frenletData.frenletDocId}`}
+                  key={`${reply.sender}-${reply.ts}`}
+                />
+              ))}
+            </Flex>
+          )}
+
+          {canReply && (
+            <Flex
+              id="reply-flex"
+              width="100%"
+              align="center"
+              justify="center"
+              gap="5px"
+            >
+              <Input
+                ref={replyInputRef}
+                size="sm"
+                color="white"
+                borderRadius="10px"
+                placeholder="Reply to your fren..."
+                onChange={handleReplyInputChange}
+              />
+              <Button
+                variant="outline"
+                size="sm"
+                colorScheme="blue"
+                onClick={handleReplyButton}
+                isLoading={sendingReply}
+                isDisabled={reply.length === 0 || !canReply}
+              >
+                Reply
+              </Button>
+            </Flex>
+          )}
         </Flex>
       )}
-    </Flex>
+    </>
   );
 }

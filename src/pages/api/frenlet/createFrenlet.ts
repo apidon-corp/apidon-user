@@ -49,55 +49,28 @@ async function checkFrenStatus(fren: string, username: string) {
   }
 }
 
-async function createFrenletForSender(
-  username: string,
-  fren: string,
-  message: string
-) {
-  let frenletServerData: FrenletServerData = {
-    commentCount: 0,
-    comments: [],
-    frenletDocId: "",
-    frenletSender: username,
-    frenletReceiver: fren,
-    likeCount: 0,
-    likes: [],
-    message: message,
-    replies: [],
-    ts: Date.now(),
-  };
-
+async function createFrenletForSender(frenletDocData: FrenletServerData) {
   try {
-    const createdOutgoingrenletDoc = await firestore
-      .collection(`/users/${username}/frenlets/frenlets/outgoing`)
-      .add({ ...frenletServerData });
+    await firestore
+      .doc(
+        `/users/${frenletDocData.frenletSender}/frenlets/frenlets/outgoing/${frenletDocData.frenletDocId}`
+      )
+      .set({ ...frenletDocData });
 
-    await createdOutgoingrenletDoc.update({
-      frenletDocId: createdOutgoingrenletDoc.id,
-    });
-
-    frenletServerData = {
-      ...frenletServerData,
-      frenletDocId: createdOutgoingrenletDoc.id,
-    };
-
-    return frenletServerData;
+    return true;
   } catch (error) {
     console.error("Error while creating frenlet for sender: \n", error);
     return false;
   }
 }
 
-async function createFrenletForReceiver(
-  fren: string,
-  createdFrenletDocData: FrenletServerData
-) {
+async function createFrenletForReceiver(frenletDocData: FrenletServerData) {
   try {
     await firestore
       .doc(
-        `/users/${fren}/frenlets/frenlets/incoming/${createdFrenletDocData.frenletDocId}`
+        `/users/${frenletDocData.frenletReceiver}/frenlets/frenlets/incoming/${frenletDocData.frenletDocId}`
       )
-      .set({ ...createdFrenletDocData });
+      .set({ ...frenletDocData });
 
     return true;
   } catch (error) {
@@ -107,20 +80,32 @@ async function createFrenletForReceiver(
 }
 
 async function createFrenlet(username: string, fren: string, message: string) {
-  const createdFrenletDocData = await createFrenletForSender(
-    username,
-    fren,
-    message
+  const ts = Date.now();
+
+  const frenletDocData: FrenletServerData = {
+    commentCount: 0,
+    comments: [],
+    frenletDocId: ts.toString(),
+    frenletSender: username,
+    frenletReceiver: fren,
+    likeCount: 0,
+    likes: [],
+    message: message,
+    replies: [],
+    ts: ts,
+  };
+
+  const createFrenletForSenderResult = await createFrenletForSender(
+    frenletDocData
   );
-  if (!createdFrenletDocData) return false;
+  if (!createFrenletForSenderResult) return false;
 
   const frenletCreateForReceiverResult = await createFrenletForReceiver(
-    fren,
-    createdFrenletDocData
+    frenletDocData
   );
   if (!frenletCreateForReceiverResult) return false;
 
-  return createdFrenletDocData;
+  return frenletDocData;
 }
 
 /**

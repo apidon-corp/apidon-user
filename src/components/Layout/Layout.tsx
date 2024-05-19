@@ -122,11 +122,6 @@ export default function Layout({ children }: Props) {
       username: userDocDataInServer.username,
     };
 
-    console.log(
-      `Is ${user.displayName}'s email verified: `,
-      user.emailVerified
-    );
-
     const isEmailVerified = user.emailVerified;
 
     setCurrentUserState(currentUserData);

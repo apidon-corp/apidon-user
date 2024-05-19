@@ -146,12 +146,12 @@ async function getSentFronlets(username: string) {
 
 async function getFrenlets(username: string) {
   const receivedFronlets = await getReceviedFrenlets(username);
-  const sentFrenlets = await getSentFronlets(username);
+  //const sentFrenlets = await getSentFronlets(username);
 
   if (!receivedFronlets) return false;
-  if (!sentFrenlets) return false;
+  //if (!sentFrenlets) return false;
 
-  return receivedFronlets.concat(sentFrenlets);
+  return receivedFronlets; //.concat(sentFrenlets);
 }
 
 export default async function handler(

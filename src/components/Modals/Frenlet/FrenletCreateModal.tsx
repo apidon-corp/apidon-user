@@ -49,7 +49,6 @@ export default function FrenletCreateModal() {
   );
 
   const handleInitialLoading = async () => {
-    console.log("init");
     setModalViewState("initialLoading");
 
     const frenOptions = await handleGetFrensData();
@@ -156,7 +155,6 @@ export default function FrenletCreateModal() {
       }
 
       // Everthing is alright
-      console.log((await response.json()).frenlet);
       setModalViewState("initialLoading");
       return setCreateFrenletModalState({ isOpen: false });
     } catch (error) {
