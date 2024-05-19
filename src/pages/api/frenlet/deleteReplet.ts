@@ -119,6 +119,8 @@ async function deleteReplet(
     replet
   );
   if (!deleteRepletForSenderResult) return false;
+
+  return true;
 }
 
 export default async function handler(

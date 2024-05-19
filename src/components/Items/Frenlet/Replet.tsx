@@ -1,3 +1,4 @@
+import { RepletServerData } from "@/components/types/Frenlet";
 import { UserInServer } from "@/components/types/User";
 import { auth } from "@/firebase/clientApp";
 import {
@@ -103,6 +104,12 @@ export default function Replet({
     const currentUserAuthObject = auth.currentUser;
     if (currentUserAuthObject === null) return setDeleteRepletLoading(false);
 
+    const repletData: RepletServerData = {
+      message: message,
+      sender: username,
+      ts: ts,
+    };
+
     try {
       const idToken = await currentUserAuthObject.getIdToken();
 
@@ -114,6 +121,7 @@ export default function Replet({
         },
         body: JSON.stringify({
           frenletDocPath: frenletDocPath,
+          replet: repletData,
         }),
       });
       if (!response.ok) {
