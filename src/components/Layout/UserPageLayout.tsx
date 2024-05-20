@@ -11,14 +11,14 @@ type Props = {
   userInformation: UserInServer;
   postItemsDatas: PostItemData[];
   frenletServerDatas: FrenletServerData[];
-  tags : string[]
+  tags: string[];
 };
 
 export default function UserPageLayout({
   userInformation,
   postItemsDatas,
   frenletServerDatas,
-  tags
+  tags,
 }: Props) {
   const [innerHeight, setInnerHeight] = useState("");
 
@@ -58,6 +58,7 @@ export default function UserPageLayout({
             frenletServerDatas={frenletServerDatas}
             postItemsDatas={postItemsDatas}
             tags={tags}
+            userInformation={userInformation}
           />
         </Flex>
         <Flex
