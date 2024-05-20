@@ -16,8 +16,8 @@ async function handleAuthorization(key: string | undefined) {
   return operationFromUsername;
 }
 
-function checkProps(fren: string, message: string) {
-  if (!fren || !message) {
+function checkProps(fren: string, message: string, tag: string) {
+  if (!fren || !message || !tag) {
     console.error("Fren or message is undefined.");
     return false;
   }
@@ -79,7 +79,12 @@ async function createFrenletForReceiver(frenletDocData: FrenletServerData) {
   }
 }
 
-async function createFrenlet(username: string, fren: string, message: string) {
+async function createFrenlet(
+  username: string,
+  fren: string,
+  message: string,
+  tag: string
+) {
   const ts = Date.now();
 
   const frenletDocData: FrenletServerData = {
@@ -92,6 +97,7 @@ async function createFrenlet(username: string, fren: string, message: string) {
     likes: [],
     message: message,
     replies: [],
+    tag: tag,
     ts: ts,
   };
 
@@ -190,12 +196,12 @@ export default async function handler(
   if (req.method !== "POST") return res.status(405).send("Method not allowed");
 
   const { authorization } = req.headers;
-  const { fren, message } = req.body;
+  const { fren, message, tag } = req.body;
 
   const username = await handleAuthorization(authorization);
   if (!username) return res.status(401).send("Unauthorized");
 
-  const checkPropsResult = checkProps(fren, message);
+  const checkPropsResult = checkProps(fren, message, tag);
   if (!checkPropsResult) return res.status(500).send("Internal Server Error");
 
   const frenStatus = await checkFrenStatus(fren, username);
@@ -203,7 +209,7 @@ export default async function handler(
 
   const [createFrenletResult, sendNotificationResult, updateFrenScoreResult] =
     await Promise.all([
-      createFrenlet(username, fren, message),
+      createFrenlet(username, fren, message, tag),
       sendNotification(username, fren),
       updateFrenScore(fren),
     ]);

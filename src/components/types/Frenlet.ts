@@ -11,6 +11,7 @@ export type FrenletServerData = {
   likes: string[];
   message: string;
   replies: RepletServerData[];
+  tag: string;
   ts: number;
 };
 /**
@@ -20,4 +21,11 @@ export type RepletServerData = {
   message: string;
   sender: string;
   ts: number;
+};
+
+/**
+ * Can be used on Firebase Firestore
+ */
+export type FrenletsServerData = {
+  tags: string[];
 };

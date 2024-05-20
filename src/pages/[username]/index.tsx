@@ -35,6 +35,7 @@ export default function UserPage({ userInformation }: Props) {
   const [frenletServerDatas, setFrenletServerDatas] = useState<
     FrenletServerData[]
   >([]);
+  const [tags, setTags] = useState<string[]>([]);
 
   const setAuthModalState = useSetRecoilState(authModalStateAtom);
 
@@ -126,7 +127,7 @@ export default function UserPage({ userInformation }: Props) {
     if (!response.ok) {
       return console.error(
         `Error from 'getFeedAPI' for ${currentUserState.username} user.`,
-        await response.json()
+        await response.text()
       );
     }
 
@@ -134,12 +135,15 @@ export default function UserPage({ userInformation }: Props) {
 
     const postsFromServer = result.postItemDatas as PostItemData[];
     const frenlets = result.frenlets as FrenletServerData[];
+    const tags = result.tags as string[];
 
     postsFromServer.sort((a, b) => b.creationTime - a.creationTime);
     setPostDatasInServer(postsFromServer);
 
     frenlets.sort((a, b) => b.ts - a.ts);
     setFrenletServerDatas(frenlets);
+
+    setTags(tags);
 
     setPostStatus({ loading: false });
   };
@@ -164,6 +168,7 @@ export default function UserPage({ userInformation }: Props) {
       userInformation={userInformation}
       postItemsDatas={postsDatasInServer}
       frenletServerDatas={frenletServerDatas}
+      tags={tags}
     />
   );
 }
@@ -203,7 +208,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
     followingCount: userInformationDocResult.data()?.followingCount,
     followerCount: userInformationDocResult.data()?.followerCount,
-    frenScore : userInformationDocResult.data()?.frenScore,
+    frenScore: userInformationDocResult.data()?.frenScore,
 
     nftCount: userInformationDocResult.data()?.nftCount,
 

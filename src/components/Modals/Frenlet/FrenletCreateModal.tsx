@@ -143,6 +143,7 @@ export default function FrenletCreateModal() {
         body: JSON.stringify({
           fren: fren.username,
           message: message,
+          tag : "love"
         }),
       });
 

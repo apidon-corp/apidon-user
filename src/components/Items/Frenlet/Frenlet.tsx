@@ -119,8 +119,6 @@ export default function Frenlet({ frenletData }: FrenletProps) {
 
     if (senderData) setSenderData(senderData);
     if (receiverData) setReceiverData(receiverData);
-
-    setFrenletDataFinalLayer(frenletData);
   };
 
   const checkCanReply = async () => {
@@ -237,7 +235,7 @@ export default function Frenlet({ frenletData }: FrenletProps) {
       ];
 
       // Everythnig is alright.
-      setFrenletDataFinalLayer((prev) => ({ ...prev, replies: replies }));
+      await handleGetRealtimeUpdates(); // To update replies
       if (replyInputRef.current) replyInputRef.current.value = "";
       return setSendingReply(false);
     } catch (error) {

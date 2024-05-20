@@ -1,5 +1,8 @@
 import getDisplayName from "@/apiUtils";
-import { FrenletServerData } from "@/components/types/Frenlet";
+import {
+  FrenletServerData,
+  FrenletsServerData,
+} from "@/components/types/Frenlet";
 import { PostItemData, PostServerData } from "@/components/types/Post";
 import { firestore } from "@/firebase/adminApp";
 import { NextApiRequest, NextApiResponse } from "next";
@@ -154,6 +157,29 @@ async function getFrenlets(username: string) {
   return receivedFronlets; //.concat(sentFrenlets);
 }
 
+async function getTags(username: string) {
+  try {
+    const frenletsDocSnapshot = await firestore
+      .doc(`/users/${username}/frenlets/frenlets`)
+      .get();
+    if (!frenletsDocSnapshot.exists) {
+      console.error("frenletsDoc doesn't exist");
+      return false;
+    }
+    const frenletsDocData = frenletsDocSnapshot.data() as FrenletsServerData;
+    if (frenletsDocData === undefined) {
+      console.error("frenletsDocData is undefined");
+      return false;
+    }
+
+    const tags = frenletsDocData.tags;
+    return tags;
+  } catch (error) {
+    console.error(`Error while getting tags of ${username}`);
+    return false;
+  }
+}
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
@@ -176,10 +202,13 @@ export default async function handler(
     operationFromUsername
   );
 
-  const frenlets = await getFrenlets(username);
-  if (!frenlets) return res.status(500).send("Internal Server Error");
+  const [frenlets, tags] = await Promise.all([
+    getFrenlets(username),
+    getTags(username),
+  ]);
+  if (!frenlets || !tags) return res.status(500).send("Internal Server Error");
 
   return res
     .status(200)
-    .json({ postItemDatas: postItemDatas, frenlets: frenlets });
+    .json({ postItemDatas: postItemDatas, frenlets: frenlets, tags: tags });
 }
