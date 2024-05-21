@@ -5,7 +5,6 @@ import { FrenletServerData } from "@/components/types/Frenlet";
 import { UserInServer } from "@/components/types/User";
 import { auth } from "@/firebase/clientApp";
 import {
-  Button,
   Flex,
   Tab,
   TabList,
@@ -36,6 +35,11 @@ export default function Frenlets({
 
   const [canCreateTag, setCanCreateTag] = useState(false);
 
+  /**
+   * To add tags realtime, we will use below hook.
+   */
+  const [tagsFinalLayer, setTagsFinalLayer] = useState<string[]>([]);
+
   useEffect(() => {
     checkCanSendFrenlet();
   }, [frenletServerDatas]);
@@ -47,6 +51,10 @@ export default function Frenlets({
   useEffect(() => {
     checkCanCreateTag();
   }, [auth, userInformation]);
+
+  useEffect(() => {
+    setTagsFinalLayer(tags);
+  }, [tags]);
 
   const checkCanSendFrenlet = async () => {
     const currentUserAuthObject = auth.currentUser;
@@ -107,17 +115,24 @@ export default function Frenlets({
   };
 
   return (
-    <Tabs variant="soft-rounded" isFitted colorScheme="yellow">
+    <Tabs
+      variant="soft-rounded"
+      isFitted
+      colorScheme="yellow"
+      key={userInformation.username}
+    >
       <TabList px="1em">
-        {tags.map((tag) => (
+        {tagsFinalLayer.map((tag) => (
           <Tab color="white" key={tag}>
             {tag}
           </Tab>
         ))}
-        {canCreateTag && <CreateTagArea />}
+        {canCreateTag && (
+          <CreateTagArea setTagsFinalLayer={setTagsFinalLayer} />
+        )}
       </TabList>
       <TabPanels>
-        {tags.map((tag) => (
+        {tagsFinalLayer.map((tag) => (
           <TabPanel key={tag}>
             {canSendFrenlet && (
               <FrenletSendArea
