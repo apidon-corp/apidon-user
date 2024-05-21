@@ -1,8 +1,11 @@
+import { CreateTagArea } from "@/components/Items/Frenlet/CreateTagArea";
 import Frenlet from "@/components/Items/Frenlet/Frenlet";
 import FrenletSendArea from "@/components/Items/Frenlet/FrenletSendArea";
 import { FrenletServerData } from "@/components/types/Frenlet";
 import { UserInServer } from "@/components/types/User";
+import { auth } from "@/firebase/clientApp";
 import {
+  Button,
   Flex,
   Tab,
   TabList,
@@ -10,7 +13,7 @@ import {
   TabPanels,
   Tabs,
 } from "@chakra-ui/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type Props = {
   frenletServerDatas: FrenletServerData[];
@@ -23,33 +26,108 @@ export default function Frenlets({
   tags,
   userInformation,
 }: Props) {
-  const [currentTag, setCurrentTag] = useState(tags[0] || "");
+  const [canSendFrenlet, setCanSendFrenlet] = useState(false);
 
-  const handleTagChange = (index: number) => {
-    setCurrentTag(tags[index]);
+  /**
+   * To add frenlet realtime, we will use below hook.
+   */
+  const [frenletServerDataFinalLayer, setFrenletServerDataFinalLayer] =
+    useState<FrenletServerData[]>([]);
+
+  const [canCreateTag, setCanCreateTag] = useState(false);
+
+  useEffect(() => {
+    checkCanSendFrenlet();
+  }, [frenletServerDatas]);
+
+  useEffect(() => {
+    setFrenletServerDataFinalLayer(frenletServerDatas);
+  }, [frenletServerDatas]);
+
+  useEffect(() => {
+    checkCanCreateTag();
+  }, [auth, userInformation]);
+
+  const checkCanSendFrenlet = async () => {
+    const currentUserAuthObject = auth.currentUser;
+    if (!currentUserAuthObject) return setCanSendFrenlet(false);
+
+    const displayName = currentUserAuthObject.displayName;
+    if (!displayName) return setCanSendFrenlet(false);
+
+    try {
+      const idToken = await currentUserAuthObject.getIdToken();
+      const response = await fetch("/api/frenlet/getFrenOptions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `Bearer ${idToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        console.error(
+          "Response from getFrenOptions API is not okay: \n",
+          await response.text()
+        );
+
+        return setCanSendFrenlet(false);
+      }
+
+      const result = await response.json();
+      const frensData = result.frensData as {
+        username: string;
+        fullname: string;
+        image: string;
+      }[];
+
+      const frensOfCurrentUser = frensData.map((fren) => fren.username);
+
+      if (!frensOfCurrentUser.includes(userInformation.username)) {
+        return setCanSendFrenlet(false);
+      }
+
+      return setCanSendFrenlet(true);
+    } catch (error) {
+      console.error("Error on fetching to getFrenOptions API: \n", error);
+      return setCanSendFrenlet(false);
+    }
+  };
+
+  const checkCanCreateTag = () => {
+    const currentUserAuthObject = auth.currentUser;
+    if (!currentUserAuthObject) return setCanCreateTag(false);
+
+    const displayName = currentUserAuthObject.displayName;
+    if (!displayName) return setCanCreateTag(false);
+
+    if (displayName !== userInformation.username) return setCanCreateTag(false);
+
+    return setCanCreateTag(true);
   };
 
   return (
-    <Tabs
-      variant="soft-rounded"
-      isFitted
-      colorScheme="yellow"
-      onChange={handleTagChange}
-    >
+    <Tabs variant="soft-rounded" isFitted colorScheme="yellow">
       <TabList px="1em">
         {tags.map((tag) => (
           <Tab color="white" key={tag}>
             {tag}
           </Tab>
         ))}
+        {canCreateTag && <CreateTagArea />}
       </TabList>
       <TabPanels>
         {tags.map((tag) => (
           <TabPanel key={tag}>
-            <FrenletSendArea
-              frenProfilePhoto={userInformation.profilePhoto}
-              frenUsername={userInformation.username}
-            />
+            {canSendFrenlet && (
+              <FrenletSendArea
+                frenProfilePhoto={userInformation.profilePhoto}
+                frenUsername={userInformation.username}
+                setFrenletServerDataFinalLayer={setFrenletServerDataFinalLayer}
+                tag={tag}
+              />
+            )}
+
             <Flex
               justify="center"
               width="100%"
@@ -57,8 +135,9 @@ export default function Frenlets({
               gap="2em"
               mt="1em"
             >
-              {frenletServerDatas
+              {frenletServerDataFinalLayer
                 .filter((frenletServerData) => frenletServerData.tag === tag)
+                .sort((a, b) => b.ts - a.ts)
                 .map((frenletData) => (
                   <Frenlet
                     frenletData={frenletData}

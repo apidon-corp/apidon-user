@@ -9,24 +9,28 @@ type Props = {
   postItemsDatas: PostItemData[];
   frenletServerDatas: FrenletServerData[];
   tags: string[];
-  userInformation: UserInServer
+  userInformation: UserInServer;
 };
 
 export default function Content({
   frenletServerDatas,
   postItemsDatas,
   tags,
-  userInformation
+  userInformation,
 }: Props) {
   return (
-    <Tabs isLazy isFitted variant="solid-rounded">
+    <Tabs isFitted variant="solid-rounded">
       <TabList px="1.5em">
         <Tab color="white">Frenlets</Tab>
         <Tab color="white">Posts</Tab>
       </TabList>
       <TabPanels>
         <TabPanel id="frenlets-panel">
-          <Frenlets frenletServerDatas={frenletServerDatas} tags={tags} userInformation={userInformation} />
+          <Frenlets
+            frenletServerDatas={frenletServerDatas}
+            tags={tags}
+            userInformation={userInformation}
+          />
         </TabPanel>
         <TabPanel id="posts-panel">
           <Posts postItemsDatas={postItemsDatas} />

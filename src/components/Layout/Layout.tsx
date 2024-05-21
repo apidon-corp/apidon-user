@@ -7,6 +7,10 @@ import { User } from "firebase/auth";
 import { ReactNode, useEffect, useState } from "react";
 import { useRecoilState, useSetRecoilState } from "recoil";
 import Footer from "../Footer/Footer";
+import LoginModal from "../Modals/AuthenticationModal/LoginModal";
+import ResetPasswordModal from "../Modals/AuthenticationModal/ResetPasswordModal";
+import SignupModal from "../Modals/AuthenticationModal/SignupModal";
+import VerifyModal from "../Modals/AuthenticationModal/VerifyModal";
 import PostCreateModal from "../Modals/Post/PostCreateModal";
 import CollectedDataInformationModal from "../Modals/User/CollectedDataInformationModal";
 import DataAnalysisPreferencesModal from "../Modals/User/DataAnalysisPreferencesModal";
@@ -17,13 +21,8 @@ import Navbar from "../Navbar/Navbar";
 import { authModalStateAtom } from "../atoms/authModalAtom";
 import { currentUserStateAtom } from "../atoms/currentUserAtom";
 import { providerModalStateAtom } from "../atoms/providerModalAtom";
-import { CurrentUser, UserInServer } from "../types/User";
-import LoginModal from "../Modals/AuthenticationModal/LoginModal";
-import SignupModal from "../Modals/AuthenticationModal/SignupModal";
-import ResetPasswordModal from "../Modals/AuthenticationModal/ResetPasswordModal";
-import VerifyModal from "../Modals/AuthenticationModal/VerifyModal";
 import { verificationModalAtom } from "../atoms/verificationModalAtom";
-import FrenletCreateModal from "../Modals/Frenlet/FrenletCreateModal";
+import { CurrentUser, UserInServer } from "../types/User";
 
 type Props = {
   children: ReactNode;
@@ -143,7 +142,6 @@ export default function Layout({ children }: Props) {
           <Navbar />
           <Flex justifyContent="center">{children}</Flex>
           <PostCreateModal />
-          <FrenletCreateModal />
 
           {authModalState.open && authModalState.view === "signUp" && (
             <SignupModal />
