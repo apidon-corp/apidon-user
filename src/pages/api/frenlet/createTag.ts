@@ -20,7 +20,7 @@ function checkProps(tag: string) {
     return false;
   }
 
-  if (tag.length > 5 || tag.length === 0 || tag.includes(" ")) return false;
+  if (tag.length > 10 || tag.length === 0 || tag.includes(" ")) return false;
 
   return true;
 }

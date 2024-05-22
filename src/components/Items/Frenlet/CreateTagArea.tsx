@@ -34,7 +34,7 @@ export const CreateTagArea = ({ setTagsFinalLayer }: Props) => {
     const currentUserAuthObject = auth.currentUser;
     if (!currentUserAuthObject) return;
 
-    if (tag.length === 0 || tag.length > 5) return;
+    if (tag.length === 0 || tag.length > 10) return;
 
     setLoading(true);
 
@@ -77,7 +77,7 @@ export const CreateTagArea = ({ setTagsFinalLayer }: Props) => {
   const handleTagChange = (event: ChangeEvent<HTMLInputElement>) => {
     let value = event.target.value;
     value = value.trim();
-    if (value.length > 5) return;
+    if (value.length > 10) return;
     setTag(value);
   };
 

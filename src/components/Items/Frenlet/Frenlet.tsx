@@ -28,6 +28,7 @@ import { FaLongArrowAltRight } from "react-icons/fa";
 import Replet from "./Replet";
 import moment from "moment";
 import { SlOptionsVertical } from "react-icons/sl";
+import LikeArea from "./LikeArea";
 
 type FrenletProps = {
   frenletData: FrenletServerData;
@@ -55,6 +56,8 @@ export default function Frenlet({ frenletData }: FrenletProps) {
   const [frenletDeleteLoading, setFrenletDeleteLoading] = useState(false);
   const [isThisFrenletDeleted, setIsThisFrenletDeleted] = useState(false);
 
+  const intervalRef = useRef<NodeJS.Timeout>();
+
   useEffect(() => {
     initialLoading();
   }, []);
@@ -67,7 +70,10 @@ export default function Frenlet({ frenletData }: FrenletProps) {
     const checkRealtimeUpdates = setInterval(() => {
       handleGetRealtimeUpdates();
     }, 5000);
-    return () => clearInterval(checkRealtimeUpdates);
+
+    intervalRef.current = checkRealtimeUpdates;
+
+    return () => clearInterval(intervalRef.current);
   }, [isVisible]);
 
   useEffect(() => {
@@ -251,6 +257,9 @@ export default function Frenlet({ frenletData }: FrenletProps) {
     const currentUserAuthObject = auth.currentUser;
     if (currentUserAuthObject === null) return;
 
+    // Stopping interval
+    clearInterval(intervalRef.current);
+
     try {
       const idToken = await currentUserAuthObject.getIdToken();
 
@@ -275,6 +284,12 @@ export default function Frenlet({ frenletData }: FrenletProps) {
 
       const result = await response.json();
       const updatedFrenletData = result.frenletData as FrenletServerData;
+
+      // Starting interval again...
+      const newInterval = setInterval(() => {
+        handleGetRealtimeUpdates();
+      }, 5000);
+      intervalRef.current = newInterval;
 
       return setFrenletDataFinalLayer(updatedFrenletData);
     } catch (error) {
@@ -351,7 +366,9 @@ export default function Frenlet({ frenletData }: FrenletProps) {
           gap="2em"
           border="1px solid white"
           borderRadius="20px"
-          padding="10"
+          px="10"
+          pt="10"
+          pb="5"
           ref={containerRef}
         >
           {canChangeOptions && (
@@ -551,6 +568,13 @@ export default function Frenlet({ frenletData }: FrenletProps) {
               </Button>
             </Flex>
           )}
+
+          <LikeArea
+            likeCount={frenletDataFinalLayer.likeCount}
+            likes={frenletDataFinalLayer.likes}
+            frenletDocPath={`/users/${frenletData.frenletReceiver}/frenlets/frenlets/incoming/${frenletData.frenletDocId}`}
+            handleGetRealtimeUpdates={handleGetRealtimeUpdates}
+          />
         </Flex>
       )}
     </>

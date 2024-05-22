@@ -8,7 +8,10 @@ export type FrenletServerData = {
   frenletSender: string;
   frenletReceiver: string;
   likeCount: number;
-  likes: string[];
+  likes: {
+    sender: string;
+    ts: number;
+  }[];
   message: string;
   replies: RepletServerData[];
   tag: string;

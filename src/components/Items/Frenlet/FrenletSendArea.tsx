@@ -112,8 +112,8 @@ export default function FrenletSendArea({
         id="top-images-flex"
         width="100%"
         align="center"
-        justify="space-between"
-        px="3.5em"
+        justify="center"
+        gap="2em"
       >
         <Flex
           id="sender-flex"
