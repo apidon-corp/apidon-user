@@ -1,12 +1,12 @@
 import { FrenletServerData } from "@/components/types/Frenlet";
-import { PostItemData } from "@/components/types/Post";
+import { PostItemDataV2 } from "@/components/types/Post";
+import { UserInServer } from "@/components/types/User";
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from "@chakra-ui/react";
 import Frenlets from "./Frenlets";
 import Posts from "./Posts";
-import { UserInServer } from "@/components/types/User";
 
 type Props = {
-  postItemsDatas: PostItemData[];
+  postItemsDatas: PostItemDataV2[];
   frenletServerDatas: FrenletServerData[];
   tags: string[];
   userInformation: UserInServer;

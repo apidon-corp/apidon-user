@@ -1,13 +1,13 @@
 import getDisplayName from "@/apiUtils";
 import PostPageLayout from "@/components/Layout/PostPageLayout";
-import { PostItemData, PostServerData } from "@/components/types/Post";
+import { PostItemData, PostItemDataV2, PostServerData } from "@/components/types/Post";
 import { IPagePreviewData } from "@/components/types/User";
 import { firestore } from "@/firebase/adminApp";
 import { Flex, Text } from "@chakra-ui/react";
 import { GetServerSidePropsContext } from "next";
 
 type Props = {
-  postInformation: PostItemData | undefined;
+  postInformation: PostItemDataV2 | undefined;
 };
 
 export default function index({ postInformation }: Props) {

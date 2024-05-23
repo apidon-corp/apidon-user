@@ -12,6 +12,7 @@ import {
 import {
   OpenPanelName,
   PostItemData,
+  PostItemDataV2,
   PostServerData,
 } from "@/components/types/Post";
 import useNFT from "@/hooks/nftHooks/useNFT";
@@ -62,7 +63,7 @@ import { MdSell } from "react-icons/md";
 type Props = {
   openPanelNameValue: OpenPanelName;
   openPanelNameValueSetter: React.Dispatch<SetStateAction<OpenPanelName>>;
-  postInformation: PostItemData;
+  postInformation: PostItemDataV2;
 };
 
 const apidonNFTSepoliaContractAddress = process.env
@@ -230,7 +231,7 @@ export default function PostNFT({
     setPostsAtView((prev) => {
       return prev.map((p) => {
         if (p.postDocId === postInformation.postDocId) {
-          const updatedPost = JSON.parse(JSON.stringify(p)) as PostItemData;
+          const updatedPost = JSON.parse(JSON.stringify(p)) as PostItemDataV2;
           updatedPost.nftStatus = {
             convertedToNft: true,
             nftDocPath: nftMintResult.nftDocPath,

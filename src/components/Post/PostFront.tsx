@@ -43,6 +43,7 @@ import { authModalStateAtom } from "../atoms/authModalAtom";
 import { currentUserStateAtom } from "../atoms/currentUserAtom";
 import { postsAtViewAtom } from "../atoms/postsAtViewAtom";
 import { OpenPanelName, PostFrontData } from "../types/Post";
+import { auth } from "@/firebase/clientApp";
 
 type Props = {
   postFrontData: PostFrontData;
@@ -228,27 +229,23 @@ export default function PostFront({
     setTaggedDescription(tempTaggedDescription);
   };
 
-  const handleLike = async (opCode: -1 | 1) => {
-    console.log("handleLike initiated.");
-
-    if (!currentUserState.username) {
-      console.log("Only Users can like");
-      setAuthModalState((prev) => ({
+  const handleLike = async () => {
+    const currentUserAuthObject = auth.currentUser;
+    if (!currentUserAuthObject) {
+      return setAuthModalState((prev) => ({
         ...prev,
         open: true,
         view: "logIn",
       }));
-      return;
     }
 
     const likeCountBeforeOperations = postFrontData.likeCount;
-    const likeStatusBeforeOperation = postFrontData.currentUserLikedThisPost;
 
     const updatedPostsAtView = postsAtView.map((a) => {
       if (a.postDocId === postFrontData.postDocId) {
         const updatedPost = { ...a };
-        updatedPost.currentUserLikedThisPost = opCode === 1 ? true : false;
-        updatedPost.likeCount = a.likeCount + opCode;
+        updatedPost.currentUserLikedThisPost = true;
+        updatedPost.likeCount = a.likeCount + 1;
         return updatedPost;
       } else {
         return a;
@@ -256,16 +253,43 @@ export default function PostFront({
     });
     setPostsAtView(updatedPostsAtView);
 
-    const operationResult = await like(
-      `users/${postFrontData.senderUsername}/posts/${postFrontData.postDocId}`,
-      opCode
-    );
+    try {
+      const idToken = await currentUserAuthObject.getIdToken();
+      const response = await fetch(`/api/postv2/postLike`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `Bearer ${idToken}`,
+        },
+        body: JSON.stringify({
+          action: "like",
+          postDocPath: `users/${postFrontData.senderUsername}/posts/${postFrontData.postDocId}`,
+        }),
+      });
 
-    if (!operationResult) {
+      if (!response.ok) {
+        const updatedPostsAtView = postsAtView.map((a) => {
+          if (a.postDocId === postFrontData.postDocId) {
+            const updatedPost = { ...a };
+            updatedPost.currentUserLikedThisPost = false;
+            updatedPost.likeCount = likeCountBeforeOperations;
+            return updatedPost;
+          } else {
+            return a;
+          }
+        });
+        setPostsAtView(updatedPostsAtView);
+
+        return console.error(
+          "Response from postLike API is not okay: \n",
+          await response.text()
+        );
+      }
+    } catch (error) {
       const updatedPostsAtView = postsAtView.map((a) => {
         if (a.postDocId === postFrontData.postDocId) {
           const updatedPost = { ...a };
-          updatedPost.currentUserLikedThisPost = likeStatusBeforeOperation;
+          updatedPost.currentUserLikedThisPost = false;
           updatedPost.likeCount = likeCountBeforeOperations;
           return updatedPost;
         } else {
@@ -273,7 +297,78 @@ export default function PostFront({
         }
       });
       setPostsAtView(updatedPostsAtView);
-      return;
+      return console.error("Error on fetching to postLike API: \n", error);
+    }
+  };
+  const handleDeLike = async () => {
+    const currentUserAuthObject = auth.currentUser;
+    if (!currentUserAuthObject) {
+      return setAuthModalState((prev) => ({
+        ...prev,
+        open: true,
+        view: "logIn",
+      }));
+    }
+
+    const likeCountBeforeOperations = postFrontData.likeCount;
+
+    const updatedPostsAtView = postsAtView.map((a) => {
+      if (a.postDocId === postFrontData.postDocId) {
+        const updatedPost = { ...a };
+        updatedPost.currentUserLikedThisPost = false;
+        updatedPost.likeCount = a.likeCount - 1;
+        return updatedPost;
+      } else {
+        return a;
+      }
+    });
+    setPostsAtView(updatedPostsAtView);
+
+    try {
+      const idToken = await currentUserAuthObject.getIdToken();
+      const response = await fetch(`/api/postv2/postLike`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `Bearer ${idToken}`,
+        },
+        body: JSON.stringify({
+          action: "delike",
+          postDocPath: `users/${postFrontData.senderUsername}/posts/${postFrontData.postDocId}`,
+        }),
+      });
+
+      if (!response.ok) {
+        const updatedPostsAtView = postsAtView.map((a) => {
+          if (a.postDocId === postFrontData.postDocId) {
+            const updatedPost = { ...a };
+            updatedPost.currentUserLikedThisPost = true;
+            updatedPost.likeCount = likeCountBeforeOperations;
+            return updatedPost;
+          } else {
+            return a;
+          }
+        });
+        setPostsAtView(updatedPostsAtView);
+
+        return console.error(
+          "Response from postLike API is not okay: \n",
+          await response.text()
+        );
+      }
+    } catch (error) {
+      const updatedPostsAtView = postsAtView.map((a) => {
+        if (a.postDocId === postFrontData.postDocId) {
+          const updatedPost = { ...a };
+          updatedPost.currentUserLikedThisPost = true;
+          updatedPost.likeCount = likeCountBeforeOperations;
+          return updatedPost;
+        } else {
+          return a;
+        }
+      });
+      setPostsAtView(updatedPostsAtView);
+      return console.error("Error on fetching to postLike API: \n", error);
     }
   };
 
@@ -508,7 +603,7 @@ export default function PostFront({
                   color="red"
                   fontSize="25px"
                   cursor="pointer"
-                  onClick={() => handleLike(-1)}
+                  onClick={() => handleDeLike()}
                 />
               ) : (
                 <Icon
@@ -516,7 +611,7 @@ export default function PostFront({
                   color="white"
                   fontSize="25px"
                   cursor="pointer"
-                  onClick={() => handleLike(1)}
+                  onClick={() => handleLike()}
                 />
               )}
 

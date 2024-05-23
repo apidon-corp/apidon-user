@@ -1,13 +1,12 @@
-import React, { useEffect, useState } from "react";
-import PostItem from "../Items/Post/PostItem";
 import { Flex } from "@chakra-ui/react";
-import { PostItemData } from "../types/Post";
-import { useRecoilState, useSetRecoilState } from "recoil";
+import { useEffect, useState } from "react";
+import { useRecoilState } from "recoil";
+import PostItem from "../Items/Post/PostItem";
 import { postsAtViewAtom } from "../atoms/postsAtViewAtom";
-import Posts from "../Post/Posts";
+import { PostItemData, PostItemDataV2 } from "../types/Post";
 
 type Props = {
-  postInformation: PostItemData;
+  postInformation: PostItemDataV2;
 };
 export default function PostPageLayout({ postInformation }: Props) {
   const [innerHeight, setInnerHeight] = useState("");

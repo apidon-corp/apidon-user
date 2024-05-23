@@ -1,14 +1,14 @@
 import MainPageLayout from "@/components/Layout/MainPageLayout";
 import { postsStatusAtom } from "@/components/atoms/postsStatusAtom";
 import { GetPersonalizedNftFeedResponse } from "@/components/types/API";
-import { PostItemData } from "@/components/types/Post";
+import { PostItemData, PostItemDataV2 } from "@/components/types/Post";
 import { Flex, Text } from "@chakra-ui/react";
 import { GetServerSidePropsContext } from "next";
 import { useEffect, useState } from "react";
 import { useSetRecoilState } from "recoil";
 
 type Props = {
-  nftInformation: PostItemData[] | null;
+  nftInformation: PostItemDataV2[] | null;
 };
 
 export default function Home({ nftInformation }: Props) {

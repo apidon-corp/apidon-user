@@ -23,6 +23,27 @@ export type PostServerData = {
   creationTime: number;
 };
 
+export type PostServerDataV2 = {
+  senderUsername: string;
+
+  description: string;
+  image: string;
+
+  likeCount: number;
+  likes: LikeDataV2[];
+
+  commentCount: number;
+  comments: CommendDataV2[];
+
+  nftStatus: {
+    convertedToNft: boolean;
+    nftDocPath?: string;
+  };
+
+  creationTime: number;
+  id : string
+};
+
 /**
  * This type are used mostly for state management, frontend.
  */
@@ -34,7 +55,33 @@ export type PostItemData = {
 
   likeCount: number;
   currentUserLikedThisPost: boolean;
+
   commentCount: number;
+
+  postDocId: string;
+
+  nftStatus: {
+    convertedToNft: boolean;
+    nftDocPath?: string;
+  };
+
+  currentUserFollowThisSender: boolean;
+
+  creationTime: number;
+};
+
+export type PostItemDataV2 = {
+  senderUsername: string;
+
+  description: string;
+  image: string;
+
+  likeCount: number;
+  likes: LikeDataV2[];
+  currentUserLikedThisPost: boolean;
+
+  commentCount: number;
+  comments: CommendDataV2[];
 
   postDocId: string;
 
@@ -86,6 +133,18 @@ export type CommentData = {
   comment: string;
   creationTime: number;
 };
+
+export type CommendDataV2 = {
+  sender: string;
+  message: string;
+  ts: number;
+};
+
+export type LikeDataV2 = {
+  sender: string;
+  ts: number;
+};
+
 export type CommentInteractionData = {
   postDocPath: string;
   creationTime: number;
@@ -116,5 +175,3 @@ export type SendNftStatus =
 export type PostStatus = {
   loading: boolean;
 };
-
-

@@ -6,10 +6,10 @@ import { postsStatusAtom } from "../atoms/postsStatusAtom";
 import PostItem from "../Items/Post/PostItem";
 import PostSkeleton from "../Skeletons/PostSkeleton";
 
-import { PostItemData } from "../types/Post";
+import { PostItemData, PostItemDataV2 } from "../types/Post";
 
 type Props = {
-  postsItemDatas: PostItemData[];
+  postsItemDatas: PostItemDataV2[];
 };
 
 export default function Posts({ postsItemDatas }: Props) {

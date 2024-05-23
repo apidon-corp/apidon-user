@@ -2,7 +2,7 @@ import { authModalStateAtom } from "@/components/atoms/authModalAtom";
 import { currentUserStateAtom } from "@/components/atoms/currentUserAtom";
 import { postsStatusAtom } from "@/components/atoms/postsStatusAtom";
 import MainPageLayout from "@/components/Layout/MainPageLayout";
-import { PostItemData } from "@/components/types/Post";
+import { PostItemData, PostItemDataV2 } from "@/components/types/Post";
 import { IPagePreviewData } from "@/components/types/User";
 import { auth } from "@/firebase/clientApp";
 import { GetServerSidePropsContext } from "next";
@@ -11,7 +11,7 @@ import { useRecoilValue, useSetRecoilState } from "recoil";
 
 export default function Home() {
   const currentUserState = useRecoilValue(currentUserStateAtom);
-  const [postsDatasInServer, setPostDatasInServer] = useState<PostItemData[]>(
+  const [postsDatasInServer, setPostDatasInServer] = useState<PostItemDataV2[]>(
     []
   );
 
@@ -34,7 +34,7 @@ export default function Home() {
     handlePersonalizedMainFeed();
   }, [currentUserState.isThereCurrentUser, currentUserState.hasProvider]);
 
-  const shufflePosts = (postsDatasArray: PostItemData[]) => {
+  const shufflePosts = (postsDatasArray: PostItemDataV2[]) => {
     let currentIndex = postsDatasArray.length,
       randomIndex;
 
@@ -57,7 +57,7 @@ export default function Home() {
    * @param postsDatasArray
    * @returns shuffled posts
    */
-  const organizePosts = (postsDatasArray: PostItemData[]) => {
+  const organizePosts = (postsDatasArray: PostItemDataV2[]) => {
     const initialPostsDatasArray = [...postsDatasArray];
 
     // shuffle with Fisher-Yates method
@@ -100,10 +100,10 @@ export default function Home() {
       );
     }
 
-    const postsFromServer: PostItemData[] = (await response.json())
+    const postsFromServer: PostItemDataV2[] = (await response.json())
       .postItemDatas;
 
-    const organizedPosts: PostItemData[] = postsFromServer //organizePosts(postsFromServer);
+    const organizedPosts: PostItemDataV2[] = postsFromServer; //organizePosts(postsFromServer);
 
     setPostDatasInServer(organizedPosts);
     setPostStatus({ loading: false });
@@ -135,10 +135,10 @@ export default function Home() {
       );
     }
 
-    const postsFromServer: PostItemData[] = (await response.json())
+    const postsFromServer: PostItemDataV2[] = (await response.json())
       .postItemDatas;
 
-    const organizedPosts: PostItemData[] = organizePosts(postsFromServer);
+    const organizedPosts: PostItemDataV2[] = organizePosts(postsFromServer);
 
     setPostDatasInServer(organizedPosts);
 

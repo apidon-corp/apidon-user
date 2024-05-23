@@ -11,7 +11,7 @@ export type PostLikeActionAPIBody = {
 };
 
 export type PostLikeAPIBody = {
-  opCode: -1 | 1;
+  action: "like" | "delike";
   postDocPath: string;
 };
 

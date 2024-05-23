@@ -2,14 +2,14 @@ import { Flex } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 
 import { FrenletServerData } from "../types/Frenlet";
-import { PostItemData } from "../types/Post";
+import { PostItemDataV2 } from "../types/Post";
 import { UserInServer } from "../types/User";
 import Content from "../user/Content/Content";
 import Header from "../user/Header";
 
 type Props = {
   userInformation: UserInServer;
-  postItemsDatas: PostItemData[];
+  postItemsDatas: PostItemDataV2[];
   frenletServerDatas: FrenletServerData[];
   tags: string[];
 };

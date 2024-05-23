@@ -3,7 +3,11 @@ import {
   FrenletServerData,
   FrenletsServerData,
 } from "@/components/types/Frenlet";
-import { PostItemData, PostServerData } from "@/components/types/Post";
+import {
+  PostItemData,
+  PostItemDataV2,
+  PostServerData,
+} from "@/components/types/Post";
 import { firestore } from "@/firebase/adminApp";
 import { NextApiRequest, NextApiResponse } from "next";
 
@@ -86,15 +90,18 @@ const handleCreatePostItemData = async (
   likeStatus = likeResponse as boolean;
   followStatus = followResponse as boolean;
 
-  const newPostItemData: PostItemData = {
+  const newPostItemData: PostItemDataV2 = {
     senderUsername: postDoc.data().senderUsername,
 
     description: postDoc.data().description,
     image: postDoc.data().image,
 
     likeCount: postDoc.data().likeCount,
+    likes: postDoc.data().likes,
     currentUserLikedThisPost: likeStatus,
+
     commentCount: postDoc.data().commentCount,
+    comments: postDoc.data().comments,
 
     postDocId: postDoc.id,
 

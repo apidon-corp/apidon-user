@@ -4,7 +4,7 @@ import { postsStatusAtom } from "@/components/atoms/postsStatusAtom";
 import UserPageLayout from "@/components/Layout/UserPageLayout";
 import { FrenletServerData } from "@/components/types/Frenlet";
 
-import { PostItemData } from "@/components/types/Post";
+import { PostItemData, PostItemDataV2 } from "@/components/types/Post";
 import { IPagePreviewData, UserInServer } from "@/components/types/User";
 import { firestore } from "@/firebase/adminApp";
 
@@ -19,7 +19,7 @@ import { useRecoilValue, useSetRecoilState } from "recoil";
 
 type Props = {
   userInformation: UserInServer | undefined;
-  postItemDatas: PostItemData[];
+  postItemDatas: PostItemDataV2[];
 };
 
 export default function UserPage({ userInformation }: Props) {
@@ -28,7 +28,7 @@ export default function UserPage({ userInformation }: Props) {
   const setPostStatus = useSetRecoilState(postsStatusAtom);
   const currentUserState = useRecoilValue(currentUserStateAtom);
 
-  const [postsDatasInServer, setPostDatasInServer] = useState<PostItemData[]>(
+  const [postsDatasInServer, setPostDatasInServer] = useState<PostItemDataV2[]>(
     []
   );
 
@@ -86,7 +86,7 @@ export default function UserPage({ userInformation }: Props) {
       );
     }
 
-    const postsFromServer: PostItemData[] = (await response.json())
+    const postsFromServer: PostItemDataV2[] = (await response.json())
       .postItemDatas;
 
     setPostDatasInServer(postsFromServer);
@@ -133,7 +133,7 @@ export default function UserPage({ userInformation }: Props) {
 
     const result = await response.json();
 
-    const postsFromServer = result.postItemDatas as PostItemData[];
+    const postsFromServer = result.postItemDatas as PostItemDataV2[];
     const frenlets = result.frenlets as FrenletServerData[];
     const tags = result.tags as string[];
 

@@ -1,13 +1,13 @@
 import PostNFT from "@/components/Modals/Post/PostNFT";
+import { Flex } from "@chakra-ui/react";
 import { useState } from "react";
 import PostComments from "../../Modals/Post/PostComments";
 import PostLikes from "../../Modals/Post/PostLikes";
 import PostFront from "../../Post/PostFront";
-import { OpenPanelName, PostItemData } from "../../types/Post";
-import { Flex } from "@chakra-ui/react";
+import { OpenPanelName, PostItemDataV2 } from "../../types/Post";
 
 type Props = {
-  postItemData: PostItemData;
+  postItemData: PostItemDataV2;
 };
 
 export default function PostItem({ postItemData }: Props) {
@@ -17,7 +17,7 @@ export default function PostItem({ postItemData }: Props) {
   const [commentCount, setCommentCount] = useState(postItemData.commentCount);
 
   return (
-    <Flex width="100%" height="100%" >
+    <Flex width="100%" height="100%">
       <PostFront
         postFrontData={{
           ...postItemData,
@@ -35,10 +35,7 @@ export default function PostItem({ postItemData }: Props) {
         commentCountSetter={setCommentCount}
       />
       <PostLikes
-        likeData={{
-          likeCount: postItemData.likeCount,
-          likeColPath: `users/${postItemData.senderUsername}/posts/${postItemData.postDocId}/likes`,
-        }}
+        likeData={postItemData.likes}
         postSenderUsername={postItemData.senderUsername}
         openPanelNameSetter={setOpenPanelName}
         openPanelNameValue={openPanelName}

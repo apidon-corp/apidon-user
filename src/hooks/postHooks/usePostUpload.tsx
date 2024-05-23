@@ -3,7 +3,8 @@ import { postsAtViewAtom } from "@/components/atoms/postsAtViewAtom";
 import {
   PostCreateForm,
   PostItemData,
-  PostServerData,
+  PostItemDataV2,
+  PostServerDataV2,
 } from "@/components/types/Post";
 import { auth } from "@/firebase/clientApp";
 import { useRouter } from "next/router";
@@ -71,7 +72,7 @@ const usePostCreate = () => {
 
     let response: Response;
     try {
-      response = await fetch("/api/post/postUpload", {
+      response = await fetch("/api/postv2/postUpload", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -95,11 +96,11 @@ const usePostCreate = () => {
     }
 
     const result = await response.json();
-    const newPostServerData: PostServerData = result.newPostData;
+    const newPostServerData: PostServerDataV2 = result.newPostData;
     const newPostDocId: string = result.newPostDocId;
 
     if (router.asPath === `/${currentUserstate.username}`) {
-      const newPostData: PostItemData = {
+      const newPostData: PostItemDataV2 = {
         ...newPostServerData,
         currentUserLikedThisPost: false,
         postDocId: newPostDocId,
@@ -107,7 +108,7 @@ const usePostCreate = () => {
       };
       setPostsAtView((prev) => [newPostData, ...prev]);
     } else if (router.asPath === "/") {
-      const newPostData: PostItemData = {
+      const newPostData: PostItemDataV2 = {
         ...newPostServerData,
         currentUserLikedThisPost: false,
         postDocId: newPostDocId,

@@ -1,4 +1,3 @@
-import { currentUserStateAtom } from "@/components/atoms/currentUserAtom";
 import {
   Flex,
   Icon,
@@ -6,75 +5,27 @@ import {
   ModalBody,
   ModalContent,
   ModalOverlay,
-  Spinner,
   Stack,
   Text,
 } from "@chakra-ui/react";
-import { SetStateAction, useEffect, useState } from "react";
+import { SetStateAction } from "react";
 import { AiOutlineClose } from "react-icons/ai";
-import { useRecoilValue } from "recoil";
 import LikeItem from "../../Items/Post/LikeItem";
-import { LikeData, OpenPanelName } from "../../types/Post";
-import useGetFirebase from "@/hooks/readHooks/useGetFirebase";
+import { LikeDataV2, OpenPanelName } from "../../types/Post";
 
 type Props = {
-  likeData: LikeData;
+  likeData: LikeDataV2[];
   openPanelNameSetter: React.Dispatch<SetStateAction<OpenPanelName>>;
   openPanelNameValue: OpenPanelName;
   postSenderUsername: string;
 };
 
 export default function PostLikes({
-  likeData,
   openPanelNameSetter,
   openPanelNameValue,
   postSenderUsername,
+  likeData,
 }: Props) {
-  const [likeDatas, setLikeDatas] = useState<string[]>([]);
-
-  const currentUserState = useRecoilValue(currentUserStateAtom);
-
-  const [gettingLikes, setGettingLikes] = useState(true);
-
-  const { getCollectionServer } = useGetFirebase();
-
-  useEffect(() => {
-    if (openPanelNameValue === "likes") getLikes();
-  }, [openPanelNameValue]);
-
-  const getLikes = async () => {
-    setGettingLikes(true);
-
-    const likesCollection = await getCollectionServer(likeData.likeColPath);
-    if (!likesCollection) return;
-
-    if (likesCollection.docsArray.length === 0) {
-      setLikeDatas([]);
-      return setGettingLikes(false);
-    }
-
-    let finalLikeDatas: string[] = [];
-
-    for (const liker of likesCollection.docsArray) {
-      finalLikeDatas.push(liker.ref.id);
-    }
-
-    if (currentUserState.isThereCurrentUser) {
-      if (finalLikeDatas.includes(currentUserState.username)) {
-        const filtered = finalLikeDatas.filter(
-          (a) => a !== currentUserState.username
-        );
-
-        filtered.unshift(currentUserState.username);
-
-        finalLikeDatas = filtered;
-      }
-    }
-
-    setLikeDatas(finalLikeDatas);
-    setGettingLikes(false);
-  };
-
   return (
     <Modal
       onClose={() => openPanelNameSetter("main")}
@@ -119,13 +70,13 @@ export default function PostLikes({
         </Flex>
 
         <ModalBody>
-          <Stack gap={1} hidden={gettingLikes}>
-            {likeDatas.map((w) => (
+          <Stack gap={1}>
+            {likeData.map((w) => (
               <LikeItem
                 postSenderUsername={postSenderUsername}
-                likerUsername={w}
+                likerUsername={w.sender}
                 openPanelNameSetter={openPanelNameSetter}
-                key={w}
+                key={w.sender}
               />
             ))}
           </Stack>
@@ -133,11 +84,10 @@ export default function PostLikes({
           <Text
             fontSize="10pt"
             textColor="white"
-            hidden={likeDatas.length !== 0 || gettingLikes}
+            hidden={likeData.length !== 0}
           >
             No likes yet.
           </Text>
-          <Spinner color="white" hidden={!gettingLikes} />
         </ModalBody>
       </ModalContent>
     </Modal>
