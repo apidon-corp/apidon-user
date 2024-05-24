@@ -1,5 +1,6 @@
 import { currentUserStateAtom } from "@/components/atoms/currentUserAtom";
 import useCommentDelete from "@/hooks/postHooks/useCommentDelete";
+import useGetFirebase from "@/hooks/readHooks/useGetFirebase";
 import {
   Flex,
   Icon,
@@ -14,24 +15,20 @@ import React, { SetStateAction, useEffect, useState } from "react";
 import { BsDot, BsTrash } from "react-icons/bs";
 import { CgProfile } from "react-icons/cg";
 import { useRecoilValue } from "recoil";
-import { CommentDataWithCommentDocPath, OpenPanelName } from "../../types/Post";
-import useGetFirebase from "@/hooks/readHooks/useGetFirebase";
+import { CommendDataV2, OpenPanelName } from "../../types/Post";
 
 type Props = {
-  commentDataWithCommentDocId: CommentDataWithCommentDocPath;
+  commentData: CommendDataV2;
   openPanelNameSetter: React.Dispatch<SetStateAction<OpenPanelName>>;
   commentCountSetter: React.Dispatch<SetStateAction<number>>;
-
-  commentsDatasWithCommentDocPathSetter: React.Dispatch<
-    SetStateAction<CommentDataWithCommentDocPath[]>
-  >;
+  setCommentsDataFinalLayer: React.Dispatch<SetStateAction<CommendDataV2[]>>;
 };
 
 export default function CommentItem({
-  commentDataWithCommentDocId,
+  commentData,
   openPanelNameSetter,
   commentCountSetter,
-  commentsDatasWithCommentDocPathSetter,
+  setCommentsDataFinalLayer,
 }: Props) {
   const [commentSenderPhoto, setCommentSenderPhoto] = useState("");
   const [gettingCommentSenderPhoto, setGettingCommentSenderPhoto] =
@@ -54,13 +51,9 @@ export default function CommentItem({
   const getCommentSenderPhoto = async () => {
     setGettingCommentSenderPhoto(true);
 
-    const existsStatus = await getDocServer(
-      `users/${commentDataWithCommentDocId.commentSenderUsername}`
-    );
+    const existsStatus = await getDocServer(`users/${commentData.sender}`);
 
-    const docResult = await getDocServer(
-      `users/${commentDataWithCommentDocId.commentSenderUsername}`
-    );
+    const docResult = await getDocServer(`users/${commentData.sender}`);
 
     if (!docResult) return;
     if (existsStatus) {
@@ -69,26 +62,27 @@ export default function CommentItem({
     setGettingCommentSenderPhoto(false);
   };
 
-  const handleDeleteComment = async () => {
-    if (!currentUserState.isThereCurrentUser) return;
+  // const handleDeleteComment = async () => {
+  //   if (!currentUserState.isThereCurrentUser) return;
 
-    setCommentDeleteLoading(true);
-    const operationResult = await commentDelete(
-      commentDataWithCommentDocId.commentDocPath
-    );
+  //   setCommentDeleteLoading(true);
 
-    if (!operationResult) {
-      return setCommentDeleteLoading(false);
-    }
+  //   const operationResult = await commentDelete(
+  //     commentDataWithCommentDocId.commentDocPath
+  //   );
 
-    commentsDatasWithCommentDocPathSetter((prev) =>
-      prev.filter(
-        (a) => a.commentDocPath !== commentDataWithCommentDocId.commentDocPath
-      )
-    );
-    commentCountSetter((prev) => prev - 1);
-    setCommentDeleteLoading(false);
-  };
+  //   if (!operationResult) {
+  //     return setCommentDeleteLoading(false);
+  //   }
+
+  //   commentsDatasWithCommentDocPathSetter((prev) =>
+  //     prev.filter(
+  //       (a) => a.commentDocPath !== commentDataWithCommentDocId.commentDocPath
+  //     )
+  //   );
+  //   commentCountSetter((prev) => prev - 1);
+  //   setCommentDeleteLoading(false);
+  // };
 
   return (
     <Flex id="main-comment-area" position="relative" align="center">
@@ -101,9 +95,7 @@ export default function CommentItem({
           height="35px"
           cursor="pointer"
           onClick={() => {
-            router.push(
-              `/${commentDataWithCommentDocId.commentSenderUsername}`
-            );
+            router.push(`/${commentData.sender}`);
             openPanelNameSetter("main");
           }}
           fallback={
@@ -122,9 +114,7 @@ export default function CommentItem({
                 width="35px"
                 cursor="pointer"
                 onClick={() => {
-                  router.push(
-                    `/${commentDataWithCommentDocId.commentSenderUsername}`
-                  );
+                  router.push(`/${commentData.sender}`);
                   openPanelNameSetter("main");
                 }}
               />
@@ -139,26 +129,17 @@ export default function CommentItem({
               as="b"
               cursor="pointer"
               onClick={() => {
-                router.push(
-                  `/${commentDataWithCommentDocId.commentSenderUsername}`
-                );
+                router.push(`/${commentData.sender}`);
                 openPanelNameSetter("main");
               }}
             >
-              {commentDataWithCommentDocId.commentSenderUsername}
+              {commentData.sender}
             </Text>
             <Icon as={BsDot} color="white" fontSize="13px" />
             <Text as="i" fontSize="8pt" textColor="gray.300">
-              {moment(
-                new Date(commentDataWithCommentDocId.creationTime)
-              ).fromNow(true)}
+              {moment(new Date(commentData.ts)).fromNow(true)}
             </Text>
-            <Flex
-              hidden={
-                commentDataWithCommentDocId.commentSenderUsername !==
-                currentUserState.username
-              }
-            >
+            <Flex hidden={commentData.sender !== currentUserState.username}>
               <>
                 {commentDeletLoading ? (
                   <Flex>
@@ -171,14 +152,14 @@ export default function CommentItem({
                     fontSize="9pt"
                     color="red"
                     cursor="pointer"
-                    onClick={handleDeleteComment}
+                    // onClick={handleDeleteComment}
                   />
                 )}
               </>
             </Flex>
           </Flex>
           <Text fontSize="10pt" textColor="white" wordBreak="break-word" mr="2">
-            {commentDataWithCommentDocId.comment}
+            {commentData.message}
           </Text>
         </Flex>
       </Flex>

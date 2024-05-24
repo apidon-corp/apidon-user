@@ -1,4 +1,6 @@
+import { auth } from "@/firebase/clientApp";
 import useSendComment from "@/hooks/postHooks/useSendComment";
+import useGetFirebase from "@/hooks/readHooks/useGetFirebase";
 import {
   Flex,
   Icon,
@@ -17,16 +19,13 @@ import React, { useEffect, useRef, useState } from "react";
 import { AiOutlineClose, AiOutlineSend } from "react-icons/ai";
 import { CgProfile } from "react-icons/cg";
 import { useRecoilValue } from "recoil";
-import { currentUserStateAtom } from "../../atoms/currentUserAtom";
 import CommentItem from "../../Items/Post/CommentItem";
-import { CommentDataWithCommentDocPath, OpenPanelName } from "../../types/Post";
-import useGetFirebase from "@/hooks/readHooks/useGetFirebase";
+import { currentUserStateAtom } from "../../atoms/currentUserAtom";
+import { CommendDataV2, OpenPanelName } from "../../types/Post";
 
 type Props = {
-  commentsInfo: {
-    postCommentCount: number;
-    postDocPath: string;
-  };
+  commentDatas: CommendDataV2[];
+  postDocPath: string;
 
   openPanelNameValue: OpenPanelName;
   openPanelNameSetter: React.Dispatch<React.SetStateAction<OpenPanelName>>;
@@ -34,13 +33,15 @@ type Props = {
 };
 
 export default function PostComments({
-  commentsInfo,
+  commentDatas,
+  postDocPath,
   openPanelNameSetter,
   openPanelNameValue,
   commentCountSetter,
 }: Props) {
-  const [commentsDatasWithCommentDocPath, setCommentsDatasWithCommentDocPath] =
-    useState<CommentDataWithCommentDocPath[]>([]);
+  const [commentsDataFinalLayer, setCommentsDataFinalLayer] = useState<
+    CommendDataV2[]
+  >([]);
 
   const { sendComment } = useSendComment();
 
@@ -48,115 +49,36 @@ export default function PostComments({
 
   const currentUserState = useRecoilValue(currentUserStateAtom);
 
-  const [gettingComments, setGettingComments] = useState(true);
   const [commentSendLoading, setCommentSendLoading] = useState(false);
 
   const { getCollectionServer } = useGetFirebase();
 
   useEffect(() => {
-    if (openPanelNameValue === "comments") {
-      handleLoadComments();
-    }
-  }, [openPanelNameValue]);
-
-  const handleLoadComments = async () => {
-    setGettingComments(true);
-
-    // get comment docs
-
-    const postCommentsCollection = await getCollectionServer(
-      `${commentsInfo.postDocPath}/comments`
-    );
-    if (!postCommentsCollection) return;
-
-    const commentDatasWithCommentDocPathArray: CommentDataWithCommentDocPath[] =
-      [];
-
-    for (const doc of postCommentsCollection.docsArray) {
-      const subCommentCollectionPath = `${doc.ref.path}/comments`;
-
-      const subCommmenCollection = await getCollectionServer(
-        subCommentCollectionPath
-      );
-      if (!subCommmenCollection) continue;
-
-      for (const doc of subCommmenCollection.docsArray) {
-        const commentDataObject: CommentDataWithCommentDocPath = {
-          commentDocPath: doc.ref.path,
-          commentSenderUsername: doc.data.commentSenderUsername,
-          comment: doc.data.comment,
-          creationTime: doc.data.creationTime,
-        };
-        commentDatasWithCommentDocPathArray.push(commentDataObject);
-      }
-    }
-
-    commentDatasWithCommentDocPathArray.sort((a, b) => {
-      return a.creationTime - b.creationTime;
-    });
-
-    let finalCommentDatasWithCommentDocPathArray: CommentDataWithCommentDocPath[] =
-      commentDatasWithCommentDocPathArray;
-
-    // Don't need to control if this user commented
-    if (currentUserState.isThereCurrentUser) {
-      const currentUserCommentObjects =
-        finalCommentDatasWithCommentDocPathArray.filter(
-          (a) => a.commentSenderUsername === currentUserState.username
-        );
-
-      if (currentUserCommentObjects.length !== 0) {
-        const filtered = finalCommentDatasWithCommentDocPathArray.filter(
-          (a) => a.commentSenderUsername !== currentUserState.username
-        );
-
-        for (const a of currentUserCommentObjects) {
-          filtered.unshift(a);
-        }
-
-        finalCommentDatasWithCommentDocPathArray = filtered;
-      }
-    }
-
-    setCommentsDatasWithCommentDocPath(
-      finalCommentDatasWithCommentDocPathArray
-    );
-
-    setGettingComments(false);
-  };
+    setCommentsDataFinalLayer(commentDatas);
+  }, [commentDatas]);
 
   const handleSendComment = async () => {
-    if (!currentUserState.isThereCurrentUser) return;
-
     if (!commentInputRef.current) return;
 
     const currentComment = commentInputRef.current.value;
     if (currentComment.length === 0) return;
 
+    const currentUserAuthObject = auth.currentUser;
+    if (!currentUserAuthObject) return;
+
+    const displayName = currentUserAuthObject.displayName;
+    if (!displayName) return;
+
     setCommentSendLoading(true);
 
-    const newCommentDocPath = await sendComment(
-      commentsInfo.postDocPath,
-      currentComment
-    );
+    const createdCommentObject = await sendComment(postDocPath, currentComment);
+    if (!createdCommentObject) return setCommentSendLoading(false);
 
-    if (!newCommentDocPath) return setCommentSendLoading(false);
-
-    const newCommentData: CommentDataWithCommentDocPath = {
-      commentDocPath: newCommentDocPath,
-      comment: currentComment,
-      commentSenderUsername: currentUserState.username,
-      creationTime: Date.now(),
-    };
-
-    const prevCommentsDatasWithCommentDocPath = commentsDatasWithCommentDocPath;
-    prevCommentsDatasWithCommentDocPath.unshift(newCommentData);
-    setCommentsDatasWithCommentDocPath(prevCommentsDatasWithCommentDocPath);
-
+    setCommentsDataFinalLayer((prev) => [createdCommentObject, ...prev]);
     commentCountSetter((prev) => prev + 1);
 
     if (commentInputRef.current) commentInputRef.current.value = "";
-    setCommentSendLoading(false);
+    return setCommentSendLoading(false);
   };
 
   return (
@@ -203,16 +125,14 @@ export default function PostComments({
         </Flex>
 
         <ModalBody>
-          <Stack gap={3} hidden={gettingComments}>
-            {commentsDatasWithCommentDocPath.map((cdwcdi, i) => (
+          <Stack gap={3}>
+            {commentsDataFinalLayer.map((commentData, i) => (
               <CommentItem
-                key={JSON.stringify(cdwcdi)}
-                commentDataWithCommentDocId={cdwcdi}
+                key={`${commentData.sender}-${commentData.message}-${commentData.ts}`}
+                commentData={commentData}
                 openPanelNameSetter={openPanelNameSetter}
                 commentCountSetter={commentCountSetter}
-                commentsDatasWithCommentDocPathSetter={
-                  setCommentsDatasWithCommentDocPath
-                }
+                setCommentsDataFinalLayer={setCommentsDataFinalLayer}
               />
             ))}
           </Stack>
@@ -220,15 +140,10 @@ export default function PostComments({
           <Text
             fontSize="10pt"
             textColor="white"
-            hidden={
-              !(
-                !gettingComments && commentsDatasWithCommentDocPath.length === 0
-              )
-            }
+            hidden={commentsDataFinalLayer.length !== 0}
           >
             No comments yet.
           </Text>
-          <Spinner color="white" hidden={!gettingComments} />
         </ModalBody>
         <Flex
           id="comment-send-area"

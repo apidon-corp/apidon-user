@@ -41,7 +41,7 @@ export type PostServerDataV2 = {
   };
 
   creationTime: number;
-  id : string
+  id: string;
 };
 
 /**
@@ -147,13 +147,6 @@ export type LikeDataV2 = {
 
 export type CommentInteractionData = {
   postDocPath: string;
-  creationTime: number;
-};
-
-export type CommentDataWithCommentDocPath = {
-  commentDocPath: string;
-  commentSenderUsername: string;
-  comment: string;
   creationTime: number;
 };
 
