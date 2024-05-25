@@ -176,8 +176,6 @@ export default function Frenlet({ frenletData }: FrenletProps) {
 
       const frensUsernames = frensData.map((fren) => fren.username);
 
-      console.log(frensUsernames);
-
       if (
         frensUsernames.includes(frenletData.frenletSender) &&
         frensUsernames.includes(frenletData.frenletReceiver)

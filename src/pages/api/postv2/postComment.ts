@@ -1,6 +1,13 @@
 import getDisplayName from "@/apiUtils";
-import { CommendDataV2, CommentInteractionData } from "@/components/types/Post";
-import { ICurrentProviderData } from "@/components/types/User";
+import {
+  CommendDataV2,
+  CommentInteractionData,
+  PostServerDataV2,
+} from "@/components/types/Post";
+import {
+  ICurrentProviderData,
+  INotificationServerData,
+} from "@/components/types/User";
 import { fieldValue, firestore } from "@/firebase/adminApp";
 import { NextApiRequest, NextApiResponse } from "next";
 
@@ -85,6 +92,40 @@ async function updateInteractions(
     return true;
   } catch (error) {
     console.error("Error while updating interactions");
+    return false;
+  }
+}
+
+async function sendNotification(
+  username: string,
+  postDocPath: string,
+  ts: number
+) {
+  try {
+    const postDocSnapshot = await firestore.doc(postDocPath).get();
+    if (!postDocSnapshot.exists) return false;
+
+    const postDocData = postDocSnapshot.data() as PostServerDataV2;
+    if (!postDocData) return false;
+
+    const postSender = postDocData.senderUsername;
+    if (!postSender) return false;
+
+    if (username === postSender) return true;
+
+    const notificationObject: INotificationServerData = {
+      cause: "comment",
+      notificationTime: ts,
+      seen: false,
+      sender: username,
+    };
+
+    await firestore.collection(`/users/${postSender}/notifications`).add({
+      ...notificationObject,
+    });
+    return true;
+  } catch (error) {
+    console.error("Error while sending notification");
     return false;
   }
 }
@@ -184,11 +225,13 @@ export default async function handler(
     increaseCommentCountResult,
     updateInteractionsResult,
     providerData,
+    sendNotificationResult,
   ] = await Promise.all([
     changeCommentsArray(postDocPath, commendData),
     increaseCommentCount(postDocPath),
     updateInteractions(commentInteractionData, username),
     getProviderData(username),
+    sendNotification(username, postDocPath, commendData.ts),
   ]);
 
   if (

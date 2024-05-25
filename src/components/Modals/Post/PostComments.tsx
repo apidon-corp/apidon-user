@@ -1,6 +1,5 @@
 import { auth } from "@/firebase/clientApp";
 import useSendComment from "@/hooks/postHooks/useSendComment";
-import useGetFirebase from "@/hooks/readHooks/useGetFirebase";
 import {
   Flex,
   Icon,
@@ -50,8 +49,6 @@ export default function PostComments({
   const currentUserState = useRecoilValue(currentUserStateAtom);
 
   const [commentSendLoading, setCommentSendLoading] = useState(false);
-
-  const { getCollectionServer } = useGetFirebase();
 
   useEffect(() => {
     setCommentsDataFinalLayer(commentDatas);
@@ -129,6 +126,7 @@ export default function PostComments({
             {commentsDataFinalLayer.map((commentData, i) => (
               <CommentItem
                 key={`${commentData.sender}-${commentData.message}-${commentData.ts}`}
+                postDocPath={postDocPath}
                 commentData={commentData}
                 openPanelNameSetter={openPanelNameSetter}
                 commentCountSetter={commentCountSetter}

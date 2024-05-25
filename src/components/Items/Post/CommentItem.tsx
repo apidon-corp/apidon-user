@@ -19,6 +19,7 @@ import { CommendDataV2, OpenPanelName } from "../../types/Post";
 
 type Props = {
   commentData: CommendDataV2;
+  postDocPath: string;
   openPanelNameSetter: React.Dispatch<SetStateAction<OpenPanelName>>;
   commentCountSetter: React.Dispatch<SetStateAction<number>>;
   setCommentsDataFinalLayer: React.Dispatch<SetStateAction<CommendDataV2[]>>;
@@ -26,6 +27,7 @@ type Props = {
 
 export default function CommentItem({
   commentData,
+  postDocPath,
   openPanelNameSetter,
   commentCountSetter,
   setCommentsDataFinalLayer,
@@ -62,27 +64,30 @@ export default function CommentItem({
     setGettingCommentSenderPhoto(false);
   };
 
-  // const handleDeleteComment = async () => {
-  //   if (!currentUserState.isThereCurrentUser) return;
+  const handleDeleteComment = async () => {
+    if (!currentUserState.isThereCurrentUser) return;
 
-  //   setCommentDeleteLoading(true);
+    setCommentDeleteLoading(true);
 
-  //   const operationResult = await commentDelete(
-  //     commentDataWithCommentDocId.commentDocPath
-  //   );
+    const operationResult = await commentDelete(postDocPath, commentData);
 
-  //   if (!operationResult) {
-  //     return setCommentDeleteLoading(false);
-  //   }
+    if (!operationResult) {
+      return setCommentDeleteLoading(false);
+    }
 
-  //   commentsDatasWithCommentDocPathSetter((prev) =>
-  //     prev.filter(
-  //       (a) => a.commentDocPath !== commentDataWithCommentDocId.commentDocPath
-  //     )
-  //   );
-  //   commentCountSetter((prev) => prev - 1);
-  //   setCommentDeleteLoading(false);
-  // };
+    setCommentsDataFinalLayer((prev) =>
+      prev.filter(
+        (comment) =>
+          !(
+            comment.message === commentData.message &&
+            comment.sender === commentData.sender &&
+            comment.ts === commentData.ts
+          )
+      )
+    );
+    commentCountSetter((prev) => prev - 1);
+    setCommentDeleteLoading(false);
+  };
 
   return (
     <Flex id="main-comment-area" position="relative" align="center">
@@ -152,7 +157,7 @@ export default function CommentItem({
                     fontSize="9pt"
                     color="red"
                     cursor="pointer"
-                    // onClick={handleDeleteComment}
+                    onClick={handleDeleteComment}
                   />
                 )}
               </>

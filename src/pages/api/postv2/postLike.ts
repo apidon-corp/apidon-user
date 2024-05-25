@@ -1,5 +1,11 @@
 import getDisplayName from "@/apiUtils";
+import { PostLikeActionAPIBody } from "@/components/types/API";
 import { LikeDataV2, PostServerDataV2 } from "@/components/types/Post";
+import {
+  ICurrentProviderData,
+  INotificationServerData,
+  LikedPostArrayObject,
+} from "@/components/types/User";
 import { fieldValue, firestore } from "@/firebase/adminApp";
 import AsyncLock from "async-lock";
 import { NextApiRequest, NextApiResponse } from "next";
@@ -50,6 +56,7 @@ async function getLikeStatus(username: string, postDocPath: string) {
     return {
       alreadyLiked: likedUsers.includes(username),
       likeObject: postDocData.likes.find((like) => like.sender === username),
+      postDocData: postDocData,
     };
   } catch (error) {
     console.error("Error while getting like status");
@@ -92,22 +99,196 @@ async function changeLikesArray(
   }
 }
 
+async function updatePostInteractions(
+  username: string,
+  likeObject: LikeDataV2,
+  postDocPath: string,
+  action: "like" | "delike"
+) {
+  const likeDataForInteraction: LikedPostArrayObject = {
+    postDocPath: postDocPath,
+    timestamp: likeObject.ts,
+  };
+
+  try {
+    const postInteractionsDoc = firestore.doc(
+      `users/${username}/personal/postInteractions`
+    );
+
+    await postInteractionsDoc.update({
+      likedPostsArray:
+        action === "like"
+          ? fieldValue.arrayUnion(likeDataForInteraction)
+          : fieldValue.arrayRemove(likeDataForInteraction),
+    });
+
+    return true;
+  } catch (error) {
+    console.error("Error while updating post interactions");
+    return false;
+  }
+}
+
+async function updateNotification(
+  username: string,
+  postSender: string,
+  ts: number,
+  action: "like" | "delike"
+) {
+  const notificationData: INotificationServerData = {
+    cause: "like",
+    notificationTime: ts,
+    seen: false,
+    sender: username,
+  };
+
+  try {
+    if (action === "like") {
+      await firestore
+        .collection(`/users/${postSender}/notifications`)
+        .add({ ...notificationData });
+
+      return true;
+    }
+
+    if (action === "delike") {
+      const likeNotificationDocQuery = await firestore
+        .collection(`/users/${postSender}/notifications`)
+        .where("cause", "==", "like")
+        .where("sender", "==", username)
+        .where("notificationTime", "==", ts)
+        .get();
+
+      if (likeNotificationDocQuery.empty) {
+        console.error("Like notification doc not found");
+        return false;
+      }
+
+      const likeNotificationDoc = likeNotificationDocQuery.docs[0];
+      await likeNotificationDoc.ref.delete();
+
+      return true;
+    }
+
+    return true;
+  } catch (error) {}
+}
+
+async function getProviderData(username: string) {
+  try {
+    const providerDocSnaphot = await firestore
+      .doc(`/users/${username}/provider/currentProvider`)
+      .get();
+
+    if (!providerDocSnaphot.exists) {
+      console.error("Provider doc does not exist");
+      return false;
+    }
+
+    const providerDocData = providerDocSnaphot.data() as ICurrentProviderData;
+    if (providerDocData === undefined) {
+      console.error("Provider doc data is undefined");
+      return false;
+    }
+
+    return {
+      startTime: providerDocData.startTime,
+      providerId: providerDocData.name,
+    };
+  } catch (error) {
+    console.error("Error while getting provider data");
+    return false;
+  }
+}
+
+async function sendLikeToProvider(
+  username: string,
+  providerId: string,
+  startTime: number,
+  postDocPath: string
+) {
+  const apiKey = process.env.API_KEY_BETWEEN_SERVICES;
+  if (!apiKey) {
+    console.error("API key is undefined");
+    return false;
+  }
+
+  const likeActionBody: PostLikeActionAPIBody = {
+    username: username,
+    providerId: providerId,
+    startTime: startTime,
+    postDocPath: postDocPath,
+  };
+
+  try {
+    const response = await fetch(
+      `${process.env.API_ENDPOINT_TO_APIDON_PROVIDER_SERVER}/client/classification/likeAction`,
+      {
+        method: "POST",
+        headers: {
+          authorization: apiKey,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ ...likeActionBody }),
+      }
+    );
+
+    if (!response.ok) {
+      console.error(
+        `commentAction from provider API side's response not okay: ${await response.text()} `
+      );
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error("Error while sending comment to provider");
+    return false;
+  }
+}
+
 async function like(
   postDocPath: string,
   alreadyLiked: boolean,
-  username: string
+  username: string,
+  postSender: string
 ) {
   if (alreadyLiked) return false;
 
-  const [changeLikeCountResult, changeLikesArrayResult] = await Promise.all([
+  const likeObject: LikeDataV2 = {
+    sender: username,
+    ts: Date.now(),
+  };
+
+  const [
+    changeLikeCountResult,
+    changeLikesArrayResult,
+    updatePostInteractionsResult,
+    updateNotificationResult,
+    getProviderDataResult,
+  ] = await Promise.all([
     changeLikeCount(postDocPath, "like"),
-    changeLikesArray(postDocPath, "like", {
-      sender: username,
-      ts: Date.now(),
-    }),
+    changeLikesArray(postDocPath, "like", likeObject),
+    updatePostInteractions(username, likeObject, postDocPath, "like"),
+    updateNotification(username, postSender, likeObject.ts, "like"),
+    getProviderData(username),
   ]);
 
-  if (!changeLikeCountResult || !changeLikesArrayResult) return false;
+  if (
+    !changeLikeCountResult ||
+    !changeLikesArrayResult ||
+    !updatePostInteractionsResult ||
+    !updateNotificationResult ||
+    !getProviderDataResult
+  )
+    return false;
+
+  sendLikeToProvider(
+    username,
+    getProviderDataResult.providerId,
+    getProviderDataResult.startTime,
+    postDocPath
+  );
 
   return true;
 }
@@ -115,17 +296,36 @@ async function like(
 async function delike(
   postDocPath: string,
   alreadyLiked: boolean,
-  likeObject: LikeDataV2 | undefined
+  likeObject: LikeDataV2 | undefined,
+  postSender: string
 ) {
   if (!alreadyLiked) return false;
   if (!likeObject) return false;
 
-  const [changeLikeCountResult, changeLikesArrayResult] = await Promise.all([
+  const [
+    changeLikeCountResult,
+    changeLikesArrayResult,
+    updatePostInteractionsResult,
+    updateNotificationResult,
+  ] = await Promise.all([
     changeLikeCount(postDocPath, "delike"),
     changeLikesArray(postDocPath, "delike", likeObject),
+    updatePostInteractions(
+      likeObject.sender,
+      likeObject,
+      postDocPath,
+      "delike"
+    ),
+    updateNotification(likeObject.sender, postSender, likeObject.ts, "delike"),
   ]);
 
-  if (!changeLikeCountResult || !changeLikesArrayResult) return false;
+  if (
+    !changeLikeCountResult ||
+    !changeLikesArrayResult ||
+    !updatePostInteractionsResult ||
+    !updateNotificationResult
+  )
+    return false;
 
   return true;
 }
@@ -156,7 +356,8 @@ export default async function handler(
         const likeResult = await like(
           postDocPath,
           likeStatus.alreadyLiked,
-          username
+          username,
+          likeStatus.postDocData.senderUsername
         );
         if (!likeResult) return res.status(500).send("Internal Server Error");
         return res.status(200).send("OK");
@@ -166,7 +367,8 @@ export default async function handler(
         const delikeResult = await delike(
           postDocPath,
           likeStatus.alreadyLiked,
-          likeStatus.likeObject
+          likeStatus.likeObject,
+          likeStatus.postDocData.senderUsername
         );
         if (!delikeResult) return res.status(500).send("Internal Server Error");
         return res.status(200).send("OK");

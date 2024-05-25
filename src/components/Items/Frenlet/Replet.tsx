@@ -211,9 +211,9 @@ export default function Replet({
               >
                 <AlertDialogOverlay />
                 <AlertDialogContent>
-                  <AlertDialogHeader>Delete Frenlet?</AlertDialogHeader>
+                  <AlertDialogHeader>Delete Replet?</AlertDialogHeader>
                   <AlertDialogBody>
-                    Are you sure you want to delete your replet?
+                    Are you sure you want to delete this replet?
                   </AlertDialogBody>
                   <AlertDialogFooter>
                     <Button

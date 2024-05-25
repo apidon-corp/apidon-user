@@ -76,16 +76,57 @@ async function deleteFrenletForSender(frenletDocPathForSender: string) {
   }
 }
 
-async function deleteFrenlet(frenletDocData: FrenletServerData) {
-  const deleteFrenletForReceiverResult = await deleteFrenletForReceiver(
-    `/users/${frenletDocData.frenletReceiver}/frenlets/frenlets/incoming/${frenletDocData.frenletDocId}`
-  );
-  if (!deleteFrenletForReceiverResult) return false;
+async function deleteNotification(
+  frenletReceiver: string,
+  frenletSender: string,
+  ts: number
+) {
+  try {
+    const notificationDocQuery = await firestore
+      .collection(`/users/${frenletReceiver}/notifications`)
+      .where("cause", "==", "frenlet")
+      .where("notificationTime", "==", ts)
+      .where("sender", "==", frenletSender)
+      .get();
 
-  const deleteFrenletForSenderResult = await deleteFrenletForSender(
-    `/users/${frenletDocData.frenletSender}/frenlets/frenlets/outgoing/${frenletDocData.frenletDocId}`
-  );
-  if (!deleteFrenletForSenderResult) return false;
+    if (notificationDocQuery.empty) {
+      console.error("Notification doc not found");
+      return false;
+    }
+
+    await notificationDocQuery.docs[0].ref.delete();
+    return true;
+  } catch (error) {
+    console.error("Error while deleting notification: \n", error);
+    return false;
+  }
+}
+
+async function deleteFrenlet(frenletDocData: FrenletServerData) {
+  const [
+    deleteFrenletForReceiverResult,
+    deleteFrenletForSenderResult,
+    deleteNotificationResult,
+  ] = await Promise.all([
+    deleteFrenletForReceiver(
+      `/users/${frenletDocData.frenletReceiver}/frenlets/frenlets/incoming/${frenletDocData.frenletDocId}`
+    ),
+    deleteFrenletForSender(
+      `/users/${frenletDocData.frenletSender}/frenlets/frenlets/outgoing/${frenletDocData.frenletDocId}`
+    ),
+    deleteNotification(
+      frenletDocData.frenletReceiver,
+      frenletDocData.frenletSender,
+      frenletDocData.ts
+    ),
+  ]);
+
+  if (
+    !deleteFrenletForReceiverResult ||
+    !deleteFrenletForSenderResult ||
+    !deleteNotificationResult
+  )
+    return false;
 
   return true;
 }

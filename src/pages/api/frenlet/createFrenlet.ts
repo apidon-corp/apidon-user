@@ -83,10 +83,9 @@ async function createFrenlet(
   username: string,
   fren: string,
   message: string,
-  tag: string
+  tag: string,
+  ts: number
 ) {
-  const ts = Date.now();
-
   const frenletDocData: FrenletServerData = {
     commentCount: 0,
     comments: [],
@@ -120,10 +119,10 @@ async function createFrenlet(
  * @param fren
  * @returns Path of notification doc.
  */
-async function sendNotification(username: string, fren: string) {
+async function sendNotification(username: string, fren: string, ts: number) {
   const notificationData: INotificationServerData = {
     cause: "frenlet",
-    notificationTime: Date.now(),
+    notificationTime: ts,
     seen: false,
     sender: username,
   };
@@ -207,10 +206,12 @@ export default async function handler(
   const frenStatus = await checkFrenStatus(fren, username);
   if (!frenStatus) return res.status(400).send("Bad Request");
 
+  const ts = Date.now();
+
   const [createFrenletResult, sendNotificationResult, updateFrenScoreResult] =
     await Promise.all([
-      createFrenlet(username, fren, message, tag),
-      sendNotification(username, fren),
+      createFrenlet(username, fren, message, tag, ts),
+      sendNotification(username, fren, ts),
       updateFrenScore(fren),
     ]);
 
