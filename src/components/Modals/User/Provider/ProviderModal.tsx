@@ -3,9 +3,11 @@ import ProviderScoreStarItem from "@/components/Items/Provider/ProviderScoreStar
 import ProviderUserStarRateItem from "@/components/Items/Provider/ProviderUserStarRateItem";
 import { currentUserStateAtom } from "@/components/atoms/currentUserAtom";
 import { providerModalStateAtom } from "@/components/atoms/providerModalAtom";
+import { PostServerDataV2 } from "@/components/types/Post";
 import {
   ActiveProviderInformation,
   IProviderShowcaseItem,
+  PostClassifyBody,
   activeProviderInformationPlaceholder,
 } from "@/components/types/User";
 import { auth } from "@/firebase/clientApp";
@@ -96,7 +98,7 @@ export default function ProviderModal() {
     let activeProviderInformation: ActiveProviderInformation;
 
     try {
-      const idToken = await currentUserAuthObject.getIdToken();
+      const idToken = await currentUserAuthObject.getIdToken(true);
 
       const response = await fetch("/api/provider/getProviderInformation", {
         method: "POST",
@@ -186,7 +188,7 @@ export default function ProviderModal() {
     }
 
     try {
-      const idToken = await currentUserAuthObject.getIdToken();
+      const idToken = await currentUserAuthObject.getIdToken(true);
 
       const response = await fetch("/api/provider/chooseProvider", {
         method: "POST",
@@ -261,7 +263,7 @@ export default function ProviderModal() {
         return setModalViewState("activeProvider");
       }
 
-      const idToken = await currentUserAuthObject.getIdToken();
+      const idToken = await currentUserAuthObject.getIdToken(true);
 
       const response = await fetch(
         "/api/provider/getAvaliableProviderOptionsForChange",
@@ -307,7 +309,7 @@ export default function ProviderModal() {
         return setModalViewState("changeProvider");
       }
 
-      const idToken = await currentUserAuthObject.getIdToken();
+      const idToken = await currentUserAuthObject.getIdToken(true);
 
       const response = await fetch("/api/provider/changeProvider", {
         method: "POST",
@@ -348,7 +350,7 @@ export default function ProviderModal() {
         return setModalViewState("initialLoading");
       }
 
-      const idtoken = await currentUserAuthObject.getIdToken();
+      const idtoken = await currentUserAuthObject.getIdToken(true);
 
       const response = await fetch("api/provider/skipWithdrawNow", {
         headers: {

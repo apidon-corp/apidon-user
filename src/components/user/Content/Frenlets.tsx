@@ -64,7 +64,7 @@ export default function Frenlets({
     if (!displayName) return setCanSendFrenlet(false);
 
     try {
-      const idToken = await currentUserAuthObject.getIdToken();
+      const idToken = await currentUserAuthObject.getIdToken(true);
       const response = await fetch("/api/frenlet/getFrenOptions", {
         method: "POST",
         headers: {

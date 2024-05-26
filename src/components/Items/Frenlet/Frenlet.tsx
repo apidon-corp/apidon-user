@@ -88,7 +88,7 @@ export default function Frenlet({ frenletData }: FrenletProps) {
     }
 
     try {
-      const idToken = await currentUserAuthObject.getIdToken();
+      const idToken = await currentUserAuthObject.getIdToken(true);
 
       const response = await fetch("/api/frenlet/getPersonData", {
         method: "POST",
@@ -148,7 +148,7 @@ export default function Frenlet({ frenletData }: FrenletProps) {
       return setCanReply(true);
 
     try {
-      const idToken = await authObject.getIdToken();
+      const idToken = await authObject.getIdToken(true);
 
       const response = await fetch("/api/frenlet/getFrenOptions", {
         method: "POST",
@@ -206,7 +206,7 @@ export default function Frenlet({ frenletData }: FrenletProps) {
     setSendingReply(true);
 
     try {
-      const idToken = await authObject.getIdToken();
+      const idToken = await authObject.getIdToken(true);
 
       const response = await fetch("/api/frenlet/sendReply", {
         method: "POST",
@@ -259,7 +259,7 @@ export default function Frenlet({ frenletData }: FrenletProps) {
     clearInterval(intervalRef.current);
 
     try {
-      const idToken = await currentUserAuthObject.getIdToken();
+      const idToken = await currentUserAuthObject.getIdToken(true);
 
       const response = await fetch("/api/frenlet/getRealtimeUpdates", {
         method: "POST",
@@ -323,7 +323,7 @@ export default function Frenlet({ frenletData }: FrenletProps) {
     setFrenletDeleteLoading(true);
 
     try {
-      const idToken = await currentUserAuthObject.getIdToken();
+      const idToken = await currentUserAuthObject.getIdToken(true);
 
       const response = await fetch("/api/frenlet/deleteFrenlet", {
         method: "POST",

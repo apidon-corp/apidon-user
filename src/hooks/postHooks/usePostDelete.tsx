@@ -25,7 +25,7 @@ export default function usePostDelete() {
 
     let idToken = "";
     try {
-      idToken = (await auth.currentUser?.getIdToken()) as string;
+      idToken = (await auth.currentUser?.getIdToken(true)) as string;
     } catch (error) {
       console.error("Error while post deleting. Couln't be got idToken", error);
       setPostDeletionLoading(false);
@@ -57,7 +57,8 @@ export default function usePostDelete() {
     }
     if (
       router.asPath.includes(currentUserState.username) &&
-      postsAtView.find((a) => a.postDocId === postDocId)?.nftStatus.convertedToNft
+      postsAtView.find((a) => a.postDocId === postDocId)?.nftStatus
+        .convertedToNft
     ) {
       setHeaderAtView((prev) => ({ ...prev, nftCount: prev.nftCount - 1 }));
     }

@@ -48,7 +48,7 @@ export default function CommentedItem({
 
     setLoading(true);
 
-    const operationResult = await commentDelete(commentDocPathOnPost);
+    const operationResult = true; //await commentDelete()
 
     if (!operationResult) {
       console.log("Comment Delete operation is failed.");

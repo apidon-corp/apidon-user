@@ -20,7 +20,7 @@ export default function useCommentDelete() {
     setCommentDeletionLoading(true);
 
     try {
-      const idToken = await currentUserAuthObject.getIdToken();
+      const idToken = await currentUserAuthObject.getIdToken(true);
 
       const response = await fetch("/api/postv2/postCommentDelete", {
         method: "POST",

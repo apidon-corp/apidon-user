@@ -76,7 +76,7 @@ export default function Layout({ children }: Props) {
       setLoading(true);
       if (user) {
         handleAfterSuccessfullAuth(user);
-        setCookie("firebase-auth.session-token", await user.getIdToken());
+        setCookie("firebase-auth.session-token", await user.getIdToken(true));
       } else {
         setLoading(false);
         // User is signed out, handle the signed-out state

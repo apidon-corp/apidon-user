@@ -13,7 +13,7 @@ export default function useSendComment() {
     if (!currentUserAuthObject) return false;
 
     try {
-      const idToken = await currentUserAuthObject.getIdToken();
+      const idToken = await currentUserAuthObject.getIdToken(true);
 
       const response = await fetch("/api/postv2/postComment", {
         method: "POST",

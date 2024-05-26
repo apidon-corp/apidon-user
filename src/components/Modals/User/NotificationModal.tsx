@@ -94,7 +94,7 @@ export default function NotificationModal() {
 
       let idToken = "";
       try {
-        idToken = (await auth.currentUser?.getIdToken()) as string;
+        idToken = (await auth.currentUser?.getIdToken(true)) as string;
       } catch (error) {
         return console.error("Error while getting 'idToken'", error);
       }

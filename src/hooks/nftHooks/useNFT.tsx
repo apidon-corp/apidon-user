@@ -40,7 +40,7 @@ export default function useNFT() {
 
     let idToken = "";
     try {
-      idToken = (await auth.currentUser?.getIdToken()) as string;
+      idToken = (await auth.currentUser?.getIdToken(true)) as string;
     } catch (error) {
       setCreatingNFTLoading(false);
       console.error("Error while post deleting. Couln't be got idToken", error);
@@ -100,7 +100,7 @@ export default function useNFT() {
 
     let idToken = "";
     try {
-      idToken = (await auth.currentUser?.getIdToken()) as string;
+      idToken = (await auth.currentUser?.getIdToken(true)) as string;
     } catch (error) {
       setNftRefreshLoading(false);
       console.error("Error while post deleting. Couln't be got idToken", error);
@@ -150,7 +150,7 @@ export default function useNFT() {
   ): Promise<boolean> => {
     let idToken = "";
     try {
-      idToken = (await auth.currentUser?.getIdToken()) as string;
+      idToken = (await auth.currentUser?.getIdToken(true)) as string;
     } catch (error) {
       console.error(
         "Error while transferring NFT. Couln't be got idToken",
@@ -195,7 +195,7 @@ export default function useNFT() {
 
     let idToken = "";
     try {
-      idToken = (await auth.currentUser?.getIdToken()) as string;
+      idToken = (await auth.currentUser?.getIdToken(true)) as string;
     } catch (error) {
       console.error(
         "Error while listing NFT. Couln't be got idToken. \n",
@@ -233,7 +233,7 @@ export default function useNFT() {
 
     let idToken = "";
     try {
-      idToken = (await auth.currentUser?.getIdToken()) as string;
+      idToken = (await auth.currentUser?.getIdToken(true)) as string;
     } catch (error) {
       console.error(
         "Error while listing NFT. Couln't be got idToken. \n",
@@ -264,7 +264,7 @@ export default function useNFT() {
       return false;
     }
 
-    return true
+    return true;
   };
 
   return {
@@ -274,6 +274,6 @@ export default function useNFT() {
     refreshNFT,
     transferNft,
     listNft,
-    buyNft
+    buyNft,
   };
 }

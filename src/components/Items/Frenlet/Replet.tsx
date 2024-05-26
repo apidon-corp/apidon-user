@@ -66,7 +66,7 @@ export default function Replet({
     if (currentUserAuthObject === null) return;
 
     try {
-      const idToken = await currentUserAuthObject.getIdToken();
+      const idToken = await currentUserAuthObject.getIdToken(true);
       const response = await fetch("/api/frenlet/getPersonData", {
         method: "POST",
         headers: {
@@ -111,7 +111,7 @@ export default function Replet({
     };
 
     try {
-      const idToken = await currentUserAuthObject.getIdToken();
+      const idToken = await currentUserAuthObject.getIdToken(true);
 
       const response = await fetch("/api/frenlet/deleteReplet", {
         method: "POST",

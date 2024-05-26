@@ -255,7 +255,7 @@ export default function SignupModal() {
 
     // Verification Code Sending
     try {
-      const appCheckTokenResult = await getToken(appCheck);
+      const appCheckTokenResult = await getToken(appCheck, true);
       const token = appCheckTokenResult.token;
 
       const response = await fetch(

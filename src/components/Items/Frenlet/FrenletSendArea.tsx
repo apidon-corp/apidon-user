@@ -48,7 +48,7 @@ export default function FrenletSendArea({
     setLoading(true);
 
     try {
-      const idToken = await currentUserAuthObject.getIdToken();
+      const idToken = await currentUserAuthObject.getIdToken(true);
       const response = await fetch("/api/frenlet/createFrenlet", {
         method: "POST",
         headers: {

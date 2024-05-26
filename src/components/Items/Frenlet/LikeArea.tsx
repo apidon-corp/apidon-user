@@ -61,7 +61,7 @@ export default function LikeArea({
     setLikedByThisUser(true);
 
     try {
-      const idToken = await currentUserAuthObject.getIdToken();
+      const idToken = await currentUserAuthObject.getIdToken(true);
 
       const response = await fetch("api/frenlet/sendLike", {
         method: "POST",
@@ -100,7 +100,7 @@ export default function LikeArea({
     setLikedByThisUser(false);
 
     try {
-      const idToken = await currentUserAuthObject.getIdToken();
+      const idToken = await currentUserAuthObject.getIdToken(true);
 
       const response = await fetch("api/frenlet/sendLike", {
         method: "POST",
