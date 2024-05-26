@@ -150,7 +150,7 @@ async function sendPostForClassification(
   };
 
   try {
-    await fetch(
+    const response = await fetch(
       `${process.env.API_ENDPOINT_TO_APIDON_PROVIDER_SERVER}/client/classification/postUploadAction`,
       {
         method: "POST",
@@ -161,6 +161,13 @@ async function sendPostForClassification(
         body: JSON.stringify({ ...bodyContent }),
       }
     );
+    if (!response.ok) {
+      console.error(
+        "Response from postUploadAction(providerside) API is not okay: \n",
+        await response.text()
+      );
+      return false;
+    }
   } catch (error) {
     console.error("Error while sending post for classification");
     return false;
