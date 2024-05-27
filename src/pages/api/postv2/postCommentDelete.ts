@@ -127,6 +127,9 @@ async function deleteNotification(
   postSender: string,
   commentObject: CommentDataV2
 ) {
+  // There will be no notification doc to delete so....
+  if (postSender === commentObject.sender) return true;
+
   try {
     const notificationDocQuery = await firestore
       .collection(`/users/${postSender}/notifications`)
