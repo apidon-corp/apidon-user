@@ -225,7 +225,7 @@ export default async function handler(
   )
     return res.status(500).send("Internal Server Error");
 
-  sendPostForClassification(
+  await sendPostForClassification(
     username,
     postServerData.image,
     `/users/${username}/posts/${postServerData.id}`,
