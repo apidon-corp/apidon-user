@@ -233,6 +233,7 @@ async function sendLikeToProvider(
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ ...likeActionBody }),
+        keepalive: true,
       }
     );
 

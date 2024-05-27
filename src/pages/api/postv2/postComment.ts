@@ -184,6 +184,7 @@ async function sendCommentToProvider(
           startTime: startTime,
           postDocPath: postDocPath,
         }),
+        keepalive: true,
       }
     );
 
