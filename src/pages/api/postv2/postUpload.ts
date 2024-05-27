@@ -134,7 +134,7 @@ async function getProviderData(username: string) {
   }
 }
 
-function sendPostForClassification(
+async function sendPostForClassification(
   username: string,
   imageURL: string,
   postDocPath: string,
@@ -149,8 +149,10 @@ function sendPostForClassification(
     startTime: providerStartTime,
   };
 
+  console.log("Post is sending for classification");
+
   try {
-    fetch(
+    const response = await fetch(
       `${process.env.API_ENDPOINT_TO_APIDON_PROVIDER_SERVER}/client/classification/postUploadAction`,
       {
         method: "POST",
@@ -161,6 +163,14 @@ function sendPostForClassification(
         body: JSON.stringify({ ...bodyContent }),
       }
     );
+    if (!response.ok) {
+      console.error(
+        "Response from postUploadAction(providerside) API is not okay: \n",
+        await response.text()
+      );
+      return false;
+    }
+
     return true;
   } catch (error) {
     console.error("Error while sending post for classification: \n", error);
