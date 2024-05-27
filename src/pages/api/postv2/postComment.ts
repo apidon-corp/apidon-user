@@ -201,6 +201,10 @@ async function sendCommentToProvider(
   }
 }
 
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
@@ -238,17 +242,20 @@ export default async function handler(
     !changeCommentsArrayResult ||
     !increaseCommentCountResult ||
     !updateInteractionsResult ||
-    !providerData
+    !providerData ||
+    !sendNotificationResult
   ) {
     return res.status(500).send("Internal Server Error");
   }
 
-  await sendCommentToProvider(
+  sendCommentToProvider(
     username,
     providerData.providerId,
     providerData.startTime,
     postDocPath
   );
+
+  await delay(500);
 
   return res.status(200).json({
     commentData: commendData,

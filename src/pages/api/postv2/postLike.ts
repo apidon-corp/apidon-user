@@ -286,12 +286,14 @@ async function like(
   )
     return false;
 
-  await sendLikeToProvider(
+  sendLikeToProvider(
     username,
     getProviderDataResult.providerId,
     getProviderDataResult.startTime,
     postDocPath
   );
+
+  await delay(500);
 
   return true;
 }
@@ -331,6 +333,10 @@ async function delike(
     return false;
 
   return true;
+}
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 const lock = new AsyncLock();
