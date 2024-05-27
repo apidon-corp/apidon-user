@@ -227,13 +227,17 @@ export default async function handler(
   )
     return res.status(500).send("Internal Server Error");
 
-  sendPostForClassification(
-    username,
-    postServerData.image,
-    `/users/${username}/posts/${postServerData.id}`,
-    currentProviderData.providerId,
-    currentProviderData.startTime
-  );
+  setTimeout(() => {
+    sendPostForClassification(
+      username,
+      postServerData.image,
+      `/users/${username}/posts/${postServerData.id}`,
+      currentProviderData.providerId,
+      currentProviderData.startTime
+    ).catch((error) => {
+      console.error("Error calling sendPostForClassification: ", error);
+    });
+  }, 1);
 
   return res.status(200).json({
     newPostData: postServerData,
