@@ -93,8 +93,6 @@ export default function Home() {
       const result = await response.json();
       const postItemDatas = result.postItemDatas as PostItemDataV2[];
 
-      console.log(postItemDatas.map((p) => p.postDocId));
-
       setPostDatasInServer(postItemDatas);
       setPostStatus({ loading: false });
 
