@@ -503,7 +503,7 @@ export default function Frenlet({ frenletData }: FrenletProps) {
             gap="0.3em"
           >
             <Text color="white" fontSize="15pt" fontWeight="700">
-              "{frenletData.message}"
+              &quot;{frenletData.message}&quot;
             </Text>
             <Text color="gray.500" fontSize="8pt" fontWeight="400">
               {moment(new Date(frenletData.ts)).fromNow()}
