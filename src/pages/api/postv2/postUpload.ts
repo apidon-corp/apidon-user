@@ -149,8 +149,6 @@ async function sendPostForClassification(
     startTime: providerStartTime,
   };
 
-  console.log("Post is sending for classification");
-
   try {
     const response = await fetch(
       `${process.env.API_ENDPOINT_TO_APIDON_PROVIDER_SERVER}/client/classification/postUploadAction`,
@@ -227,17 +225,13 @@ export default async function handler(
   )
     return res.status(500).send("Internal Server Error");
 
-  setTimeout(() => {
-    sendPostForClassification(
-      username,
-      postServerData.image,
-      `/users/${username}/posts/${postServerData.id}`,
-      currentProviderData.providerId,
-      currentProviderData.startTime
-    ).catch((error) => {
-      console.error("Error calling sendPostForClassification: ", error);
-    });
-  }, 1);
+  await sendPostForClassification(
+    username,
+    postServerData.image,
+    `/users/${username}/posts/${postServerData.id}`,
+    currentProviderData.providerId,
+    currentProviderData.startTime
+  );
 
   return res.status(200).json({
     newPostData: postServerData,

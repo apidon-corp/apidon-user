@@ -243,7 +243,7 @@ export default async function handler(
     return res.status(500).send("Internal Server Error");
   }
 
-  sendCommentToProvider(
+  await sendCommentToProvider(
     username,
     providerData.providerId,
     providerData.startTime,

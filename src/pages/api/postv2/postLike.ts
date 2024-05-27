@@ -286,7 +286,7 @@ async function like(
   )
     return false;
 
-  sendLikeToProvider(
+  await sendLikeToProvider(
     username,
     getProviderDataResult.providerId,
     getProviderDataResult.startTime,
