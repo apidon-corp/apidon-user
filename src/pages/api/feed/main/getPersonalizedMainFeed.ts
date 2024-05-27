@@ -217,6 +217,8 @@ export default async function handler(
   if (!getPostPredictionsFromProviderResult)
     return res.status(500).send("Internal Server Error");
 
+  console.log(getPostPredictionsFromProviderResult.postDocPathArray);
+
   const createAllPostItemDatasResult = await createAllPostItemDatas(
     getPostPredictionsFromProviderResult.postDocPathArray,
     username,
@@ -224,6 +226,12 @@ export default async function handler(
   );
   if (!createAllPostItemDatasResult)
     return res.status(500).send("Internal Server Error");
+
+  console.log("-------------------------------");
+
+  console.log(
+    createAllPostItemDatasResult.postItemDatas.map((p) => p.postDocId)
+  );
 
   return res.status(200).json({
     postItemDatas: createAllPostItemDatasResult.postItemDatas,
