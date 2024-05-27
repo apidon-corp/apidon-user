@@ -33,7 +33,7 @@ export type PostServerDataV2 = {
   likes: LikeDataV2[];
 
   commentCount: number;
-  comments: CommendDataV2[];
+  comments: CommentDataV2[];
 
   nftStatus: {
     convertedToNft: boolean;
@@ -81,7 +81,7 @@ export type PostItemDataV2 = {
   currentUserLikedThisPost: boolean;
 
   commentCount: number;
-  comments: CommendDataV2[];
+  comments: CommentDataV2[];
 
   postDocId: string;
 
@@ -134,7 +134,7 @@ export type CommentData = {
   creationTime: number;
 };
 
-export type CommendDataV2 = {
+export type CommentDataV2 = {
   sender: string;
   message: string;
   ts: number;

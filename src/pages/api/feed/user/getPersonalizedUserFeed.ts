@@ -3,11 +3,7 @@ import {
   FrenletServerData,
   FrenletsServerData,
 } from "@/components/types/Frenlet";
-import {
-  PostItemData,
-  PostItemDataV2,
-  PostServerData,
-} from "@/components/types/Post";
+import { PostItemDataV2 } from "@/components/types/Post";
 import { firestore } from "@/firebase/adminApp";
 import { NextApiRequest, NextApiResponse } from "next";
 

@@ -15,14 +15,14 @@ import React, { SetStateAction, useEffect, useState } from "react";
 import { BsDot, BsTrash } from "react-icons/bs";
 import { CgProfile } from "react-icons/cg";
 import { useRecoilValue } from "recoil";
-import { CommendDataV2, OpenPanelName } from "../../types/Post";
+import { CommentDataV2, OpenPanelName } from "../../types/Post";
 
 type Props = {
-  commentData: CommendDataV2;
+  commentData: CommentDataV2;
   postDocPath: string;
   openPanelNameSetter: React.Dispatch<SetStateAction<OpenPanelName>>;
   commentCountSetter: React.Dispatch<SetStateAction<number>>;
-  setCommentsDataFinalLayer: React.Dispatch<SetStateAction<CommendDataV2[]>>;
+  setCommentsDataFinalLayer: React.Dispatch<SetStateAction<CommentDataV2[]>>;
 };
 
 export default function CommentItem({

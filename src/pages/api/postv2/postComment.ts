@@ -1,6 +1,6 @@
 import getDisplayName from "@/apiUtils";
 import {
-  CommendDataV2,
+  CommentDataV2,
   CommentInteractionData,
   PostServerDataV2,
 } from "@/components/types/Post";
@@ -33,7 +33,7 @@ function checkProps(postDocPath: string, message: string) {
 }
 
 function createCommentData(message: string, sender: string, ts: number) {
-  const commentData: CommendDataV2 = {
+  const commentData: CommentDataV2 = {
     message: message,
     sender: sender,
     ts: ts,
@@ -43,7 +43,7 @@ function createCommentData(message: string, sender: string, ts: number) {
 
 async function changeCommentsArray(
   postDocPath: string,
-  commendData: CommendDataV2
+  commendData: CommentDataV2
 ) {
   try {
     const postDocRef = firestore.doc(postDocPath);

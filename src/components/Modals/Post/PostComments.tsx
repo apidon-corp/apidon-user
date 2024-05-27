@@ -20,10 +20,10 @@ import { CgProfile } from "react-icons/cg";
 import { useRecoilValue } from "recoil";
 import CommentItem from "../../Items/Post/CommentItem";
 import { currentUserStateAtom } from "../../atoms/currentUserAtom";
-import { CommendDataV2, OpenPanelName } from "../../types/Post";
+import { CommentDataV2, OpenPanelName } from "../../types/Post";
 
 type Props = {
-  commentDatas: CommendDataV2[];
+  commentDatas: CommentDataV2[];
   postDocPath: string;
 
   openPanelNameValue: OpenPanelName;
@@ -39,7 +39,7 @@ export default function PostComments({
   commentCountSetter,
 }: Props) {
   const [commentsDataFinalLayer, setCommentsDataFinalLayer] = useState<
-    CommendDataV2[]
+    CommentDataV2[]
   >([]);
 
   const { sendComment } = useSendComment();

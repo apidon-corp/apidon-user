@@ -1,6 +1,6 @@
 import getDisplayName from "@/apiUtils";
 import {
-  CommendDataV2,
+  CommentDataV2,
   CommentInteractionData,
   PostServerDataV2,
 } from "@/components/types/Post";
@@ -19,7 +19,7 @@ async function handleAuthorization(key: string | undefined) {
   return operationFromUsername;
 }
 
-function checkProps(postDocPath: string, commentObject: CommendDataV2) {
+function checkProps(postDocPath: string, commentObject: CommentDataV2) {
   if (!postDocPath || !commentObject) {
     console.error("Both postDocPath and commentObject is undefined.");
     return false;
@@ -31,7 +31,7 @@ function checkProps(postDocPath: string, commentObject: CommendDataV2) {
 async function checkCanDeleteComment(
   username: string,
   postDocPath: string,
-  commentObject: CommendDataV2
+  commentObject: CommentDataV2
 ) {
   try {
     const postDocSnapshot = await firestore.doc(postDocPath).get();
@@ -70,7 +70,7 @@ async function checkCanDeleteComment(
 
 async function deleteCommentFromPost(
   postDocPath: string,
-  commentObject: CommendDataV2
+  commentObject: CommentDataV2
 ) {
   try {
     const postDocRef = firestore.doc(postDocPath);
@@ -99,7 +99,7 @@ async function decreaseCommentCount(postDocPath: string) {
 
 async function deleteCommentFromInteractions(
   username: string,
-  commentObject: CommendDataV2,
+  commentObject: CommentDataV2,
   postDocPath: string
 ) {
   const commentInteractionData: CommentInteractionData = {
@@ -125,7 +125,7 @@ async function deleteCommentFromInteractions(
 
 async function deleteNotification(
   postSender: string,
-  commentObject: CommendDataV2
+  commentObject: CommentDataV2
 ) {
   try {
     const notificationDocQuery = await firestore

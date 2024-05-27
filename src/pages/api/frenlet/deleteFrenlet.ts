@@ -1,6 +1,6 @@
 import getDisplayName from "@/apiUtils";
 import { FrenletServerData } from "@/components/types/Frenlet";
-import { firestore } from "@/firebase/adminApp";
+import { fieldValue, firestore } from "@/firebase/adminApp";
 import { NextApiRequest, NextApiResponse } from "next";
 
 async function handleAuthorization(key: string | undefined) {
@@ -76,6 +76,21 @@ async function deleteFrenletForSender(frenletDocPathForSender: string) {
   }
 }
 
+async function decreaseFrenScore(frenletReceiver: string) {
+  try {
+    const userDocRef = firestore.doc(`/users/${frenletReceiver}`);
+
+    await userDocRef.update({
+      frenScore: fieldValue.increment(-1),
+    });
+
+    return true;
+  } catch (error) {
+    console.error("Error while decreasing fren score: \n", error);
+    return false;
+  }
+}
+
 async function deleteNotification(
   frenletReceiver: string,
   frenletSender: string,
@@ -107,6 +122,7 @@ async function deleteFrenlet(frenletDocData: FrenletServerData) {
     deleteFrenletForReceiverResult,
     deleteFrenletForSenderResult,
     deleteNotificationResult,
+    decreaseFrenScoreResult,
   ] = await Promise.all([
     deleteFrenletForReceiver(
       `/users/${frenletDocData.frenletReceiver}/frenlets/frenlets/incoming/${frenletDocData.frenletDocId}`
@@ -119,12 +135,14 @@ async function deleteFrenlet(frenletDocData: FrenletServerData) {
       frenletDocData.frenletSender,
       frenletDocData.ts
     ),
+    decreaseFrenScore(frenletDocData.frenletReceiver),
   ]);
 
   if (
     !deleteFrenletForReceiverResult ||
     !deleteFrenletForSenderResult ||
-    !deleteNotificationResult
+    !deleteNotificationResult ||
+    !decreaseFrenScoreResult
   )
     return false;
 

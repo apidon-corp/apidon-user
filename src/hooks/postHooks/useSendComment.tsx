@@ -1,4 +1,4 @@
-import { CommendDataV2 } from "@/components/types/Post";
+import { CommentDataV2 } from "@/components/types/Post";
 import { auth } from "@/firebase/clientApp";
 
 export default function useSendComment() {
@@ -34,7 +34,7 @@ export default function useSendComment() {
 
       const result = await response.json();
 
-      const createdCommentObject = result.commentData as CommendDataV2;
+      const createdCommentObject = result.commentData as CommentDataV2;
       return createdCommentObject;
     } catch (error) {
       console.error("Error while 'fetching' to 'postComment' API", error);

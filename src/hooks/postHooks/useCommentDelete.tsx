@@ -1,4 +1,4 @@
-import { CommendDataV2 } from "@/components/types/Post";
+import { CommentDataV2 } from "@/components/types/Post";
 import { auth } from "@/firebase/clientApp";
 import { useState } from "react";
 
@@ -12,7 +12,7 @@ export default function useCommentDelete() {
    */
   const commentDelete = async (
     postDocPath: string,
-    commentObject: CommendDataV2
+    commentObject: CommentDataV2
   ) => {
     const currentUserAuthObject = auth.currentUser;
     if (!currentUserAuthObject) return false;
