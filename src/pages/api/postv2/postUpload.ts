@@ -169,7 +169,7 @@ async function sendPostForClassification(
       return false;
     }
   } catch (error) {
-    console.error("Error while sending post for classification");
+    console.error("Error while sending post for classification: \n", error);
     return false;
   }
 
