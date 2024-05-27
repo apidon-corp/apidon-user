@@ -10,7 +10,7 @@ const usePostLike = () => {
   const like = async (postDocPath: string, opCode: -1 | 1) => {
     let idToken = "";
     try {
-      idToken = (await auth.currentUser?.getIdToken(true)) as string;
+      idToken = (await auth.currentUser?.getIdToken()) as string;
     } catch (error) {
       console.error("Error while liking. Couln't be got idToken", error);
       return false;

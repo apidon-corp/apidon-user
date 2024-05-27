@@ -10,7 +10,7 @@ export default function useChangeDataAnalysisPreferences() {
   ) => {
     let idToken = "";
     try {
-      idToken = (await auth.currentUser?.getIdToken(true)) as string;
+      idToken = (await auth.currentUser?.getIdToken()) as string;
     } catch (error) {
       console.error(
         "Error on data analysis settings changing. IdToken couldn't be taken.",

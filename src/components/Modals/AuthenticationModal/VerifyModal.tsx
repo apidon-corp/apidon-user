@@ -111,7 +111,7 @@ export default function VerifyModal() {
 
       if (!currentUserAuthObject)
         throw new Error("Auth object of user is null");
-      const idToken = await currentUserAuthObject.getIdToken(true);
+      const idToken = await currentUserAuthObject.getIdToken();
 
       const response = await fetch(
         "/api/user/authentication/login/sendVerificationCode",
@@ -161,7 +161,7 @@ export default function VerifyModal() {
       const currentUserAuthObject = auth.currentUser;
       if (!currentUserAuthObject)
         throw new Error("Auth object of user is null");
-      const idToken = await currentUserAuthObject.getIdToken(true);
+      const idToken = await currentUserAuthObject.getIdToken();
 
       const response = await fetch(
         "/api/user/authentication/login/checkVerificationCode",

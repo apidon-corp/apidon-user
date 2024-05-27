@@ -71,7 +71,7 @@ export default function Home() {
 
     let idToken = "";
     try {
-      idToken = (await auth.currentUser?.getIdToken(true)) as string;
+      idToken = (await auth.currentUser?.getIdToken()) as string;
     } catch (error) {
       console.error("Error while getting 'idToken'", error);
       return false;

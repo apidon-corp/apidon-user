@@ -14,7 +14,7 @@ export default function useGetFirebase() {
       if (!auth.currentUser) {
         throw new Error("There is no current user for reading operations.");
       }
-      idToken = await auth.currentUser.getIdToken(true);
+      idToken = await auth.currentUser.getIdToken();
     } catch (error) {
       console.error(
         "Error on read database. We were authenticating user...: ",
@@ -60,7 +60,7 @@ export default function useGetFirebase() {
       if (!auth.currentUser) {
         throw new Error("There is no current user for reading operations.");
       }
-      idToken = await auth.currentUser.getIdToken(true);
+      idToken = await auth.currentUser.getIdToken();
     } catch (error) {
       console.error(
         "Error on getCollectionDocDatas. We were authenticating user...: ",

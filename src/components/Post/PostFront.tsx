@@ -254,7 +254,7 @@ export default function PostFront({
     setPostsAtView(updatedPostsAtView);
 
     try {
-      const idToken = await currentUserAuthObject.getIdToken(true);
+      const idToken = await currentUserAuthObject.getIdToken();
       const response = await fetch(`/api/postv2/postLike`, {
         method: "POST",
         headers: {
@@ -325,7 +325,7 @@ export default function PostFront({
     setPostsAtView(updatedPostsAtView);
 
     try {
-      const idToken = await currentUserAuthObject.getIdToken(true);
+      const idToken = await currentUserAuthObject.getIdToken();
       const response = await fetch(`/api/postv2/postLike`, {
         method: "POST",
         headers: {

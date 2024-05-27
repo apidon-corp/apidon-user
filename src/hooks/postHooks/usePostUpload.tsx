@@ -60,7 +60,7 @@ const usePostCreate = () => {
 
     let idToken = "";
     try {
-      idToken = (await auth.currentUser?.getIdToken(true)) as string;
+      idToken = (await auth.currentUser?.getIdToken()) as string;
     } catch (error) {
       console.error("Error while post deleting. Couln't be got idToken", error);
       setPostUploadUpdating(false);
