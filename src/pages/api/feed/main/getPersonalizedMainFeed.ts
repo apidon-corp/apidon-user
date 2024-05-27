@@ -1,5 +1,9 @@
 import getDisplayName from "@/apiUtils";
-import { PostItemData, PostItemDataV2 } from "@/components/types/Post";
+import {
+  PostItemData,
+  PostItemDataV2,
+  PostServerDataV2,
+} from "@/components/types/Post";
 import { firestore } from "@/firebase/adminApp";
 import AsyncLock from "async-lock";
 import { NextApiRequest, NextApiResponse } from "next";
@@ -250,18 +254,19 @@ const handleCreatePostItemData = async (
   postDoc: FirebaseFirestore.QueryDocumentSnapshot<FirebaseFirestore.DocumentData>,
   operationFromUsername: string
 ) => {
-  let likeStatus = false;
+  const likeStatus = (postDoc.data() as PostServerDataV2).likes
+    .map((u) => u.sender)
+    .includes(operationFromUsername);
 
   // getting following status
   let followStatus = false;
 
-  const [likeResponse, followResponse] = await Promise.all([
-    handleGetLikeStatus(operationFromUsername, postDoc),
+  const [followResponse] = await Promise.all([
     handleGetFollowStatus(operationFromUsername, postDoc),
   ]);
 
   // undefined is false default.
-  likeStatus = likeResponse as boolean;
+
   followStatus = followResponse as boolean;
 
   const newPostItemData: PostItemDataV2 = {
@@ -306,18 +311,19 @@ const handleCreatePostItemDataFromPostDocPath = async (
   if (!postDoc.exists)
     return console.error("This post doesn't exist anymore.", postDocPath);
 
-  let likeStatus = false;
+  const likeStatus = (postDoc.data() as PostServerDataV2).likes
+    .map((u) => u.sender)
+    .includes(operationFromUsername);
 
   // getting following status
   let followStatus = false;
 
-  const [likeResponse, followResponse] = await Promise.all([
-    handleGetLikeStatus(operationFromUsername, postDoc),
+  const [followResponse] = await Promise.all([
     handleGetFollowStatus(operationFromUsername, postDoc),
   ]);
 
   // undefined is false default.
-  likeStatus = likeResponse as boolean;
+
   followStatus = followResponse as boolean;
 
   const newPostItemData: PostItemDataV2 = {
@@ -343,25 +349,6 @@ const handleCreatePostItemDataFromPostDocPath = async (
   };
 
   return newPostItemData;
-};
-
-const handleGetLikeStatus = async (
-  operationFromUsername: string,
-  postDoc:
-    | FirebaseFirestore.QueryDocumentSnapshot<FirebaseFirestore.DocumentData>
-    | FirebaseFirestore.DocumentSnapshot<FirebaseFirestore.DocumentData>
-) => {
-  let likeStatus = false;
-  try {
-    likeStatus = (
-      await postDoc.ref.collection("likes").doc(operationFromUsername).get()
-    ).exists;
-  } catch (error) {
-    return console.error(
-      `Error while creating feed for ${operationFromUsername}. (We were retriving like status from ${postDoc.ref.path})`
-    );
-  }
-  return likeStatus;
 };
 
 const handleGetFollowStatus = async (
