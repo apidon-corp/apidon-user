@@ -1,19 +1,24 @@
 import { Flex } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 
-import Posts from "../Post/Posts";
-import { PostItemData } from "../types/Post";
+import { FrenletServerData } from "../types/Frenlet";
+import { PostItemDataV2 } from "../types/Post";
 import { UserInServer } from "../types/User";
+import Content from "../user/Content/Content";
 import Header from "../user/Header";
 
 type Props = {
   userInformation: UserInServer;
-  postItemsDatas: PostItemData[];
+  postItemsDatas: PostItemDataV2[];
+  frenletServerDatas: FrenletServerData[];
+  tags: string[];
 };
 
 export default function UserPageLayout({
   userInformation,
   postItemsDatas,
+  frenletServerDatas,
+  tags,
 }: Props) {
   const [innerHeight, setInnerHeight] = useState("");
 
@@ -43,13 +48,18 @@ export default function UserPageLayout({
             lg: "550px",
           }}
           minHeight={innerHeight}
+          key={userInformation.username}
+          gap="2em"
         >
           <Flex justify="center" align="center" width="100%">
             <Header userInformation={userInformation} />
           </Flex>
-          <Flex justify="center" width="100%">
-            <Posts postsItemDatas={postItemsDatas} />
-          </Flex>
+          <Content
+            frenletServerDatas={frenletServerDatas}
+            postItemsDatas={postItemsDatas}
+            tags={tags}
+            userInformation={userInformation}
+          />
         </Flex>
         <Flex
           grow={1}

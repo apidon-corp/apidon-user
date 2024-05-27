@@ -18,11 +18,11 @@ const usePostLike = () => {
 
     let response;
     const postLikeAPIBody: PostLikeAPIBody = {
-      opCode: opCode,
+      action: opCode === 1 ? "like" : "delike",
       postDocPath: postDocPath,
     };
     try {
-      response = await fetch("/api/post/postLike", {
+      response = await fetch("/api/postv2/postLike", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

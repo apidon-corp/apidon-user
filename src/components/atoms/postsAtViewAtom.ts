@@ -1,7 +1,7 @@
 import { atom } from "recoil";
-import { PostItemData } from "../types/Post";
+import { PostItemDataV2 } from "../types/Post";
 
-export const postsAtViewAtom = atom<PostItemData[]>({
+export const postsAtViewAtom = atom<PostItemDataV2[]>({
   key: "postsAtViewAtom",
   default: [],
 });

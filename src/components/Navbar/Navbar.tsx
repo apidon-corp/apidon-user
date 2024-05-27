@@ -1,11 +1,11 @@
-import { Box, Button, Flex, Image, Text } from "@chakra-ui/react";
+import { Box, Flex, Image, Text } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 import Authentication from "./Authentication/Authentication";
 import NotificationButton from "./SearchBar/NotificationButton";
 import PostCreateButton from "./SearchBar/PostCreateButton";
 
-import SearchBar from "./SearchBar/SearchBar";
 import NFTButton from "./NFTButton";
+import SearchBar from "./SearchBar/SearchBar";
 
 export default function Navbar() {
   const router = useRouter();

@@ -1,5 +1,5 @@
 import getDisplayName from "@/apiUtils";
-import { PostItemData } from "@/components/types/Post";
+import { PostItemData, PostItemDataV2 } from "@/components/types/Post";
 import { firestore } from "@/firebase/adminApp";
 import AsyncLock from "async-lock";
 import { NextApiRequest, NextApiResponse } from "next";
@@ -121,8 +121,9 @@ export default async function handler(
         new Set(postsSourcesUsernames)
       );
 
-      let getPostsFromOneSourcePromisesArray: Promise<void | PostItemData[]>[] =
-        [];
+      let getPostsFromOneSourcePromisesArray: Promise<
+        void | PostItemDataV2[]
+      >[] = [];
       for (const postSourceUsername of postsSourcesUsernamesClear) {
         getPostsFromOneSourcePromisesArray.push(
           getPostsFromOneSource(postSourceUsername, operationFromUsername)
@@ -130,7 +131,7 @@ export default async function handler(
       }
 
       // Creating "promises array" for "Second" type source (source as postDocPath)
-      let handleCreatePostItemDatasFromPostDocPathPromisesArray: Promise<void | PostItemData>[] =
+      let handleCreatePostItemDatasFromPostDocPathPromisesArray: Promise<void | PostItemDataV2>[] =
         [];
       if (postDocPathArray.length !== 0) {
         for (const postDocPath of postDocPathArray)
@@ -208,7 +209,7 @@ const getPostsFromOneSource = async (
   postSourceUsername: string,
   operationFromUsername: string
 ) => {
-  let postItemDatas: PostItemData[] = [];
+  let postItemDatas: PostItemDataV2[] = [];
 
   let postsQuerySnaphostFromOneSource: FirebaseFirestore.QuerySnapshot<FirebaseFirestore.DocumentData>;
   try {
@@ -224,7 +225,7 @@ const getPostsFromOneSource = async (
 
   if (postsQuerySnaphostFromOneSource.size === 0) return postItemDatas; // as empty array
 
-  let handleCreatePostItemDataPromisesArray: Promise<void | PostItemData>[] =
+  let handleCreatePostItemDataPromisesArray: Promise<void | PostItemDataV2>[] =
     [];
   for (const postDoc of postsQuerySnaphostFromOneSource.docs) {
     handleCreatePostItemDataPromisesArray.push(
@@ -263,7 +264,7 @@ const handleCreatePostItemData = async (
   likeStatus = likeResponse as boolean;
   followStatus = followResponse as boolean;
 
-  const newPostItemData: PostItemData = {
+  const newPostItemData: PostItemDataV2 = {
     senderUsername: postDoc.data().senderUsername,
 
     description: postDoc.data().description,
@@ -271,7 +272,10 @@ const handleCreatePostItemData = async (
 
     likeCount: postDoc.data().likeCount,
     currentUserLikedThisPost: likeStatus,
+    likes: postDoc.data().likes,
+
     commentCount: postDoc.data().commentCount,
+    comments: postDoc.data().comments,
 
     postDocId: postDoc.id,
 
@@ -316,7 +320,7 @@ const handleCreatePostItemDataFromPostDocPath = async (
   likeStatus = likeResponse as boolean;
   followStatus = followResponse as boolean;
 
-  const newPostItemData: PostItemData = {
+  const newPostItemData: PostItemDataV2 = {
     senderUsername: postDoc.data()?.senderUsername,
 
     description: postDoc.data()?.description,
@@ -324,7 +328,10 @@ const handleCreatePostItemDataFromPostDocPath = async (
 
     likeCount: postDoc.data()?.likeCount,
     currentUserLikedThisPost: likeStatus,
+    likes: postDoc.data()?.likes,
+
     commentCount: postDoc.data()?.commentCount,
+    comments: postDoc.data()?.comments,
 
     postDocId: postDoc.id,
 

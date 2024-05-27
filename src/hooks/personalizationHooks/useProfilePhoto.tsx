@@ -47,7 +47,7 @@ export default function useProfilePhoto() {
 
     let idToken = "";
     try {
-      idToken = (await auth.currentUser?.getIdToken()) as string;
+      idToken = (await auth.currentUser?.getIdToken(true)) as string;
     } catch (error) {
       console.error(
         "Error while profilePhotoUploading. Couln't be got idToken",
@@ -105,7 +105,7 @@ export default function useProfilePhoto() {
 
     let idToken = "";
     try {
-      idToken = (await auth.currentUser?.getIdToken()) as string;
+      idToken = (await auth.currentUser?.getIdToken(true)) as string;
     } catch (error) {
       console.error(
         "Error while profilePhotoUploading. Couln't be got idToken",

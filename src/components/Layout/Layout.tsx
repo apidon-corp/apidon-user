@@ -7,6 +7,10 @@ import { User } from "firebase/auth";
 import { ReactNode, useEffect, useState } from "react";
 import { useRecoilState, useSetRecoilState } from "recoil";
 import Footer from "../Footer/Footer";
+import LoginModal from "../Modals/AuthenticationModal/LoginModal";
+import ResetPasswordModal from "../Modals/AuthenticationModal/ResetPasswordModal";
+import SignupModal from "../Modals/AuthenticationModal/SignupModal";
+import VerifyModal from "../Modals/AuthenticationModal/VerifyModal";
 import PostCreateModal from "../Modals/Post/PostCreateModal";
 import CollectedDataInformationModal from "../Modals/User/CollectedDataInformationModal";
 import DataAnalysisPreferencesModal from "../Modals/User/DataAnalysisPreferencesModal";
@@ -17,12 +21,8 @@ import Navbar from "../Navbar/Navbar";
 import { authModalStateAtom } from "../atoms/authModalAtom";
 import { currentUserStateAtom } from "../atoms/currentUserAtom";
 import { providerModalStateAtom } from "../atoms/providerModalAtom";
-import { CurrentUser, UserInServer } from "../types/User";
-import LoginModal from "../Modals/AuthenticationModal/LoginModal";
-import SignupModal from "../Modals/AuthenticationModal/SignupModal";
-import ResetPasswordModal from "../Modals/AuthenticationModal/ResetPasswordModal";
-import VerifyModal from "../Modals/AuthenticationModal/VerifyModal";
 import { verificationModalAtom } from "../atoms/verificationModalAtom";
+import { CurrentUser, UserInServer } from "../types/User";
 
 type Props = {
   children: ReactNode;
@@ -76,7 +76,7 @@ export default function Layout({ children }: Props) {
       setLoading(true);
       if (user) {
         handleAfterSuccessfullAuth(user);
-        setCookie("firebase-auth.session-token", await user.getIdToken());
+        setCookie("firebase-auth.session-token", await user.getIdToken(true));
       } else {
         setLoading(false);
         // User is signed out, handle the signed-out state
@@ -120,11 +120,6 @@ export default function Layout({ children }: Props) {
       uid: userDocDataInServer.uid,
       username: userDocDataInServer.username,
     };
-
-    console.log(
-      `Is ${user.displayName}'s email verified: `,
-      user.emailVerified
-    );
 
     const isEmailVerified = user.emailVerified;
 

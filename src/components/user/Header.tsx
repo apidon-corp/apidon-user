@@ -270,7 +270,7 @@ export default function Header({ userInformation }: Props) {
 
     let idToken = "";
     try {
-      idToken = (await auth.currentUser?.getIdToken()) as string;
+      idToken = (await auth.currentUser?.getIdToken(true)) as string;
     } catch (error) {
       console.error("Error while getting 'idToken'", error);
       setFullnameUpdateLoading(false);
@@ -674,6 +674,14 @@ export default function Header({ userInformation }: Props) {
               NFTs
             </Text>
           </Flex>
+          <Flex gap={1}>
+            <Text as="b" fontSize="12pt" textColor="white">
+              {headerAtView.frenScore}
+            </Text>
+            <Text fontSize="12pt" textColor="gray.500">
+              Fren Score
+            </Text>
+          </Flex>
         </Flex>
 
         {isCurrentUserPage == false && (
@@ -730,7 +738,7 @@ export default function Header({ userInformation }: Props) {
               >
                 Provider Panel
               </Button>
-              <Button
+              {/* <Button
                 colorScheme="blue"
                 variant="outline"
                 size="sm"
@@ -762,7 +770,7 @@ export default function Header({ userInformation }: Props) {
                 isDisabled
               >
                 NFT Trade
-              </Button>
+              </Button> */}
             </Flex>
           </Flex>
         )}

@@ -11,7 +11,7 @@ export default function useWithdraw() {
 
     let response;
     try {
-      const idToken = await currentUserAuthObject.getIdToken();
+      const idToken = await currentUserAuthObject.getIdToken(true);
       if (!idToken) throw new Error("Id Token is null.");
 
       response = await fetch("/api/provider/withdraw", {

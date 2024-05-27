@@ -110,7 +110,7 @@ export default function LoginModal() {
 
     // We need to check If there is an account linked with this email or username.
     try {
-      const appCheckTokenResult = await getToken(appCheck);
+      const appCheckTokenResult = await getToken(appCheck, true);
       const token = appCheckTokenResult.token;
 
       const response = await fetch(

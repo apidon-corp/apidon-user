@@ -11,6 +11,7 @@ export interface UserInServer {
 
   followingCount: number;
   followerCount: number;
+  frenScore: number;
 
   nftCount: number;
 
@@ -25,6 +26,7 @@ export const defaultUserInServer: UserInServer = {
 
   followingCount: -1,
   followerCount: -1,
+  frenScore: -1,
 
   nftCount: -1,
 
@@ -66,7 +68,7 @@ export interface INotificationServerData {
   notificationTime: number;
   seen: boolean;
   sender: string;
-  cause: "like" | "follow" | "comment";
+  cause: "like" | "follow" | "comment" | "frenlet";
   commentDocPath?: string;
 }
 

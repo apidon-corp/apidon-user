@@ -1,106 +1,29 @@
 import getDisplayName from "@/apiUtils";
-import { PostItemData } from "@/components/types/Post";
+import {
+  FrenletServerData,
+  FrenletsServerData,
+} from "@/components/types/Frenlet";
+import { PostItemDataV2 } from "@/components/types/Post";
 import { firestore } from "@/firebase/adminApp";
-import AsyncLock from "async-lock";
 import { NextApiRequest, NextApiResponse } from "next";
-
-const lock = new AsyncLock();
 
 export const config = {
   runtime: "nodejs",
   maxDuration: 120,
 };
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
-  const { authorization } = req.headers;
-  const { username } = req.body;
+async function getPosts(username: string) {
+  try {
+    const postsSnapshot = await firestore
+      .collection(`/users/${username}/posts`)
+      .get();
 
-  const operationFromUsername = await getDisplayName(authorization as string);
-  if (!operationFromUsername) return res.status(401).send("unauthorized");
-
-  if (!username) return res.status(422).send("Invalid Prop or Props");
-
-  if (req.method !== "POST") return res.status(405).send("Method not allowed");
-
-  await lock.acquire(
-    `getPersonalizedUserFeed-${operationFromUsername}`,
-    async () => {
-      let postsDocsQuerySnapshot: FirebaseFirestore.QuerySnapshot<FirebaseFirestore.DocumentData>;
-      try {
-        postsDocsQuerySnapshot = await firestore
-          .collection(`users/${username}/posts`)
-          .get();
-      } catch (error) {
-        console.error(
-          `Error while creating user (single) ${username} feed for ${operationFromUsername} user.`,
-          error
-        );
-        return res.status(503).send("Firebase Error");
-      }
-
-      let handleCreatePostItemDataPromisesArray: Promise<PostItemData>[] = [];
-      if (postsDocsQuerySnapshot.size !== 0) {
-        for (const postDoc of postsDocsQuerySnapshot.docs) {
-          handleCreatePostItemDataPromisesArray.push(
-            handleCreatePostItemData(postDoc, operationFromUsername)
-          );
-        }
-      }
-
-      const handleCreatePostItemDataPromisesResults = await Promise.all(
-        handleCreatePostItemDataPromisesArray
-      );
-
-      let postItemDatas: PostItemData[] = [];
-      postItemDatas = handleCreatePostItemDataPromisesResults;
-
-      return res.status(200).json({ postItemDatas: postItemDatas });
-    }
-  );
+    return postsSnapshot.docs;
+  } catch (error) {
+    console.error(`Error while getting posts for ${username}`);
+    return false;
+  }
 }
-
-const handleCreatePostItemData = async (
-  postDoc: FirebaseFirestore.QueryDocumentSnapshot<FirebaseFirestore.DocumentData>,
-  operationFromUsername: string
-) => {
-  let likeStatus = false;
-
-  // getting following status
-  let followStatus = false;
-
-  const [likeResponse, followResponse] = await Promise.all([
-    handleGetLikeStatus(operationFromUsername, postDoc),
-    handleGetFollowStatus(operationFromUsername, postDoc),
-  ]);
-
-  // undefined is false default.
-  likeStatus = likeResponse as boolean;
-  followStatus = followResponse as boolean;
-
-  const newPostItemData: PostItemData = {
-    senderUsername: postDoc.data().senderUsername,
-
-    description: postDoc.data().description,
-    image: postDoc.data().image,
-
-    likeCount: postDoc.data().likeCount,
-    currentUserLikedThisPost: likeStatus,
-    commentCount: postDoc.data().commentCount,
-
-    postDocId: postDoc.id,
-
-    nftStatus: postDoc.data().nftStatus,
-
-    currentUserFollowThisSender: followStatus,
-
-    creationTime: postDoc.data().creationTime,
-  };
-
-  return newPostItemData;
-};
 
 const handleGetLikeStatus = async (
   operationFromUsername: string,
@@ -112,9 +35,10 @@ const handleGetLikeStatus = async (
       await postDoc.ref.collection("likes").doc(operationFromUsername).get()
     ).exists;
   } catch (error) {
-    return console.error(
+    console.error(
       `Error while creating user (single) feed for ${operationFromUsername}. (We were retriving like status from ${postDoc.ref.path})`
     );
+    return false;
   }
   return likeStatus;
 };
@@ -135,10 +59,159 @@ const handleGetFollowStatus = async (
         .get()
     ).exists;
   } catch (error) {
-    return console.error(
+    console.error(
       `Error while creating user (single) feed for ${operationFromUsername}. (We were getting follow status from post: ${postDoc.ref.path})`
     );
+    return false;
   }
 
   return followStatus;
 };
+
+const handleCreatePostItemData = async (
+  postDoc: FirebaseFirestore.QueryDocumentSnapshot<FirebaseFirestore.DocumentData>,
+  operationFromUsername: string
+) => {
+  let likeStatus = false;
+
+  // getting following status
+  let followStatus = false;
+
+  const [likeResponse, followResponse] = await Promise.all([
+    handleGetLikeStatus(operationFromUsername, postDoc),
+    handleGetFollowStatus(operationFromUsername, postDoc),
+  ]);
+
+  // undefined is false default.
+  likeStatus = likeResponse as boolean;
+  followStatus = followResponse as boolean;
+
+  const newPostItemData: PostItemDataV2 = {
+    senderUsername: postDoc.data().senderUsername,
+
+    description: postDoc.data().description,
+    image: postDoc.data().image,
+
+    likeCount: postDoc.data().likeCount,
+    likes: postDoc.data().likes,
+    currentUserLikedThisPost: likeStatus,
+
+    commentCount: postDoc.data().commentCount,
+    comments: postDoc.data().comments,
+
+    postDocId: postDoc.id,
+
+    nftStatus: postDoc.data().nftStatus,
+
+    currentUserFollowThisSender: followStatus,
+
+    creationTime: postDoc.data().creationTime,
+  };
+
+  return newPostItemData;
+};
+
+async function handlePreparePosts(
+  postDocs: FirebaseFirestore.QueryDocumentSnapshot<FirebaseFirestore.DocumentData>[],
+  requester: string
+) {
+  const postItemDatas = await Promise.all(
+    postDocs.map((postDoc) => handleCreatePostItemData(postDoc, requester))
+  );
+
+  return postItemDatas;
+}
+
+async function getReceviedFrenlets(username: string) {
+  try {
+    const receivedFrenletsSnapshot = await firestore
+      .collection(`/users/${username}/frenlets/frenlets/incoming`)
+      .get();
+    return receivedFrenletsSnapshot.docs.map(
+      (doc) => doc.data() as FrenletServerData
+    );
+  } catch (error) {
+    console.error(`Error while getting received frenlets of ${username}`);
+    return false;
+  }
+}
+
+async function getSentFronlets(username: string) {
+  try {
+    const sentFrenletsSnapshot = await firestore
+      .collection(`/users/${username}/frenlets/frenlets/outgoing`)
+      .get();
+    return sentFrenletsSnapshot.docs.map(
+      (doc) => doc.data() as FrenletServerData
+    );
+  } catch (error) {
+    console.error(`Error while getting sent frenlets of ${username}`);
+    return false;
+  }
+}
+
+async function getFrenlets(username: string) {
+  const receivedFronlets = await getReceviedFrenlets(username);
+  //const sentFrenlets = await getSentFronlets(username);
+
+  if (!receivedFronlets) return false;
+  //if (!sentFrenlets) return false;
+
+  return receivedFronlets; //.concat(sentFrenlets);
+}
+
+async function getTags(username: string) {
+  try {
+    const frenletsDocSnapshot = await firestore
+      .doc(`/users/${username}/frenlets/frenlets`)
+      .get();
+    if (!frenletsDocSnapshot.exists) {
+      console.error("frenletsDoc doesn't exist");
+      return false;
+    }
+    const frenletsDocData = frenletsDocSnapshot.data() as FrenletsServerData;
+    if (frenletsDocData === undefined) {
+      console.error("frenletsDocData is undefined");
+      return false;
+    }
+
+    const tags = frenletsDocData.tags;
+    return tags;
+  } catch (error) {
+    console.error(`Error while getting tags of ${username}`);
+    return false;
+  }
+}
+
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  const { authorization } = req.headers;
+  const { username } = req.body;
+
+  const operationFromUsername = await getDisplayName(authorization as string);
+  if (!operationFromUsername) return res.status(401).send("unauthorized");
+
+  if (!username) return res.status(422).send("Invalid Prop or Props");
+
+  if (req.method !== "POST") return res.status(405).send("Method not allowed");
+
+  const postsServerDatas = await getPosts(username);
+  if (!postsServerDatas) return res.status(500).send("Internal Server Error");
+
+  const postItemDatas = await handlePreparePosts(
+    postsServerDatas,
+    operationFromUsername
+  );
+
+  const [frenlets, tags] = await Promise.all([
+    getFrenlets(username),
+    getTags(username),
+  ]);
+  if (!frenlets || !tags) return res.status(500).send("Internal Server Error");
+
+  return res
+    .status(200)
+    .json({ postItemDatas: postItemDatas, frenlets: frenlets, tags: tags });
+}

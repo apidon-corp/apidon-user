@@ -45,7 +45,7 @@ export default async function handler(
     if (!postDocSnapshot.exists) {
       console.error("This post doesn't exist anymore.");
       return res.status(200).json({
-        image_url: "0",
+        postDocData: false,
       });
     }
 
@@ -56,16 +56,8 @@ export default async function handler(
       return res.status(500).send("Internal Server Error");
     }
 
-    const image_url = postDocData.image;
-
-    if (!image_url || image_url === undefined) {
-      return res.status(200).json({
-        image_url: "1",
-      });
-    }
-
     return res.status(200).json({
-      image_url: image_url,
+      postDocData: postDocData,
     });
   } catch (error) {
     console.error("Error on providing image url of post: \n", error);
