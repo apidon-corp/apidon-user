@@ -241,11 +241,18 @@ export default function PostFront({
 
     const likeCountBeforeOperations = postFrontData.likeCount;
 
+    const displayName = auth.currentUser?.displayName;
+    if (!displayName) return;
+
     const updatedPostsAtView = postsAtView.map((a) => {
       if (a.postDocId === postFrontData.postDocId) {
         const updatedPost = { ...a };
         updatedPost.currentUserLikedThisPost = true;
         updatedPost.likeCount = a.likeCount + 1;
+        updatedPost.likes = [
+          { sender: displayName, ts: Date.now() },
+          ...a.likes,
+        ];
         return updatedPost;
       } else {
         return a;
@@ -273,6 +280,9 @@ export default function PostFront({
             const updatedPost = { ...a };
             updatedPost.currentUserLikedThisPost = false;
             updatedPost.likeCount = likeCountBeforeOperations;
+            updatedPost.likes = a.likes.filter(
+              (like) => like.sender !== displayName
+            );
             return updatedPost;
           } else {
             return a;
@@ -291,6 +301,9 @@ export default function PostFront({
           const updatedPost = { ...a };
           updatedPost.currentUserLikedThisPost = false;
           updatedPost.likeCount = likeCountBeforeOperations;
+          updatedPost.likes = a.likes.filter(
+            (like) => like.sender !== displayName
+          );
           return updatedPost;
         } else {
           return a;
@@ -300,6 +313,7 @@ export default function PostFront({
       return console.error("Error on fetching to postLike API: \n", error);
     }
   };
+
   const handleDeLike = async () => {
     const currentUserAuthObject = auth.currentUser;
     if (!currentUserAuthObject) {
@@ -312,11 +326,17 @@ export default function PostFront({
 
     const likeCountBeforeOperations = postFrontData.likeCount;
 
+    const displayName = auth.currentUser?.displayName;
+    if (!displayName) return;
+
     const updatedPostsAtView = postsAtView.map((a) => {
       if (a.postDocId === postFrontData.postDocId) {
         const updatedPost = { ...a };
         updatedPost.currentUserLikedThisPost = false;
         updatedPost.likeCount = a.likeCount - 1;
+        updatedPost.likes = a.likes.filter(
+          (like) => like.sender !== displayName
+        );
         return updatedPost;
       } else {
         return a;
@@ -344,6 +364,10 @@ export default function PostFront({
             const updatedPost = { ...a };
             updatedPost.currentUserLikedThisPost = true;
             updatedPost.likeCount = likeCountBeforeOperations;
+            updatedPost.likes = [
+              { sender: displayName, ts: Date.now() },
+              ...a.likes,
+            ];
             return updatedPost;
           } else {
             return a;
@@ -362,6 +386,10 @@ export default function PostFront({
           const updatedPost = { ...a };
           updatedPost.currentUserLikedThisPost = true;
           updatedPost.likeCount = likeCountBeforeOperations;
+          updatedPost.likes = [
+            { sender: displayName, ts: Date.now() },
+            ...a.likes,
+          ];
           return updatedPost;
         } else {
           return a;
