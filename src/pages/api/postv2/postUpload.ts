@@ -238,7 +238,7 @@ export default async function handler(
     currentProviderData.startTime
   );
 
-  await delay(1000);
+  await delay(500);
 
   return res.status(200).json({
     newPostData: postServerData,
