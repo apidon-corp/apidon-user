@@ -177,6 +177,10 @@ async function sendPostForClassification(
   }
 }
 
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
@@ -233,6 +237,8 @@ export default async function handler(
     currentProviderData.providerId,
     currentProviderData.startTime
   );
+
+  await delay(1000);
 
   return res.status(200).json({
     newPostData: postServerData,
