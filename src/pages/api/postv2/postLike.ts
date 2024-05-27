@@ -135,6 +135,9 @@ async function updateNotification(
   ts: number,
   action: "like" | "delike"
 ) {
+  // There is no need to send notification to the post sender
+  if (username === postSender) return true;
+
   const notificationData: INotificationServerData = {
     cause: "like",
     notificationTime: ts,
