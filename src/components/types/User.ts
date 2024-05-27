@@ -684,3 +684,10 @@ export const activeProviderInformationPlaceholder: ActiveProviderInformation = {
     },
   },
 };
+
+export type CurrentProvider = {
+  endTime: number;
+  name: string;
+  startTime: number;
+  yield: 0.53;
+};

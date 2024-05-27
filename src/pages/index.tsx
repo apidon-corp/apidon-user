@@ -2,7 +2,7 @@ import { authModalStateAtom } from "@/components/atoms/authModalAtom";
 import { currentUserStateAtom } from "@/components/atoms/currentUserAtom";
 import { postsStatusAtom } from "@/components/atoms/postsStatusAtom";
 import MainPageLayout from "@/components/Layout/MainPageLayout";
-import { PostItemData, PostItemDataV2 } from "@/components/types/Post";
+import { PostItemDataV2 } from "@/components/types/Post";
 import { IPagePreviewData } from "@/components/types/User";
 import { auth } from "@/firebase/clientApp";
 import { GetServerSidePropsContext } from "next";
@@ -15,9 +15,6 @@ export default function Home() {
     []
   );
 
-  /**
-   * Disabling anonymous main feed.
-   */
   const setAuthModal = useSetRecoilState(authModalStateAtom);
 
   const setPostStatus = useSetRecoilState(postsStatusAtom);
@@ -69,44 +66,44 @@ export default function Home() {
   const handlePersonalizedMainFeed = async () => {
     setPostStatus({ loading: true });
 
-    let idToken = "";
-    try {
-      idToken = (await auth.currentUser?.getIdToken()) as string;
-    } catch (error) {
-      console.error("Error while getting 'idToken'", error);
+    const currentUserAuthObject = auth.currentUser;
+    if (!currentUserAuthObject) {
+      console.error("Current user is null");
       return false;
     }
 
-    let response;
     try {
-      response = await fetch("/api/feed/main/getPersonalizedMainFeed", {
+      const idToken = await currentUserAuthObject.getIdToken();
+
+      const response = await fetch("/api/feed/main/getPersonalizedMainFeed", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           authorization: `Bearer ${idToken}`,
         },
       });
+
+      if (!response.ok) {
+        console.error(
+          "Error from getPersonalizedMainFeed API is not okay: \n",
+          await response.text()
+        );
+      }
+
+      const result = await response.json();
+      const postItemDatas = result.postItemDatas as PostItemDataV2[];
+
+      setPostDatasInServer(postItemDatas);
+      setPostStatus({ loading: false });
+
+      return true;
     } catch (error) {
-      return console.error(
-        `Error while fetching 'getFeed'-API for ${currentUserState.username} user.`,
+      console.error(
+        "Error while fetching to getPersonalizedMainFeed API: \n",
         error
       );
+      return false;
     }
-
-    if (!response.ok) {
-      return console.error(
-        `Error from 'getFeedAPI' for ${currentUserState.username} user.`,
-        await response.text()
-      );
-    }
-
-    const postsFromServer: PostItemDataV2[] = (await response.json())
-      .postItemDatas;
-
-    const organizedPosts: PostItemDataV2[] = postsFromServer; //organizePosts(postsFromServer);
-
-    setPostDatasInServer(organizedPosts);
-    setPostStatus({ loading: false });
   };
 
   const handleAnonymousMainFeed = async () => {
