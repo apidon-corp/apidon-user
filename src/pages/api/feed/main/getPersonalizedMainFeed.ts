@@ -150,7 +150,9 @@ async function createPostItemData(
       commentCount: postDocData.commentCount,
       comments: postDocData.comments,
       creationTime: postDocData.creationTime,
-      currentUserFollowThisSender: followings.includes(username),
+      currentUserFollowThisSender: followings.includes(
+        postDocData.senderUsername
+      ),
       currentUserLikedThisPost: postDocData.likes
         .map((l) => l.sender)
         .includes(username),
