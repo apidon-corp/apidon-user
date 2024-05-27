@@ -159,6 +159,7 @@ async function sendPostForClassification(
           authorization: `${process.env.API_KEY_BETWEEN_SERVICES}`,
         },
         body: JSON.stringify({ ...bodyContent }),
+        keepalive: true,
       }
     );
     if (!response.ok) {
@@ -225,7 +226,7 @@ export default async function handler(
   )
     return res.status(500).send("Internal Server Error");
 
-  await sendPostForClassification(
+  sendPostForClassification(
     username,
     postServerData.image,
     `/users/${username}/posts/${postServerData.id}`,
