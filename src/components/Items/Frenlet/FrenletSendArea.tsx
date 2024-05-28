@@ -107,13 +107,15 @@ export default function FrenletSendArea({
       borderRadius="10px"
       p="2em"
       gap="1em"
+      mt="2em"
     >
       <Flex
         id="top-images-flex"
         width="100%"
         align="center"
-        justify="center"
-        gap="2em"
+        justify="space-between"
+        px="1"
+
       >
         <Flex
           id="sender-flex"
