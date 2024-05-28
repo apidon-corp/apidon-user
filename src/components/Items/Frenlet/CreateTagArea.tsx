@@ -39,7 +39,7 @@ export const CreateTagArea = ({ setTagsFinalLayer }: Props) => {
     setLoading(true);
 
     try {
-      const idToken = await currentUserAuthObject.getIdToken(true);
+      const idToken = await currentUserAuthObject.getIdToken();
       const response = await fetch("/api/frenlet/createTag", {
         method: "POST",
         headers: {

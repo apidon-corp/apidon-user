@@ -66,7 +66,7 @@ export default function Replet({
     if (currentUserAuthObject === null) return;
 
     try {
-      const idToken = await currentUserAuthObject.getIdToken(true);
+      const idToken = await currentUserAuthObject.getIdToken();
       const response = await fetch("/api/frenlet/getPersonData", {
         method: "POST",
         headers: {
@@ -111,7 +111,7 @@ export default function Replet({
     };
 
     try {
-      const idToken = await currentUserAuthObject.getIdToken(true);
+      const idToken = await currentUserAuthObject.getIdToken();
 
       const response = await fetch("/api/frenlet/deleteReplet", {
         method: "POST",
@@ -185,7 +185,7 @@ export default function Replet({
                   as={IconButton}
                   icon={<SlOptionsVertical />}
                   color="white"
-                  bg="black"
+                  bg="#1A1A1A"
                   _hover={{ bg: "gray.900" }}
                   _focus={{ bg: "black" }}
                   _active={{ bg: "black" }}

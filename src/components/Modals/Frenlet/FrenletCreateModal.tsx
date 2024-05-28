@@ -68,7 +68,7 @@ export default function FrenletCreateModal() {
         return [];
       }
 
-      const idToken = await currentUserAuthObject.getIdToken(true);
+      const idToken = await currentUserAuthObject.getIdToken();
 
       const response = await fetch("/api/frenlet/getFrenOptions", {
         method: "POST",
@@ -132,7 +132,7 @@ export default function FrenletCreateModal() {
     }
 
     try {
-      const idToken = await currentUserAuthObject.getIdToken(true);
+      const idToken = await currentUserAuthObject.getIdToken();
 
       const response = await fetch("/api/frenlet/createFrenlet", {
         method: "POST",

@@ -1,7 +1,13 @@
 import { FrenletServerData } from "@/components/types/Frenlet";
 import { PostItemDataV2 } from "@/components/types/Post";
 import { UserInServer } from "@/components/types/User";
-import { Tab, TabList, TabPanel, TabPanels, Tabs } from "@chakra-ui/react";
+import {
+  Tab,
+  TabList,
+  TabPanel,
+  TabPanels,
+  Tabs
+} from "@chakra-ui/react";
 import Frenlets from "./Frenlets";
 import Posts from "./Posts";
 
@@ -20,7 +26,7 @@ export default function Content({
 }: Props) {
   return (
     <Tabs isFitted variant="solid-rounded">
-      <TabList px="1.5em">
+      <TabList px="1.5em" overflow="auto">
         <Tab color="white">Frenlets</Tab>
         <Tab color="white">Posts</Tab>
       </TabList>

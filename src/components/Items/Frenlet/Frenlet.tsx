@@ -88,7 +88,7 @@ export default function Frenlet({ frenletData }: FrenletProps) {
     }
 
     try {
-      const idToken = await currentUserAuthObject.getIdToken(true);
+      const idToken = await currentUserAuthObject.getIdToken();
 
       const response = await fetch("/api/frenlet/getPersonData", {
         method: "POST",
@@ -148,7 +148,7 @@ export default function Frenlet({ frenletData }: FrenletProps) {
       return setCanReply(true);
 
     try {
-      const idToken = await authObject.getIdToken(true);
+      const idToken = await authObject.getIdToken();
 
       const response = await fetch("/api/frenlet/getFrenOptions", {
         method: "POST",
@@ -206,7 +206,7 @@ export default function Frenlet({ frenletData }: FrenletProps) {
     setSendingReply(true);
 
     try {
-      const idToken = await authObject.getIdToken(true);
+      const idToken = await authObject.getIdToken();
 
       const response = await fetch("/api/frenlet/sendReply", {
         method: "POST",
@@ -259,7 +259,7 @@ export default function Frenlet({ frenletData }: FrenletProps) {
     clearInterval(intervalRef.current);
 
     try {
-      const idToken = await currentUserAuthObject.getIdToken(true);
+      const idToken = await currentUserAuthObject.getIdToken();
 
       const response = await fetch("/api/frenlet/getRealtimeUpdates", {
         method: "POST",
@@ -323,7 +323,7 @@ export default function Frenlet({ frenletData }: FrenletProps) {
     setFrenletDeleteLoading(true);
 
     try {
-      const idToken = await currentUserAuthObject.getIdToken(true);
+      const idToken = await currentUserAuthObject.getIdToken();
 
       const response = await fetch("/api/frenlet/deleteFrenlet", {
         method: "POST",
@@ -361,22 +361,25 @@ export default function Frenlet({ frenletData }: FrenletProps) {
           align="center"
           justify="center"
           direction="column"
-          gap="2em"
-          border="1px solid white"
+          gap="1em"
           borderRadius="20px"
-          px="10"
-          pt="10"
-          pb="5"
+          pb="2"
           ref={containerRef}
+          bg="#1A1A1A"
         >
           {canChangeOptions && (
-            <Flex id="options-icon-flex" width="100%" justify="end">
+            <Flex
+              id="options-icon-flex"
+              width="100%"
+              justify="end"
+              height="1px"
+            >
               <Menu computePositionOnMount isLazy>
                 <MenuButton
                   as={IconButton}
                   icon={<SlOptionsVertical />}
                   color="white"
-                  bg="black"
+                  bg="#1A1A1A"
                   _hover={{ bg: "gray.900" }}
                   _focus={{ bg: "black" }}
                   _active={{ bg: "black" }}
@@ -431,69 +434,33 @@ export default function Frenlet({ frenletData }: FrenletProps) {
           )}
 
           <Flex
-            id="top-images-flex"
-            width="100%"
+            id="sender-flex"
             align="center"
             justify="center"
-            gap="2em"
+            direction="column"
+            gap="0.25em"
+            width="100%"
           >
-            <Flex
-              id="sender-flex"
-              align="center"
-              justify="center"
-              direction="column"
-              gap="10px"
-              onClick={() => {
-                router.push(`/${senderData?.username}`);
-              }}
-              cursor="pointer"
-            >
-              {senderData?.profilePhoto ? (
-                <Image
-                  id="sender-pp"
-                  src={senderData.profilePhoto}
-                  width="5em"
-                  height="5em"
-                  rounded="full"
-                />
-              ) : (
-                <SkeletonCircle width="5em" height="5em" />
-              )}
-              <Text color="white" fontSize="12pt" fontWeight="700">
-                {frenletData.frenletSender}
-              </Text>
-            </Flex>
-
-            <Icon as={FaLongArrowAltRight} color="gray" fontSize="3em" />
-
-            <Flex
-              id="receiver-flex"
-              align="center"
-              justify="center"
-              direction="column"
-              gap="10px"
-              onClick={() => {
-                router.push(`/${receiverData?.username}`);
-              }}
-              cursor="pointer"
-            >
-              {receiverData?.profilePhoto ? (
-                <Image
-                  id="sender-pp"
-                  src={receiverData.profilePhoto}
-                  width="5em"
-                  height="5em"
-                  rounded="full"
-                />
-              ) : (
-                <SkeletonCircle width="5em" height="5em" />
-              )}
-
-              <Text color="white" fontSize="12pt" fontWeight="700">
-                {frenletData.frenletReceiver}
-              </Text>
-            </Flex>
+            {senderData?.profilePhoto ? (
+              <Image
+                id="sender-pp"
+                src={senderData.profilePhoto}
+                width="5em"
+                height="5em"
+                rounded="full"
+                onClick={() => {
+                  router.push(`/${senderData?.username}`);
+                }}
+                cursor="pointer"
+              />
+            ) : (
+              <SkeletonCircle width="5em" height="5em" />
+            )}
+            <Text color="white" fontSize="12pt" fontWeight="700">
+              {frenletData.frenletSender}
+            </Text>
           </Flex>
+
           <Flex
             id="message-flex"
             width="100%"
@@ -502,7 +469,12 @@ export default function Frenlet({ frenletData }: FrenletProps) {
             direction="column"
             gap="0.3em"
           >
-            <Text color="white" fontSize="15pt" fontWeight="700">
+            <Text
+              color="white"
+              fontSize="14pt"
+              fontWeight="700"
+              textAlign="center"
+            >
               &quot;{frenletData.message}&quot;
             </Text>
             <Text color="gray.500" fontSize="8pt" fontWeight="400">
@@ -510,31 +482,32 @@ export default function Frenlet({ frenletData }: FrenletProps) {
             </Text>
           </Flex>
           {frenletDataFinalLayer.replies.length !== 0 && (
-            <Flex
-              id="replies-flex"
-              width="100%"
-              direction="column"
-              gap="1em"
-              maxHeight="20em"
-              overflow="auto"
-              borderWidth="1px"
-              borderColor="gray.700"
-              borderRadius="10px"
-              p="1em"
-            >
-              {frenletDataFinalLayer.replies.map((reply) => (
-                <Replet
-                  message={reply.message}
-                  ts={reply.ts}
-                  username={reply.sender}
-                  frenletOwners={[
-                    frenletData.frenletSender,
-                    frenletData.frenletReceiver,
-                  ]}
-                  frenletDocPath={`/users/${frenletData.frenletSender}/frenlets/frenlets/outgoing/${frenletData.frenletDocId}`}
-                  key={`${reply.sender}-${reply.ts}`}
-                />
-              ))}
+            <Flex width="100%" px="0.5em">
+              <Flex
+                id="replies-flex"
+                width="100%"
+                direction="column"
+                gap="1em"
+                maxHeight="20em"
+                overflow="auto"
+                borderWidth="1px"
+                borderColor="gray.700"
+                borderRadius="10px"
+              >
+                {frenletDataFinalLayer.replies.map((reply) => (
+                  <Replet
+                    message={reply.message}
+                    ts={reply.ts}
+                    username={reply.sender}
+                    frenletOwners={[
+                      frenletData.frenletSender,
+                      frenletData.frenletReceiver,
+                    ]}
+                    frenletDocPath={`/users/${frenletData.frenletSender}/frenlets/frenlets/outgoing/${frenletData.frenletDocId}`}
+                    key={`${reply.sender}-${reply.ts}`}
+                  />
+                ))}
+              </Flex>
             </Flex>
           )}
 
@@ -544,7 +517,9 @@ export default function Frenlet({ frenletData }: FrenletProps) {
               width="100%"
               align="center"
               justify="center"
-              gap="5px"
+              gap="10px"
+              px="0.3em"
+              direction="column"
             >
               <Input
                 ref={replyInputRef}

@@ -1,12 +1,12 @@
 import { Stack } from "@chakra-ui/react";
 import { useEffect } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
-import { postsAtViewAtom } from "../atoms/postsAtViewAtom";
-import { postsStatusAtom } from "../atoms/postsStatusAtom";
 import PostItem from "../Items/Post/PostItem";
 import PostSkeleton from "../Skeletons/PostSkeleton";
+import { postsAtViewAtom } from "../atoms/postsAtViewAtom";
+import { postsStatusAtom } from "../atoms/postsStatusAtom";
 
-import { PostItemData, PostItemDataV2 } from "../types/Post";
+import { PostItemDataV2 } from "../types/Post";
 
 type Props = {
   postsItemDatas: PostItemDataV2[];

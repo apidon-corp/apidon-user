@@ -20,7 +20,7 @@ export const LikeItem = ({ username }: Props) => {
     if (!currentUserAuthObject) return;
 
     try {
-      const idToken = await currentUserAuthObject.getIdToken(true);
+      const idToken = await currentUserAuthObject.getIdToken();
 
       const response = await fetch("/api/frenlet/getPersonData", {
         method: "POST",

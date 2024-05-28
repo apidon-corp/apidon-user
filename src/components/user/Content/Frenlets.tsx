@@ -6,6 +6,7 @@ import { UserInServer } from "@/components/types/User";
 import { auth } from "@/firebase/clientApp";
 import {
   Flex,
+  Image,
   Tab,
   TabList,
   TabPanel,
@@ -64,7 +65,7 @@ export default function Frenlets({
     if (!displayName) return setCanSendFrenlet(false);
 
     try {
-      const idToken = await currentUserAuthObject.getIdToken(true);
+      const idToken = await currentUserAuthObject.getIdToken();
       const response = await fetch("/api/frenlet/getFrenOptions", {
         method: "POST",
         headers: {
@@ -121,7 +122,7 @@ export default function Frenlets({
       colorScheme="yellow"
       key={userInformation.username}
     >
-      <TabList px="1em">
+      <TabList px="1em" overflow="auto">
         {tagsFinalLayer.map((tag) => (
           <Tab color="white" key={tag}>
             {tag}
@@ -133,7 +134,7 @@ export default function Frenlets({
       </TabList>
       <TabPanels>
         {tagsFinalLayer.map((tag) => (
-          <TabPanel key={tag}>
+          <TabPanel key={tag} p={0}>
             {canSendFrenlet && (
               <FrenletSendArea
                 frenProfilePhoto={userInformation.profilePhoto}
@@ -143,13 +144,7 @@ export default function Frenlets({
               />
             )}
 
-            <Flex
-              justify="center"
-              width="100%"
-              direction="column"
-              gap="2em"
-              mt="1em"
-            >
+            <Flex width="100%" direction="column" gap="2em" mt="1em">
               {frenletServerDataFinalLayer
                 .filter((frenletServerData) => frenletServerData.tag === tag)
                 .sort((a, b) => b.ts - a.ts)
