@@ -41,7 +41,6 @@ import { IoMdLink } from "react-icons/io";
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import { authModalStateAtom } from "../atoms/authModalAtom";
 import { currentUserStateAtom } from "../atoms/currentUserAtom";
-import { postsAtViewAtom } from "../atoms/postsAtViewAtom";
 import { OpenPanelName, PostFrontData } from "../types/Post";
 import { auth } from "@/firebase/clientApp";
 
@@ -76,8 +75,6 @@ export default function PostFront({
   const [showDeletePostDialog, setShowDeletePostDialog] = useState(false);
 
   const [followOperationLoading, setFollowOperationLoading] = useState(false);
-
-  const [postsAtView, setPostsAtView] = useRecoilState(postsAtViewAtom);
 
   const [taggedDescription, setTaggedDescription] = useState<
     {
@@ -156,52 +153,9 @@ export default function PostFront({
 
     setFollowOperationLoading(true);
 
-    // update other posts to prevent unnecessary follow requests
-    let updatedPostsAtView = postsAtView.map((a) => {
-      if (
-        a.senderUsername === postFrontData.senderUsername &&
-        a.postDocId !== postFrontData.postDocId
-      ) {
-        const updatedPost = { ...a };
-        updatedPost.currentUserFollowThisSender = true;
-        return updatedPost;
-      } else {
-        return a;
-      }
-    });
-
-    setPostsAtView(updatedPostsAtView);
-
     // Follow
     const operationResult = await follow(postFrontData.senderUsername, 1);
-
-    if (!operationResult) {
-      console.log("there is issue in here. We are reverting");
-      const revertedPostsAtView = updatedPostsAtView.map((a) => {
-        if (a.senderUsername === postFrontData.senderUsername) {
-          const updatedPost = { ...a };
-          updatedPost.currentUserFollowThisSender = false;
-          return updatedPost;
-        } else {
-          return a;
-        }
-      });
-      setPostsAtView(revertedPostsAtView);
-      return setFollowOperationLoading(false);
-    }
-
-    // update current post
-    const finalUpdatedPostsAtView = updatedPostsAtView.map((a) => {
-      if (a.postDocId === postFrontData.postDocId) {
-        const updatedPost = { ...a };
-        updatedPost.currentUserFollowThisSender = true;
-        return updatedPost;
-      } else {
-        return a;
-      }
-    });
-
-    setPostsAtView(finalUpdatedPostsAtView);
+    if (!operationResult) return setFollowOperationLoading(false);
 
     setFollowOperationLoading(false);
   };
@@ -244,22 +198,6 @@ export default function PostFront({
     const displayName = auth.currentUser?.displayName;
     if (!displayName) return;
 
-    const updatedPostsAtView = postsAtView.map((a) => {
-      if (a.postDocId === postFrontData.postDocId) {
-        const updatedPost = { ...a };
-        updatedPost.currentUserLikedThisPost = true;
-        updatedPost.likeCount = a.likeCount + 1;
-        updatedPost.likes = [
-          { sender: displayName, ts: Date.now() },
-          ...a.likes,
-        ];
-        return updatedPost;
-      } else {
-        return a;
-      }
-    });
-    setPostsAtView(updatedPostsAtView);
-
     try {
       const idToken = await currentUserAuthObject.getIdToken();
       const response = await fetch(`/api/postv2/postLike`, {
@@ -270,46 +208,17 @@ export default function PostFront({
         },
         body: JSON.stringify({
           action: "like",
-          postDocPath: `users/${postFrontData.senderUsername}/posts/${postFrontData.postDocId}`,
+          postDocPath: `users/${postFrontData.senderUsername}/posts/${postFrontData.id}`,
         }),
       });
 
       if (!response.ok) {
-        const updatedPostsAtView = postsAtView.map((a) => {
-          if (a.postDocId === postFrontData.postDocId) {
-            const updatedPost = { ...a };
-            updatedPost.currentUserLikedThisPost = false;
-            updatedPost.likeCount = likeCountBeforeOperations;
-            updatedPost.likes = a.likes.filter(
-              (like) => like.sender !== displayName
-            );
-            return updatedPost;
-          } else {
-            return a;
-          }
-        });
-        setPostsAtView(updatedPostsAtView);
-
         return console.error(
           "Response from postLike API is not okay: \n",
           await response.text()
         );
       }
     } catch (error) {
-      const updatedPostsAtView = postsAtView.map((a) => {
-        if (a.postDocId === postFrontData.postDocId) {
-          const updatedPost = { ...a };
-          updatedPost.currentUserLikedThisPost = false;
-          updatedPost.likeCount = likeCountBeforeOperations;
-          updatedPost.likes = a.likes.filter(
-            (like) => like.sender !== displayName
-          );
-          return updatedPost;
-        } else {
-          return a;
-        }
-      });
-      setPostsAtView(updatedPostsAtView);
       return console.error("Error on fetching to postLike API: \n", error);
     }
   };
@@ -329,21 +238,6 @@ export default function PostFront({
     const displayName = auth.currentUser?.displayName;
     if (!displayName) return;
 
-    const updatedPostsAtView = postsAtView.map((a) => {
-      if (a.postDocId === postFrontData.postDocId) {
-        const updatedPost = { ...a };
-        updatedPost.currentUserLikedThisPost = false;
-        updatedPost.likeCount = a.likeCount - 1;
-        updatedPost.likes = a.likes.filter(
-          (like) => like.sender !== displayName
-        );
-        return updatedPost;
-      } else {
-        return a;
-      }
-    });
-    setPostsAtView(updatedPostsAtView);
-
     try {
       const idToken = await currentUserAuthObject.getIdToken();
       const response = await fetch(`/api/postv2/postLike`, {
@@ -354,54 +248,23 @@ export default function PostFront({
         },
         body: JSON.stringify({
           action: "delike",
-          postDocPath: `users/${postFrontData.senderUsername}/posts/${postFrontData.postDocId}`,
+          postDocPath: `users/${postFrontData.senderUsername}/posts/${postFrontData.id}`,
         }),
       });
 
       if (!response.ok) {
-        const updatedPostsAtView = postsAtView.map((a) => {
-          if (a.postDocId === postFrontData.postDocId) {
-            const updatedPost = { ...a };
-            updatedPost.currentUserLikedThisPost = true;
-            updatedPost.likeCount = likeCountBeforeOperations;
-            updatedPost.likes = [
-              { sender: displayName, ts: Date.now() },
-              ...a.likes,
-            ];
-            return updatedPost;
-          } else {
-            return a;
-          }
-        });
-        setPostsAtView(updatedPostsAtView);
-
         return console.error(
           "Response from postLike API is not okay: \n",
           await response.text()
         );
       }
     } catch (error) {
-      const updatedPostsAtView = postsAtView.map((a) => {
-        if (a.postDocId === postFrontData.postDocId) {
-          const updatedPost = { ...a };
-          updatedPost.currentUserLikedThisPost = true;
-          updatedPost.likeCount = likeCountBeforeOperations;
-          updatedPost.likes = [
-            { sender: displayName, ts: Date.now() },
-            ...a.likes,
-          ];
-          return updatedPost;
-        } else {
-          return a;
-        }
-      });
-      setPostsAtView(updatedPostsAtView);
       return console.error("Error on fetching to postLike API: \n", error);
     }
   };
 
   const handlePostDelete = async () => {
-    const operationResult = await postDelete(postFrontData.postDocId);
+    const operationResult = await postDelete(postFrontData.id);
     if (!operationResult) {
       return;
     }
@@ -672,7 +535,7 @@ export default function PostFront({
               cursor="pointer"
               onClick={() => {
                 navigator.clipboard.writeText(
-                  `${process.env.NEXT_PUBLIC_USER_PANEL_BASE_URL}/${postFrontData.senderUsername}/posts/${postFrontData.postDocId}`
+                  `${process.env.NEXT_PUBLIC_USER_PANEL_BASE_URL}/${postFrontData.senderUsername}/posts/${postFrontData.id}`
                 );
                 setLinkCopied(true);
               }}

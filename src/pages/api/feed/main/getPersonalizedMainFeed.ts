@@ -161,7 +161,7 @@ async function createPostItemData(
       likeCount: postDocData.likeCount,
       likes: postDocData.likes,
       nftStatus: postDocData.nftStatus,
-      postDocId: postDocData.id,
+      id: postDocData.id,
       senderUsername: postDocData.senderUsername,
     };
 
@@ -219,23 +219,19 @@ export default async function handler(
   if (!getPostPredictionsFromProviderResult)
     return res.status(500).send("Internal Server Error");
 
-  console.log(getPostPredictionsFromProviderResult.postDocPathArray);
-
-  const createAllPostItemDatasResult = await createAllPostItemDatas(
-    getPostPredictionsFromProviderResult.postDocPathArray,
-    username,
-    followingsOfUser
-  );
-  if (!createAllPostItemDatasResult)
-    return res.status(500).send("Internal Server Error");
-
-  console.log("-------------------------------");
-
-  console.log(
-    createAllPostItemDatasResult.postItemDatas.map((p) => p.postDocId)
-  );
-
   return res.status(200).json({
-    postItemDatas: createAllPostItemDatasResult.postItemDatas,
+    postDocPathArray: getPostPredictionsFromProviderResult.postDocPathArray,
   });
+
+  // const createAllPostItemDatasResult = await createAllPostItemDatas(
+  //   getPostPredictionsFromProviderResult.postDocPathArray,
+  //   username,
+  //   followingsOfUser
+  // );
+  // if (!createAllPostItemDatasResult)
+  //   return res.status(500).send("Internal Server Error");
+
+  // return res.status(200).json({
+  //   postItemDatas: createAllPostItemDatasResult.postItemDatas,
+  // });
 }

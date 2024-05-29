@@ -16,8 +16,9 @@ export default function Home() {
   );
 
   const setAuthModal = useSetRecoilState(authModalStateAtom);
-
   const setPostStatus = useSetRecoilState(postsStatusAtom);
+
+  const [postDocPathArray, setPostDocPathArray] = useState<string[]>([]);
 
   useEffect(() => {
     if (!currentUserState.isThereCurrentUser) {
@@ -30,38 +31,6 @@ export default function Home() {
 
     handlePersonalizedMainFeed();
   }, [currentUserState.isThereCurrentUser, currentUserState.hasProvider]);
-
-  const shufflePosts = (postsDatasArray: PostItemDataV2[]) => {
-    let currentIndex = postsDatasArray.length,
-      randomIndex;
-
-    while (currentIndex !== 0) {
-      randomIndex = Math.floor(Math.random() * currentIndex);
-      currentIndex--;
-      [postsDatasArray[currentIndex], postsDatasArray[randomIndex]] = [
-        postsDatasArray[randomIndex],
-        postsDatasArray[currentIndex],
-      ];
-    }
-
-    postsDatasArray.sort((a, b) => b.creationTime - a.creationTime);
-
-    return postsDatasArray;
-  };
-
-  /**
-   * Shuffles posts.
-   * @param postsDatasArray
-   * @returns shuffled posts
-   */
-  const organizePosts = (postsDatasArray: PostItemDataV2[]) => {
-    const initialPostsDatasArray = [...postsDatasArray];
-
-    // shuffle with Fisher-Yates method
-    const shuffledPostsDatasArray = shufflePosts(initialPostsDatasArray);
-
-    return shuffledPostsDatasArray;
-  };
 
   const handlePersonalizedMainFeed = async () => {
     setPostStatus({ loading: true });
@@ -91,9 +60,14 @@ export default function Home() {
       }
 
       const result = await response.json();
-      const postItemDatas = result.postItemDatas as PostItemDataV2[];
+      // const postItemDatas = result.postItemDatas as PostItemDataV2[];
 
-      setPostDatasInServer(postItemDatas);
+      // setPostDatasInServer(postItemDatas);
+
+      const postDocPathArrayFetched = result.postDocPathArray;
+
+      setPostDocPathArray(postDocPathArrayFetched);
+
       setPostStatus({ loading: false });
 
       return true;
@@ -106,46 +80,10 @@ export default function Home() {
     }
   };
 
-  const handleAnonymousMainFeed = async () => {
-    setPostStatus({ loading: true });
-    let response;
-    try {
-      response = await fetch("/api/feed/main/getAnonymousMainFeed", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          authorization: process.env
-            .NEXT_PUBLIC_ANONYMOUS_ENTERANCE_KEY as string,
-        },
-      });
-    } catch (error) {
-      return console.error(
-        `Error while fetching 'getAnonymousFeed'-API`,
-        error
-      );
-    }
-
-    if (!response.ok) {
-      return console.error(
-        `Error from 'getFeedAPI' for ${currentUserState.username} user.`,
-        await response.text()
-      );
-    }
-
-    const postsFromServer: PostItemDataV2[] = (await response.json())
-      .postItemDatas;
-
-    const organizedPosts: PostItemDataV2[] = organizePosts(postsFromServer);
-
-    setPostDatasInServer(organizedPosts);
-
-    setPostStatus({ loading: false });
-  };
-
   return (
     <>
       {postsDatasInServer && (
-        <MainPageLayout postItemsDatas={postsDatasInServer} />
+        <MainPageLayout postDocPathArray={postDocPathArray} />
       )}
     </>
   );

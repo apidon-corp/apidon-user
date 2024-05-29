@@ -1,5 +1,4 @@
-import { postsAtViewAtom } from "@/components/atoms/postsAtViewAtom";
-
+import useGetFirebase from "@/hooks/readHooks/useGetFirebase";
 import useFollow from "@/hooks/socialHooks/useFollow";
 import {
   Button,
@@ -10,7 +9,6 @@ import {
   SkeletonText,
   Text,
 } from "@chakra-ui/react";
-import { doc, getDoc } from "firebase/firestore";
 import router from "next/router";
 import { SetStateAction, useEffect, useState } from "react";
 import { CgProfile } from "react-icons/cg";
@@ -18,7 +16,6 @@ import { useRecoilState, useSetRecoilState } from "recoil";
 import { authModalStateAtom } from "../../atoms/authModalAtom";
 import { currentUserStateAtom } from "../../atoms/currentUserAtom";
 import { OpenPanelName } from "../../types/Post";
-import useGetFirebase from "@/hooks/readHooks/useGetFirebase";
 
 type Props = {
   likerUsername: string;
@@ -47,8 +44,6 @@ export default function LikeItem({
 
   const [followOperationLoading, setFollowOperationLoading] = useState(false);
 
-  const [postsAtView, setPostsAtView] = useRecoilState(postsAtViewAtom);
-
   const { getDocServer } = useGetFirebase();
 
   useEffect(() => {
@@ -67,35 +62,9 @@ export default function LikeItem({
 
     setFollowOperationLoading(true);
 
-    const updatedPostsAtView = postsAtView.map((a) => {
-      if (a.senderUsername === likerUsername) {
-        const updatedPost = { ...a };
-        updatedPost.currentUserFollowThisSender = true;
-        return updatedPost;
-      } else {
-        return a;
-      }
-    });
-    setPostsAtView(updatedPostsAtView);
-
-    // Follow
     const operationResult = await follow(likerUsername, 1);
+    if (!operationResult) return setFollowOperationLoading(false);
 
-    if (!operationResult) {
-      const updatedPostsAtView = postsAtView.map((a) => {
-        if (a.senderUsername === likerUsername) {
-          const updatedPost = { ...a };
-          updatedPost.currentUserFollowThisSender = false;
-          return updatedPost;
-        } else {
-          return a;
-        }
-      });
-      setPostsAtView(updatedPostsAtView);
-      return setFollowOperationLoading(false);
-    }
-
-    // update follow status
     setLikerUserInformation((prev) => ({
       ...prev,
       followedByCurrentUser: true,

@@ -1,5 +1,4 @@
 import { currentUserStateAtom } from "@/components/atoms/currentUserAtom";
-import { postsAtViewAtom } from "@/components/atoms/postsAtViewAtom";
 import {
   NFTBuyRequestBody,
   NFTMetadata,
@@ -118,8 +117,6 @@ export default function PostNFT({
 
   const nftTransferAddressInputRef = useRef<HTMLInputElement>(null);
 
-  const setPostsAtView = useSetRecoilState(postsAtViewAtom);
-
   const currentUserState = useRecoilValue(currentUserStateAtom);
 
   const [listNftInputState, setListNftInputState] = useState<NftListInput>(
@@ -147,7 +144,7 @@ export default function PostNFT({
     setNftPanelViewState("initialLoading");
 
     const postDocResult = await getDocServer(
-      `/users/${postInformation.senderUsername}/posts/${postInformation.postDocId}`
+      `/users/${postInformation.senderUsername}/posts/${postInformation.id}`
     );
 
     if (!postDocResult || !postDocResult.isExists)
@@ -220,28 +217,13 @@ export default function PostNFT({
     const nftMintResult = await mintNft(
       nftTitle,
       nftDescription,
-      postInformation.postDocId
+      postInformation.id
     );
 
     if (!nftMintResult || !nftMintResult.nftDocPath) {
       console.error("NFT Mint Result is not okay");
       return setNftPanelViewState("initialLoading");
     }
-
-    setPostsAtView((prev) => {
-      return prev.map((p) => {
-        if (p.postDocId === postInformation.postDocId) {
-          const updatedPost = JSON.parse(JSON.stringify(p)) as PostItemDataV2;
-          updatedPost.nftStatus = {
-            convertedToNft: true,
-            nftDocPath: nftMintResult.nftDocPath,
-          };
-          return updatedPost;
-        } else {
-          return p;
-        }
-      });
-    });
 
     // To get updated data from server.
     setNftPanelViewState("initialLoading");
@@ -250,7 +232,7 @@ export default function PostNFT({
   const handleUpdateNftButon = async () => {
     setNftPanelViewState("updating");
 
-    const updateNftResult = await refreshNFT(postInformation.postDocId);
+    const updateNftResult = await refreshNFT(postInformation.id);
 
     if (!updateNftResult) {
       console.error("Update Nft Result is not okay.");
@@ -276,26 +258,13 @@ export default function PostNFT({
     }
 
     const operationResult = await transferNft(
-      postInformation.postDocId,
+      postInformation.id,
       nftTransferAddress
     );
 
     if (!operationResult) {
       return setNftPanelViewState("transfer");
     }
-
-    setPostsAtView((prev) => {
-      return prev.map((p) => {
-        if (p.postDocId === postInformation.postDocId) {
-          const updatedPost = JSON.parse(JSON.stringify(p));
-          updatedPost.nftStatus.transferred = true;
-          updatedPost.nftStatus.transferredAddress = nftTransferAddress;
-          return updatedPost;
-        } else {
-          return p;
-        }
-      });
-    });
 
     setNftPanelViewState("initialLoading");
   };
@@ -348,7 +317,7 @@ export default function PostNFT({
 
     const operationResult = await listNft({
       currency: "dollar",
-      postDocId: postInformation.postDocId,
+      postDocId: postInformation.id,
       price: listNftInputState.price,
     });
 
@@ -369,7 +338,7 @@ export default function PostNFT({
     setNftPanelViewState("buying");
 
     const nftBuyRequestBody: NFTBuyRequestBody = {
-      postDocPath: `/users/${postInformation.senderUsername}/posts/${postInformation.postDocId}`,
+      postDocPath: `/users/${postInformation.senderUsername}/posts/${postInformation.id}`,
     };
     const operationResult = await buyNft(nftBuyRequestBody);
 

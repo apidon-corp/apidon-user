@@ -21,16 +21,12 @@ type Props = {
   commentData: CommentDataV2;
   postDocPath: string;
   openPanelNameSetter: React.Dispatch<SetStateAction<OpenPanelName>>;
-  commentCountSetter: React.Dispatch<SetStateAction<number>>;
-  setCommentsDataFinalLayer: React.Dispatch<SetStateAction<CommentDataV2[]>>;
 };
 
 export default function CommentItem({
   commentData,
   postDocPath,
   openPanelNameSetter,
-  commentCountSetter,
-  setCommentsDataFinalLayer,
 }: Props) {
   const [commentSenderPhoto, setCommentSenderPhoto] = useState("");
   const [gettingCommentSenderPhoto, setGettingCommentSenderPhoto] =
@@ -75,17 +71,6 @@ export default function CommentItem({
       return setCommentDeleteLoading(false);
     }
 
-    setCommentsDataFinalLayer((prev) =>
-      prev.filter(
-        (comment) =>
-          !(
-            comment.message === commentData.message &&
-            comment.sender === commentData.sender &&
-            comment.ts === commentData.ts
-          )
-      )
-    );
-    commentCountSetter((prev) => prev - 1);
     setCommentDeleteLoading(false);
   };
 

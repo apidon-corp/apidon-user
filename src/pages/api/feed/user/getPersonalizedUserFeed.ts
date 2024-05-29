@@ -81,7 +81,7 @@ const handleCreatePostItemData = async (
     commentCount: postDoc.data().commentCount,
     comments: postDoc.data().comments,
 
-    postDocId: postDoc.id,
+    id: postDoc.id,
 
     nftStatus: postDoc.data().nftStatus,
 

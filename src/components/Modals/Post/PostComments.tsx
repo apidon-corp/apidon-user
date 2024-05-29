@@ -14,7 +14,7 @@ import {
   Stack,
   Text,
 } from "@chakra-ui/react";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import { AiOutlineClose, AiOutlineSend } from "react-icons/ai";
 import { CgProfile } from "react-icons/cg";
 import { useRecoilValue } from "recoil";
@@ -25,10 +25,8 @@ import { CommentDataV2, OpenPanelName } from "../../types/Post";
 type Props = {
   commentDatas: CommentDataV2[];
   postDocPath: string;
-
   openPanelNameValue: OpenPanelName;
   openPanelNameSetter: React.Dispatch<React.SetStateAction<OpenPanelName>>;
-  commentCountSetter: React.Dispatch<React.SetStateAction<number>>;
 };
 
 export default function PostComments({
@@ -36,12 +34,7 @@ export default function PostComments({
   postDocPath,
   openPanelNameSetter,
   openPanelNameValue,
-  commentCountSetter,
 }: Props) {
-  const [commentsDataFinalLayer, setCommentsDataFinalLayer] = useState<
-    CommentDataV2[]
-  >([]);
-
   const { sendComment } = useSendComment();
 
   const commentInputRef = useRef<HTMLInputElement>(null);
@@ -49,10 +42,6 @@ export default function PostComments({
   const currentUserState = useRecoilValue(currentUserStateAtom);
 
   const [commentSendLoading, setCommentSendLoading] = useState(false);
-
-  useEffect(() => {
-    setCommentsDataFinalLayer(commentDatas);
-  }, [commentDatas]);
 
   const handleSendComment = async () => {
     if (!commentInputRef.current) return;
@@ -70,9 +59,6 @@ export default function PostComments({
 
     const createdCommentObject = await sendComment(postDocPath, currentComment);
     if (!createdCommentObject) return setCommentSendLoading(false);
-
-    setCommentsDataFinalLayer((prev) => [createdCommentObject, ...prev]);
-    commentCountSetter((prev) => prev + 1);
 
     if (commentInputRef.current) commentInputRef.current.value = "";
     return setCommentSendLoading(false);
@@ -123,14 +109,12 @@ export default function PostComments({
 
         <ModalBody>
           <Stack gap={3}>
-            {commentsDataFinalLayer.map((commentData, i) => (
+            {commentDatas.map((commentData, i) => (
               <CommentItem
                 key={`${commentData.sender}-${commentData.message}-${commentData.ts}`}
                 postDocPath={postDocPath}
                 commentData={commentData}
                 openPanelNameSetter={openPanelNameSetter}
-                commentCountSetter={commentCountSetter}
-                setCommentsDataFinalLayer={setCommentsDataFinalLayer}
               />
             ))}
           </Stack>
@@ -138,7 +122,7 @@ export default function PostComments({
           <Text
             fontSize="10pt"
             textColor="white"
-            hidden={commentsDataFinalLayer.length !== 0}
+            hidden={commentDatas.length !== 0}
           >
             No comments yet.
           </Text>

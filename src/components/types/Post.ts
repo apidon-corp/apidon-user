@@ -83,7 +83,7 @@ export type PostItemDataV2 = {
   commentCount: number;
   comments: CommentDataV2[];
 
-  postDocId: string;
+  id: string;
 
   nftStatus: {
     convertedToNft: boolean;
@@ -108,7 +108,7 @@ export type PostFrontData = {
   currentUserLikedThisPost: boolean;
   commentCount: number;
 
-  postDocId: string;
+  id: string;
 
   nftStatus: {
     convertedToNft: boolean;

@@ -1,15 +1,9 @@
 import { currentUserStateAtom } from "@/components/atoms/currentUserAtom";
-import { postsAtViewAtom } from "@/components/atoms/postsAtViewAtom";
-import {
-  PostCreateForm,
-  PostItemData,
-  PostItemDataV2,
-  PostServerDataV2,
-} from "@/components/types/Post";
+import { PostCreateForm, PostServerDataV2 } from "@/components/types/Post";
 import { auth } from "@/firebase/clientApp";
 import { useRouter } from "next/router";
 import { useState } from "react";
-import { useRecoilValue, useSetRecoilState } from "recoil";
+import { useRecoilValue } from "recoil";
 
 const usePostCreate = () => {
   const [willBeCroppedPostPhoto, setWillBeCroppedPostPhoto] = useState("");
@@ -17,8 +11,6 @@ const usePostCreate = () => {
   const currentUserstate = useRecoilValue(currentUserStateAtom);
 
   const router = useRouter();
-
-  const setPostsAtView = useSetRecoilState(postsAtViewAtom);
 
   const onSelectWillBeCroppedPhoto = (
     event: React.ChangeEvent<HTMLInputElement>
@@ -96,26 +88,27 @@ const usePostCreate = () => {
     }
 
     const result = await response.json();
+    
     const newPostServerData: PostServerDataV2 = result.newPostData;
     const newPostDocId: string = result.newPostDocId;
 
-    if (router.asPath === `/${currentUserstate.username}`) {
-      const newPostData: PostItemDataV2 = {
-        ...newPostServerData,
-        currentUserLikedThisPost: false,
-        postDocId: newPostDocId,
-        currentUserFollowThisSender: false,
-      };
-      setPostsAtView((prev) => [newPostData, ...prev]);
-    } else if (router.asPath === "/") {
-      const newPostData: PostItemDataV2 = {
-        ...newPostServerData,
-        currentUserLikedThisPost: false,
-        postDocId: newPostDocId,
-        currentUserFollowThisSender: false,
-      };
-      setPostsAtView((prev) => [newPostData, ...prev]);
-    }
+    // if (router.asPath === `/${currentUserstate.username}`) {
+    //   const newPostData: PostItemDataV2 = {
+    //     ...newPostServerData,
+    //     currentUserLikedThisPost: false,
+    //     id: newPostDocId,
+    //     currentUserFollowThisSender: false,
+    //   };
+    //   setPostsAtView((prev) => [newPostData, ...prev]);
+    // } else if (router.asPath === "/") {
+    //   const newPostData: PostItemDataV2 = {
+    //     ...newPostServerData,
+    //     currentUserLikedThisPost: false,
+    //     id: newPostDocId,
+    //     currentUserFollowThisSender: false,
+    //   };
+    //   setPostsAtView((prev) => [newPostData, ...prev]);
+    // }
     setPostUploadUpdating(false);
     return true;
   };

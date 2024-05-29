@@ -7,6 +7,7 @@ import {
   initializeAppCheck,
   ReCaptchaEnterpriseProvider,
 } from "firebase/app-check";
+import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -21,6 +22,7 @@ const firebaseConfig = {
 // Initialize Firebase for Server Side Rendering
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const auth = getAuth(app);
+const firestore = getFirestore(app)
 
 let appCheck: AppCheck;
 if (typeof window !== "undefined") {
@@ -34,4 +36,4 @@ if (typeof window !== "undefined") {
   });
 }
 
-export { auth, appCheck };
+export { auth, appCheck, firestore };
