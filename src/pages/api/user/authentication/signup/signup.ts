@@ -1,4 +1,8 @@
-import { PersonalDataInServer, UserInServer } from "@/components/types/User";
+import {
+  NotificationDocData,
+  PersonalDataInServer,
+  UserInServer,
+} from "@/components/types/User";
 import { auth, firestore, appCheck } from "@/firebase/adminApp";
 import { NextApiRequest, NextApiResponse } from "next";
 
@@ -258,6 +262,21 @@ export default async function handler(
     };
     batch.set(firestore.doc(`users/${username}/nftTrade/nftTrade`), {
       ...nftTradeData,
+    });
+
+    // Creating "frenlets" doc to "frenlets" collection and add "tags" array in it.
+    batch.set(firestore.doc(`/users/${username}/frenlets/frenlets`), {
+      tags: ["general"],
+    });
+
+    // Creating "notifications" doc to "notifications/notifications" doc and new data in it.
+    const notificationsDocData: NotificationDocData = {
+      lastOpenedTime: Date.now(),
+      notifications: [],
+    };
+
+    batch.set(firestore.doc(`/users/${username}/notifications/notifications`), {
+      ...notificationsDocData,
     });
 
     // Commiting and pushing changes :)
