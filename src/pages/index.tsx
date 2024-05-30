@@ -1,8 +1,6 @@
 import { authModalStateAtom } from "@/components/atoms/authModalAtom";
 import { currentUserStateAtom } from "@/components/atoms/currentUserAtom";
-import { postsStatusAtom } from "@/components/atoms/postsStatusAtom";
 import MainPageLayout from "@/components/Layout/MainPageLayout";
-import { PostItemDataV2 } from "@/components/types/Post";
 import { IPagePreviewData } from "@/components/types/User";
 import { auth } from "@/firebase/clientApp";
 import { GetServerSidePropsContext } from "next";
@@ -11,12 +9,8 @@ import { useRecoilValue, useSetRecoilState } from "recoil";
 
 export default function Home() {
   const currentUserState = useRecoilValue(currentUserStateAtom);
-  const [postsDatasInServer, setPostDatasInServer] = useState<PostItemDataV2[]>(
-    []
-  );
 
   const setAuthModal = useSetRecoilState(authModalStateAtom);
-  const setPostStatus = useSetRecoilState(postsStatusAtom);
 
   const [postDocPathArray, setPostDocPathArray] = useState<string[]>([]);
 
@@ -33,8 +27,6 @@ export default function Home() {
   }, [currentUserState.isThereCurrentUser, currentUserState.hasProvider]);
 
   const handlePersonalizedMainFeed = async () => {
-    setPostStatus({ loading: true });
-
     const currentUserAuthObject = auth.currentUser;
     if (!currentUserAuthObject) {
       console.error("Current user is null");
@@ -60,15 +52,10 @@ export default function Home() {
       }
 
       const result = await response.json();
-      // const postItemDatas = result.postItemDatas as PostItemDataV2[];
-
-      // setPostDatasInServer(postItemDatas);
 
       const postDocPathArrayFetched = result.postDocPathArray;
 
       setPostDocPathArray(postDocPathArrayFetched);
-
-      setPostStatus({ loading: false });
 
       return true;
     } catch (error) {
@@ -82,9 +69,7 @@ export default function Home() {
 
   return (
     <>
-      {postsDatasInServer && (
-        <MainPageLayout postDocPathArray={postDocPathArray} />
-      )}
+      <MainPageLayout postDocPathArray={postDocPathArray} />
     </>
   );
 }

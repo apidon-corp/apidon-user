@@ -1,14 +1,13 @@
 import { Flex } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
-import { useRecoilState } from "recoil";
-import PostItem from "../Items/Post/PostItem";
 
-import { PostItemDataV2 } from "../types/Post";
+import PostItem from "../Items/Post/PostItem";
+import { PostServerDataV2 } from "../types/Post";
 
 type Props = {
-  postInformation: PostItemDataV2;
+  postDocServerData: PostServerDataV2;
 };
-export default function PostPageLayout({ postInformation }: Props) {
+export default function PostPageLayout({ postDocServerData }: Props) {
   const [innerHeight, setInnerHeight] = useState("");
 
   useEffect(() => {
@@ -42,7 +41,7 @@ export default function PostPageLayout({ postInformation }: Props) {
           minHeight={innerHeight}
           pt={10}
         >
-          <PostItem postItemData={postInformation} />
+          <PostItem postServerData={postDocServerData} />
         </Flex>
 
         <Flex

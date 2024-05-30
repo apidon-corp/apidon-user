@@ -1,11 +1,10 @@
 import { Flex } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import Posts from "../Post/Posts";
-import { PostItemDataV2 } from "../types/Post";
 
 type Props = {
   //postItemsDatas: PostItemDataV2[];
-  postDocPathArray : string[]
+  postDocPathArray: string[];
 };
 
 /**

@@ -20,15 +20,9 @@ type Props = {
   likeCount: number;
   likes: FrenletServerData["likes"];
   frenletDocPath: string;
-  handleGetRealtimeUpdates: () => Promise<false | void>;
 };
 
-export default function LikeArea({
-  likeCount,
-  likes,
-  frenletDocPath,
-  handleGetRealtimeUpdates,
-}: Props) {
+export default function LikeArea({ likeCount, likes, frenletDocPath }: Props) {
   const [likedByThisUser, setLikedByThisUser] = useState(false);
   const [likesPanelOpen, setLikesPanelOpen] = useState(false);
 
@@ -84,7 +78,7 @@ export default function LikeArea({
       }
 
       // Everything is alright.
-      return await handleGetRealtimeUpdates();
+      return;
     } catch (error) {
       console.error("Error on fetching to sendLike API: \n", error);
       return setLikedByThisUser(false);
@@ -123,7 +117,7 @@ export default function LikeArea({
       }
 
       // Everything is alright.
-      return await handleGetRealtimeUpdates();
+      return;
     } catch (error) {
       console.error("Error on fetching to sendLike API: \n", error);
       return setLikedByThisUser(true);

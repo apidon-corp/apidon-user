@@ -1,5 +1,4 @@
 import getDisplayName from "@/apiUtils";
-import { PostItemDataV2, PostServerDataV2 } from "@/components/types/Post";
 import { CurrentProvider } from "@/components/types/User";
 import { firestore } from "@/firebase/adminApp";
 import { NextApiRequest, NextApiResponse } from "next";
@@ -124,71 +123,6 @@ async function getPostPredictionsFromProvider(
       "Error while getting post predictions from provider: ",
       error
     );
-    return false;
-  }
-}
-
-async function createPostItemData(
-  postDocPath: string,
-  username: string,
-  followings: string[]
-) {
-  try {
-    const postDocSnapshot = await firestore.doc(postDocPath).get();
-    if (!postDocSnapshot.exists) {
-      console.error("Post does not exist.");
-      return false;
-    }
-
-    const postDocData = postDocSnapshot.data() as PostServerDataV2;
-    if (postDocData === undefined) {
-      console.error("Post doc data is undefined.");
-      return false;
-    }
-
-    const postItemData: PostItemDataV2 = {
-      commentCount: postDocData.commentCount,
-      comments: postDocData.comments,
-      creationTime: postDocData.creationTime,
-      currentUserFollowThisSender: followings.includes(
-        postDocData.senderUsername
-      ),
-      currentUserLikedThisPost: postDocData.likes
-        .map((l) => l.sender)
-        .includes(username),
-      description: postDocData.description,
-      image: postDocData.image,
-      likeCount: postDocData.likeCount,
-      likes: postDocData.likes,
-      nftStatus: postDocData.nftStatus,
-      id: postDocData.id,
-      senderUsername: postDocData.senderUsername,
-    };
-
-    return postItemData;
-  } catch (error) {
-    console.error("Error while creating post item data: ", error);
-    return false;
-  }
-}
-
-async function createAllPostItemDatas(
-  postDocPaths: string[],
-  username: string,
-  followings: string[]
-) {
-  try {
-    const postItemDatas = await Promise.all(
-      postDocPaths.map((p) => createPostItemData(p, username, followings))
-    );
-    const postItemDatasFiltered = postItemDatas.filter(
-      (p) => p !== false
-    ) as PostItemDataV2[];
-    return {
-      postItemDatas: postItemDatasFiltered,
-    };
-  } catch (error) {
-    console.error("Error while executing create post item datas: ", error);
     return false;
   }
 }

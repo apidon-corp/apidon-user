@@ -1,34 +1,21 @@
 import MainPageLayout from "@/components/Layout/MainPageLayout";
-import { postsStatusAtom } from "@/components/atoms/postsStatusAtom";
-import { GetPersonalizedNftFeedResponse } from "@/components/types/API";
-import { PostItemData, PostItemDataV2 } from "@/components/types/Post";
 import { Flex, Text } from "@chakra-ui/react";
 import { GetServerSidePropsContext } from "next";
 import { useEffect, useState } from "react";
 import { useSetRecoilState } from "recoil";
 
 type Props = {
-  nftInformation: PostItemDataV2[] | null;
+  postDocPaths: string[] | null;
 };
 
-export default function Home({ nftInformation }: Props) {
+export default function Home({ postDocPaths }: Props) {
   const [innerHeight, setInnerHeight] = useState<string>("");
-
-  const setPostStatus = useSetRecoilState(postsStatusAtom);
 
   useEffect(() => {
     setInnerHeight(`${window.innerHeight}px`);
   }, []);
 
-  useEffect(() => {
-    if (!nftInformation) return;
-    console.log(nftInformation);
-    setPostStatus({
-      loading: false,
-    });
-  }, []);
-
-  if (!nftInformation || nftInformation.length === 0) {
+  if (!postDocPaths || postDocPaths.length === 0) {
     return (
       <Flex
         justify="center"
@@ -43,15 +30,10 @@ export default function Home({ nftInformation }: Props) {
     );
   }
 
-  return <MainPageLayout postItemsDatas={nftInformation} />;
+  return <MainPageLayout postDocPathArray={postDocPaths} />;
 }
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
-  /**
-   * We need to get nft posts then return them.
-   */
-
-  let postItemDatasArray: PostItemData[] = [];
   try {
     const authSessionToken = context.req.cookies["firebase-auth.session-token"];
     if (authSessionToken === undefined) {
@@ -73,8 +55,15 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         `Response from getPersonalizedNftFeed is not okay: ${await response.text()}`
       );
     }
-    const result = (await response.json()) as GetPersonalizedNftFeedResponse;
-    postItemDatasArray = result.postItemDatasArray;
+    const result = await response.json();
+
+    const postDocPaths = result.postDocPaths;
+
+    return {
+      props: {
+        postDocPaths: postDocPaths,
+      },
+    };
   } catch (error) {
     console.error(
       "Error while fetching to 'getPersonalizedNftFeed' API: \n ",
@@ -86,10 +75,4 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       },
     };
   }
-
-  return {
-    props: {
-      nftInformation: postItemDatasArray,
-    },
-  };
 }

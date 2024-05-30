@@ -3,25 +3,25 @@ export type PostCreateForm = {
   image: string;
 };
 
-/**
- * This Type are used at Firebase, mostly.
- */
-export type PostServerData = {
-  senderUsername: string;
+// /**
+//  * This Type are used at Firebase, mostly.
+//  */
+// export type PostServerData = {
+//   senderUsername: string;
 
-  description: string;
-  image: string;
+//   description: string;
+//   image: string;
 
-  likeCount: number;
-  commentCount: number;
+//   likeCount: number;
+//   commentCount: number;
 
-  nftStatus: {
-    convertedToNft: boolean;
-    nftDocPath?: string;
-  };
+//   nftStatus: {
+//     convertedToNft: boolean;
+//     nftDocPath?: string;
+//   };
 
-  creationTime: number;
-};
+//   creationTime: number;
+// };
 
 export type PostServerDataV2 = {
   senderUsername: string;
@@ -47,53 +47,50 @@ export type PostServerDataV2 = {
 /**
  * This type are used mostly for state management, frontend.
  */
-export type PostItemData = {
-  senderUsername: string;
+// export type PostItemData = {
+//   senderUsername: string;
 
-  description: string;
-  image: string;
+//   description: string;
+//   image: string;
 
-  likeCount: number;
-  currentUserLikedThisPost: boolean;
+//   likeCount: number;
+//   currentUserLikedThisPost: boolean;
 
-  commentCount: number;
+//   commentCount: number;
 
-  postDocId: string;
+//   postDocId: string;
 
-  nftStatus: {
-    convertedToNft: boolean;
-    nftDocPath?: string;
-  };
+//   nftStatus: {
+//     convertedToNft: boolean;
+//     nftDocPath?: string;
+//   };
 
-  currentUserFollowThisSender: boolean;
+//   currentUserFollowThisSender: boolean;
 
-  creationTime: number;
-};
+//   creationTime: number;
+// };
 
-export type PostItemDataV2 = {
-  senderUsername: string;
+// export type PostItemDataV2 = {
+//   senderUsername: string;
 
-  description: string;
-  image: string;
+//   description: string;
+//   image: string;
 
-  likeCount: number;
-  likes: LikeDataV2[];
-  currentUserLikedThisPost: boolean;
+//   likeCount: number;
+//   likes: LikeDataV2[];
 
-  commentCount: number;
-  comments: CommentDataV2[];
+//   commentCount: number;
+//   comments: CommentDataV2[];
 
-  id: string;
+//   id: string;
 
-  nftStatus: {
-    convertedToNft: boolean;
-    nftDocPath?: string;
-  };
+//   nftStatus: {
+//     convertedToNft: boolean;
+//     nftDocPath?: string;
+//   };
 
-  currentUserFollowThisSender: boolean;
-
-  creationTime: number;
-};
+//   creationTime: number;
+// };
 
 /**
  * This type are used mostly for state management, frontend.
@@ -105,7 +102,7 @@ export type PostFrontData = {
   image: string;
 
   likeCount: number;
-  currentUserLikedThisPost: boolean;
+  likers: string[];
   commentCount: number;
 
   id: string;
@@ -114,8 +111,6 @@ export type PostFrontData = {
     convertedToNft: boolean;
     nftDocPath?: string;
   };
-
-  currentUserFollowThisSender: boolean;
 
   creationTime: number;
 };

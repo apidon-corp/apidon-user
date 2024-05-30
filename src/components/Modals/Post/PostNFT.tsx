@@ -8,12 +8,7 @@ import {
   nftListInputPlaceholder,
   nftMetadataPlaceHolder,
 } from "@/components/types/NFT";
-import {
-  OpenPanelName,
-  PostItemData,
-  PostItemDataV2,
-  PostServerData,
-} from "@/components/types/Post";
+import { OpenPanelName, PostServerDataV2 } from "@/components/types/Post";
 import useNFT from "@/hooks/nftHooks/useNFT";
 import useGetFirebase from "@/hooks/readHooks/useGetFirebase";
 import {
@@ -62,7 +57,7 @@ import { MdSell } from "react-icons/md";
 type Props = {
   openPanelNameValue: OpenPanelName;
   openPanelNameValueSetter: React.Dispatch<SetStateAction<OpenPanelName>>;
-  postInformation: PostItemDataV2;
+  postInformation: PostServerDataV2;
 };
 
 const apidonNFTSepoliaContractAddress = process.env
@@ -150,7 +145,7 @@ export default function PostNFT({
     if (!postDocResult || !postDocResult.isExists)
       return console.error("Post doc doesn't exist.");
 
-    const postDocData = postDocResult.data as PostServerData;
+    const postDocData = postDocResult.data as PostServerDataV2;
 
     const convertedToNft = postDocData.nftStatus.convertedToNft;
     const nftDocPath = postDocData.nftStatus.nftDocPath;

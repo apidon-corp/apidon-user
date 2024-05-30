@@ -1,17 +1,8 @@
-import { currentUserStateAtom } from "@/components/atoms/currentUserAtom";
-import { headerAtViewAtom } from "@/components/atoms/headerAtViewAtom";
 import { auth } from "@/firebase/clientApp";
-import { useRouter } from "next/router";
 import { useState } from "react";
-import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 
 export default function usePostDelete() {
   const [postDeletionLoading, setPostDeletionLoading] = useState(false);
-
-  const setHeaderAtView = useSetRecoilState(headerAtViewAtom);
-
-  const router = useRouter();
-  const currentUserState = useRecoilValue(currentUserStateAtom);
 
   /**
    *

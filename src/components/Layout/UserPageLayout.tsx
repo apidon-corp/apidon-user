@@ -2,21 +2,20 @@ import { Flex } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 
 import { FrenletServerData } from "../types/Frenlet";
-import { PostItemDataV2 } from "../types/Post";
 import { UserInServer } from "../types/User";
 import Content from "../user/Content/Content";
 import Header from "../user/Header";
 
 type Props = {
   userInformation: UserInServer;
-  postItemsDatas: PostItemDataV2[];
+  postDocPaths: string[];
   frenletServerDatas: FrenletServerData[];
   tags: string[];
 };
 
 export default function UserPageLayout({
   userInformation,
-  postItemsDatas,
+  postDocPaths,
   frenletServerDatas,
   tags,
 }: Props) {
@@ -56,7 +55,7 @@ export default function UserPageLayout({
           </Flex>
           <Content
             frenletServerDatas={frenletServerDatas}
-            postItemsDatas={postItemsDatas}
+            postDocPaths={postDocPaths}
             tags={tags}
             userInformation={userInformation}
           />

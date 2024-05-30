@@ -1,13 +1,12 @@
-import getDisplayName from "@/apiUtils";
 import PostPageLayout from "@/components/Layout/PostPageLayout";
-import { PostItemData, PostItemDataV2, PostServerData } from "@/components/types/Post";
+import { PostServerDataV2 } from "@/components/types/Post";
 import { IPagePreviewData } from "@/components/types/User";
 import { firestore } from "@/firebase/adminApp";
 import { Flex, Text } from "@chakra-ui/react";
 import { GetServerSidePropsContext } from "next";
 
 type Props = {
-  postInformation: PostItemDataV2 | undefined;
+  postInformation: PostServerDataV2 | undefined;
 };
 
 export default function index({ postInformation }: Props) {
@@ -27,7 +26,7 @@ export default function index({ postInformation }: Props) {
   } else {
     return (
       <Flex width="100%" height="100%" justify="center" align="center">
-        <PostPageLayout postInformation={postInformation} />
+        <PostPageLayout postDocServerData={postInformation} />
       </Flex>
     );
   }
@@ -56,8 +55,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     };
   }
 
-  const postInformationServer: PostServerData =
-    postInformationDoc.data() as PostServerData;
+  const postInformationServer = postInformationDoc.data() as PostServerDataV2;
 
   const pagePreviewData: IPagePreviewData = {
     title: `${postInformationServer.senderUsername}'s post`,
@@ -69,100 +67,10 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     image: postInformationServer.image,
   };
 
-  let postInformation: PostItemData = {
-    commentCount: postInformationServer.commentCount,
-    creationTime: postInformationServer.creationTime,
-    currentUserFollowThisSender: false, // this will be changed below If there is a real user.
-    currentUserLikedThisPost: false, // this will be changed below If there is a real user
-    description: postInformationServer.description,
-    image: postInformationServer.image,
-    likeCount: postInformationServer.likeCount,
-    nftStatus: postInformationServer.nftStatus,
-    postDocId: postInformationDoc.ref.id,
-    senderUsername: postInformationServer.senderUsername,
-  };
-
-  // Get Like and Comment Status....
-  const userDisplayname = await getDisplayName(
-    `Bearer ${context.req.cookies["firebase-auth.session-token"]}`
-  );
-  if (!userDisplayname) {
-    // We are on non-apidon environment
-    return {
-      props: {
-        postInformation: postInformation,
-        pagePreviewData: pagePreviewData,
-      },
-    };
-  }
-
-  const [likeStatus, followStatus] = await Promise.all([
-    handleGetLikeStatus(userDisplayname, postInformationDoc),
-    handleGetFollowStatus(userDisplayname, postInformationDoc),
-  ]);
-
-  postInformation = {
-    commentCount: postInformationServer.commentCount,
-    creationTime: postInformationServer.creationTime,
-    currentUserFollowThisSender: followStatus,
-    currentUserLikedThisPost: likeStatus,
-    description: postInformationServer.description,
-    image: postInformationServer.image,
-    likeCount: postInformationServer.likeCount,
-    nftStatus: postInformationServer.nftStatus,
-    postDocId: postInformationDoc.ref.id,
-    senderUsername: postInformationServer.senderUsername,
-  };
-
   return {
     props: {
-      postInformation: postInformation,
+      postInformation: postInformationServer,
       pagePreviewData: pagePreviewData,
     },
   };
 }
-
-const handleGetLikeStatus = async (
-  operationFromUsername: string,
-  postDoc:
-    | FirebaseFirestore.QueryDocumentSnapshot<FirebaseFirestore.DocumentData>
-    | FirebaseFirestore.DocumentSnapshot<FirebaseFirestore.DocumentData>
-) => {
-  let likeStatus = false;
-  try {
-    likeStatus = (
-      await postDoc.ref.collection("likes").doc(operationFromUsername).get()
-    ).exists;
-  } catch (error) {
-    console.error(
-      `Error while creating feed for ${operationFromUsername}. (We were retriving like status from ${postDoc.ref.path})`
-    );
-  }
-  return likeStatus;
-};
-
-const handleGetFollowStatus = async (
-  operationFromUsername: string,
-  postDoc:
-    | FirebaseFirestore.QueryDocumentSnapshot<FirebaseFirestore.DocumentData>
-    | FirebaseFirestore.DocumentSnapshot<FirebaseFirestore.DocumentData>
-) => {
-  let followStatus = false;
-  try {
-    followStatus = (
-      await firestore
-        .doc(
-          `users/${operationFromUsername}/followings/${
-            postDoc.data()?.senderUsername
-          }`
-        )
-        .get()
-    ).exists;
-  } catch (error) {
-    console.error(
-      `Error while creating feed for ${operationFromUsername}. (We were getting follow status from post: ${postDoc.ref.path})`
-    );
-  }
-
-  return followStatus;
-};

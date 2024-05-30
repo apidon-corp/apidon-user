@@ -1,15 +1,14 @@
 import Posts from "@/components/Post/Posts";
-import { PostItemDataV2 } from "@/components/types/Post";
 import { Flex } from "@chakra-ui/react";
 
 type Props = {
-  postItemsDatas: PostItemDataV2[];
+  postDocPaths: string[];
 };
 
-export default function UserContent({ postItemsDatas }: Props) {
+export default function UserContent({ postDocPaths }: Props) {
   return (
     <Flex justify="center" width="100%">
-      <Posts postsItemDatas={postItemsDatas} />
+      <Posts postDocPathArray={postDocPaths} />
     </Flex>
   );
 }

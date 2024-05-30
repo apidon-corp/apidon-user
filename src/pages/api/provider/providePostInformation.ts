@@ -1,4 +1,4 @@
-import { PostServerData } from "@/components/types/Post";
+import { PostServerDataV2 } from "@/components/types/Post";
 import { firestore } from "@/firebase/adminApp";
 import { NextApiRequest, NextApiResponse } from "next";
 
@@ -49,7 +49,7 @@ export default async function handler(
       });
     }
 
-    const postDocData = postDocSnapshot.data() as PostServerData;
+    const postDocData = postDocSnapshot.data() as PostServerDataV2;
 
     if (postDocData === undefined) {
       console.error("Post doc data is undefined.");

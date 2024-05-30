@@ -1,9 +1,7 @@
 import { Stack } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
-import { useRecoilValue } from "recoil";
 import PostItem from "../Items/Post/PostItem";
 import PostSkeleton from "../Skeletons/PostSkeleton";
-import { postsStatusAtom } from "../atoms/postsStatusAtom";
 
 import { auth, firestore } from "@/firebase/clientApp";
 import {
@@ -14,18 +12,16 @@ import {
   query,
   where,
 } from "firebase/firestore";
-import { PostItemDataV2, PostServerDataV2 } from "../types/Post";
+import { PostServerDataV2 } from "../types/Post";
 
 type Props = {
   postDocPathArray: string[];
 };
 
 export default function Posts({ postDocPathArray }: Props) {
-  const postsLoading = useRecoilValue(postsStatusAtom).loading;
-
   const [fetchMorePost, setFetchMorePost] = useState(false);
 
-  const [givenPosts, setGivenPosts] = useState<PostItemDataV2[]>([]);
+  const [givenPosts, setGivenPosts] = useState<PostServerDataV2[]>([]);
 
   const [finalPostDocPathArray, setFinalPostDocPathArray] =
     useState(postDocPathArray);
@@ -36,7 +32,7 @@ export default function Posts({ postDocPathArray }: Props) {
 
   // Initial post request.
   useEffect(() => {
-    handleGetInitialPosts();
+    if (postDocPathArray.length > 0) handleGetInitialPosts();
   }, [postDocPathArray]);
 
   // Scroll Catch Mechanism.
@@ -65,23 +61,29 @@ export default function Posts({ postDocPathArray }: Props) {
       where("creationTime", ">=", Date.now())
     );
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      snapshot.docChanges().forEach(async (change) => {
-        if (change.type === "added") {
-          console.log(change.doc.data());
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        snapshot.docChanges().forEach(async (change) => {
+          if (change.type === "added") {
+            console.log(change.doc.data());
 
-          const newPostDocPath = `/users/${currentUserDisplayName}/posts/${change.doc.id}`;
+            const newPostDocPath = `/users/${currentUserDisplayName}/posts/${change.doc.id}`;
 
-          const newPostItemData = await createPostItemData(newPostDocPath);
-          if (newPostItemData.result === false) return;
+            const newPostItemData = await getPostFromServer(newPostDocPath);
+            if (newPostItemData.result === false) return;
 
-          setGivenPosts((prev) => [
-            newPostItemData.createdPostItemData,
-            ...prev,
-          ]);
-        }
-      });
-    });
+            setGivenPosts((prev) => [
+              newPostItemData.createdPostDocData,
+              ...prev,
+            ]);
+          }
+        });
+      },
+      (error) => {
+        console.error("Error on fetching to onSnapshot API: \n", error);
+      }
+    );
 
     return () => unsubscribe();
   }, [postDocPathArray]);
@@ -90,18 +92,22 @@ export default function Posts({ postDocPathArray }: Props) {
     const newPostsDocPaths = finalPostDocPathArray.slice(0, 1);
 
     const newPostItemDatas = await Promise.all(
-      newPostsDocPaths.map((p) => createPostItemData(p))
+      newPostsDocPaths.map((p) => getPostFromServer(p))
     );
 
-    const newPostItemDatasFiltered: PostItemDataV2[] = [];
+    const newPostItemDatasFiltered: PostServerDataV2[] = [];
     for (const newPostItemData of newPostItemDatas) {
       if (newPostItemData.result === false) {
         setFinalPostDocPathArray((prev) =>
           prev.filter((p) => p !== newPostItemData.postDocPath)
         );
       } else {
-        newPostItemDatasFiltered.push(newPostItemData.createdPostItemData);
+        newPostItemDatasFiltered.push(newPostItemData.createdPostDocData);
       }
+    }
+
+    if (newPostItemDatasFiltered.length === 0) {
+      return setFetchMorePost(true);
     }
 
     setGivenPosts(newPostItemDatasFiltered);
@@ -115,7 +121,7 @@ export default function Posts({ postDocPathArray }: Props) {
     const scrolledArea =
       window.innerHeight + document.documentElement.scrollTop;
 
-    const reachedToBottom = scrolledArea === totalArea;
+    const reachedToBottom = scrolledArea >= totalArea * 0.8;
 
     setFetchMorePost(reachedToBottom);
   };
@@ -129,17 +135,25 @@ export default function Posts({ postDocPathArray }: Props) {
     );
 
     const newPostItemDatas = await Promise.all(
-      newPostsDocPaths.map((p) => createPostItemData(p))
+      newPostsDocPaths.map((p) => getPostFromServer(p))
     );
 
-    const newPostItemDatasFiltered: PostItemDataV2[] = [];
+    const newPostItemDatasFiltered: PostServerDataV2[] = [];
+
+    const alreadyGivenPostIds = givenPosts.map((p) => p.id);
+
     for (const newPostItemData of newPostItemDatas) {
       if (!newPostItemData.result) {
         setFinalPostDocPathArray((prev) =>
           prev.filter((p) => p !== newPostItemData.postDocPath)
         );
       } else {
-        newPostItemDatasFiltered.push(newPostItemData.createdPostItemData);
+        const alreadyHavePostStatus = alreadyGivenPostIds.includes(
+          newPostItemData.createdPostDocData.id
+        );
+
+        if (!alreadyHavePostStatus)
+          newPostItemDatasFiltered.push(newPostItemData.createdPostDocData);
       }
     }
 
@@ -148,11 +162,11 @@ export default function Posts({ postDocPathArray }: Props) {
     setFetchMorePost(false);
   };
 
-  const createPostItemData = async (
+  const getPostFromServer = async (
     postDocPath: string
   ): Promise<
     | { result: false; postDocPath: string }
-    | { result: true; createdPostItemData: PostItemDataV2 }
+    | { result: true; createdPostDocData: PostServerDataV2 }
   > => {
     const currentUserAuthObject = auth.currentUser;
     if (!currentUserAuthObject) {
@@ -193,19 +207,9 @@ export default function Posts({ postDocPathArray }: Props) {
         };
       }
 
-      const likeStatus = postDocSnapshotData.likes
-        .map((l) => l.sender)
-        .includes(displayName);
-
-      const createdPostItemData: PostItemDataV2 = {
-        ...postDocSnapshotData,
-        currentUserLikedThisPost: likeStatus,
-        currentUserFollowThisSender: true,
-      };
-
       return {
         result: true,
-        createdPostItemData: createdPostItemData,
+        createdPostDocData: postDocSnapshotData,
       };
     } catch (error) {
       console.error(
@@ -221,14 +225,14 @@ export default function Posts({ postDocPathArray }: Props) {
 
   return (
     <Stack gap={3} mt="1em" width="100%">
-      {postsLoading ? (
+      {givenPosts.length === 0 ? (
         Array.from({ length: 1 }, (_, index) => <PostSkeleton key={index} />)
       ) : (
         <>
           {givenPosts.map((postItemData) => (
             <PostItem
               key={`${postItemData.senderUsername}${postItemData.id}`}
-              postItemData={postItemData}
+              postServerData={postItemData}
             />
           ))}
         </>

@@ -1,5 +1,5 @@
 import getDisplayName from "@/apiUtils";
-import { PostServerData } from "@/components/types/Post";
+import { PostServerDataV2 } from "@/components/types/Post";
 import AsyncLock from "async-lock";
 import { ethers } from "ethers";
 import { NextApiRequest, NextApiResponse } from "next";
@@ -33,13 +33,13 @@ export default async function handler(
   if (!operationFromUsername) return res.status(401).send("Unauthorized");
 
   await lock.acquire(`transferNFTAPI-${operationFromUsername}`, async () => {
-    let pd: PostServerData;
+    let pd: PostServerDataV2;
     try {
       pd = (
         await firestore
           .doc(`users/${operationFromUsername}/posts/${postDocId}`)
           .get()
-      ).data() as PostServerData;
+      ).data() as PostServerDataV2;
     } catch (error) {
       console.error(
         "Error while transferring NFT..(We were on getting post doc.)",
