@@ -3,7 +3,7 @@ import { PostLikeActionAPIBody } from "@/components/types/API";
 import { LikeDataV2, PostServerDataV2 } from "@/components/types/Post";
 import {
   ICurrentProviderData,
-  INotificationServerData,
+  NotificationData,
   LikedPostArrayObject,
 } from "@/components/types/User";
 import { fieldValue, firestore } from "@/firebase/adminApp";
@@ -138,37 +138,29 @@ async function updateNotification(
   // There is no need to send notification to the post sender
   if (username === postSender) return true;
 
-  const notificationData: INotificationServerData = {
+  const notificationData: NotificationData = {
     cause: "like",
-    notificationTime: ts,
-    seen: false,
+    ts: ts,
     sender: username,
   };
 
   try {
+    const notificationDoc = firestore.doc(
+      `/users/${postSender}/notifications/notifications`
+    );
+
     if (action === "like") {
-      await firestore
-        .collection(`/users/${postSender}/notifications`)
-        .add({ ...notificationData });
+      await notificationDoc.update({
+        notifications: fieldValue.arrayUnion(notificationData),
+      });
 
       return true;
     }
 
     if (action === "delike") {
-      const likeNotificationDocQuery = await firestore
-        .collection(`/users/${postSender}/notifications`)
-        .where("cause", "==", "like")
-        .where("sender", "==", username)
-        .where("notificationTime", "==", ts)
-        .get();
-
-      if (likeNotificationDocQuery.empty) {
-        console.error("Like notification doc not found");
-        return false;
-      }
-
-      const likeNotificationDoc = likeNotificationDocQuery.docs[0];
-      await likeNotificationDoc.ref.delete();
+      await notificationDoc.update({
+        notifications: fieldValue.arrayRemove(notificationData),
+      });
 
       return true;
     }

@@ -4,6 +4,7 @@ import {
   CommentInteractionData,
   PostServerDataV2,
 } from "@/components/types/Post";
+import { NotificationData } from "@/components/types/User";
 import { fieldValue, firestore } from "@/firebase/adminApp";
 import { NextApiRequest, NextApiResponse } from "next";
 
@@ -131,20 +132,20 @@ async function deleteNotification(
   if (postSender === commentObject.sender) return true;
 
   try {
-    const notificationDocQuery = await firestore
-      .collection(`/users/${postSender}/notifications`)
-      .where("cause", "==", "comment")
-      .where("sender", "==", commentObject.sender)
-      .where("notificationTime", "==", commentObject.ts)
-      .get();
+    const notificationDocRef = firestore.doc(
+      `/users/${postSender}/notifications/notifications`
+    );
 
-    if (notificationDocQuery.empty) {
-      console.error("Notification doc not found");
-      return false;
-    }
+    const deletedNotificationObject: NotificationData = {
+      cause: "comment",
+      sender: commentObject.sender,
+      ts: commentObject.ts,
+    };
 
-    const notificationDoc = notificationDocQuery.docs[0];
-    await notificationDoc.ref.delete();
+    await notificationDocRef.update({
+      notifications: fieldValue.arrayRemove(deletedNotificationObject),
+    });
+
     return true;
   } catch (error) {
     console.error("Error while deleting notification");

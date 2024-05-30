@@ -1,6 +1,6 @@
 import getDisplayName from "@/apiUtils";
 import { FrenletServerData } from "@/components/types/Frenlet";
-import { INotificationServerData } from "@/components/types/User";
+import { NotificationData } from "@/components/types/User";
 import { fieldValue, firestore } from "@/firebase/adminApp";
 import { NextApiRequest, NextApiResponse } from "next";
 
@@ -120,21 +120,22 @@ async function createFrenlet(
  * @returns Path of notification doc.
  */
 async function sendNotification(username: string, fren: string, ts: number) {
-  const notificationData: INotificationServerData = {
+  const notificationData: NotificationData = {
     cause: "frenlet",
-    notificationTime: ts,
-    seen: false,
+    ts: ts,
     sender: username,
   };
 
   try {
-    const createdNotificationDoc = await firestore
-      .collection(`/users/${fren}/notifications`)
-      .add({
-        ...notificationData,
-      });
+    const frenNotificationDoc = firestore.doc(
+      `/users/${fren}/notifications/notifications`
+    );
 
-    return createdNotificationDoc.path;
+    await frenNotificationDoc.update({
+      notifications: fieldValue.arrayUnion(notificationData),
+    });
+
+    return true;
   } catch (error) {
     console.error("Error while sending notification: \n", error);
     return false;
@@ -156,9 +157,11 @@ async function updateFrenScore(fren: string) {
 
 async function rollback(
   createFrenletResult: false | FrenletServerData,
-  sendNotificationResult: false | string,
+  sendNotificationResult: boolean,
   updateFrenScoreResult: boolean,
-  fren: string
+  fren: string,
+  ts: number,
+  username: string
 ) {
   try {
     if (createFrenletResult) {
@@ -174,7 +177,19 @@ async function rollback(
         .delete();
     }
     if (sendNotificationResult) {
-      await firestore.doc(sendNotificationResult).delete();
+      const frenNotificationDoc = firestore.doc(
+        `/users/${fren}/notifications/notifications`
+      );
+
+      const notificationObjectToDelete: NotificationData = {
+        cause: "frenlet",
+        ts: ts,
+        sender: username,
+      };
+
+      await frenNotificationDoc.update({
+        notifications: fieldValue.arrayRemove(notificationObjectToDelete),
+      });
     }
     if (updateFrenScoreResult) {
       await firestore.doc(`/users/${fren}`).update({
@@ -224,7 +239,9 @@ export default async function handler(
       createFrenletResult,
       sendNotificationResult,
       updateFrenScoreResult,
-      fren
+      fren,
+      ts,
+      username
     );
     return res.status(500).send("Internal Server Error");
   }

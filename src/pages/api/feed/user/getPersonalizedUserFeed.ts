@@ -19,7 +19,13 @@ async function getPostsDocPaths(username: string) {
       .collection(`/users/${username}/posts`)
       .get();
 
-    return postsSnapshot.docs.map((d) => d.ref.path);
+    return postsSnapshot.docs
+      .sort(
+        (a, b) =>
+          (b.data() as PostServerDataV2).creationTime -
+          (a.data() as PostServerDataV2).creationTime
+      )
+      .map((d) => d.ref.path);
   } catch (error) {
     console.error(`Error while getting posts for ${username}`);
     return false;

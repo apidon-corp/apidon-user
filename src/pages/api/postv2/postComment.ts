@@ -6,7 +6,7 @@ import {
 } from "@/components/types/Post";
 import {
   ICurrentProviderData,
-  INotificationServerData,
+  NotificationData,
 } from "@/components/types/User";
 import { fieldValue, firestore } from "@/firebase/adminApp";
 import { NextApiRequest, NextApiResponse } from "next";
@@ -113,16 +113,20 @@ async function sendNotification(
 
     if (username === postSender) return true;
 
-    const notificationObject: INotificationServerData = {
+    const notificationObject: NotificationData = {
       cause: "comment",
-      notificationTime: ts,
-      seen: false,
+      ts: ts,
       sender: username,
     };
 
-    await firestore.collection(`/users/${postSender}/notifications`).add({
-      ...notificationObject,
+    const notificationDocRef = firestore.doc(
+      `/users/${postSender}/notifications/notifications`
+    );
+
+    await notificationDocRef.update({
+      notifications: fieldValue.arrayUnion(notificationObject),
     });
+
     return true;
   } catch (error) {
     console.error("Error while sending notification");
