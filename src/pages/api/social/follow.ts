@@ -130,7 +130,7 @@ async function updateOperationToFollowerCount(
   try {
     const operationToDocRef = firestore.doc(`/users/${operationTo}`);
     await operationToDocRef.update({
-      followersCount: fieldValue.increment(action),
+      followerCount: fieldValue.increment(action),
     });
     return true;
   } catch (error) {

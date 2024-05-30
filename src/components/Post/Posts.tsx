@@ -89,7 +89,7 @@ export default function Posts({ postDocPathArray }: Props) {
   }, [postDocPathArray]);
 
   const handleGetInitialPosts = async () => {
-    const newPostsDocPaths = finalPostDocPathArray.slice(0, 1);
+    const newPostsDocPaths = finalPostDocPathArray.slice(0, 5);
 
     const newPostItemDatas = await Promise.all(
       newPostsDocPaths.map((p) => getPostFromServer(p))
@@ -131,7 +131,7 @@ export default function Posts({ postDocPathArray }: Props) {
 
     const newPostsDocPaths = finalPostDocPathArray.slice(
       givenPosts.length,
-      givenPosts.length + 1
+      givenPosts.length + 5
     );
 
     const newPostItemDatas = await Promise.all(
