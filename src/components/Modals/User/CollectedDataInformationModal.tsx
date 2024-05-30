@@ -1,7 +1,7 @@
 import CommentedItem from "@/components/Items/User/CommentedItem";
 import LikedItem from "@/components/Items/User/LikedItem";
 import { collectedDataInformationModalAtom } from "@/components/atoms/CollectedDataInformationModalAtom";
-import { CommentData, PostServerData } from "@/components/types/Post";
+import { CommentData, PostServerDataV2 } from "@/components/types/Post";
 import {
   CommentedItemData,
   LikeDataForUsersPersonal,
@@ -57,7 +57,7 @@ export default function CollectedDataInformationModal() {
       const postDoc = await getDocServer(likeInformationDoc.data.postPath);
       if (!postDoc) continue;
 
-      const senderUsername = (postDoc.data as PostServerData).senderUsername;
+      const senderUsername = (postDoc.data as PostServerDataV2).senderUsername;
 
       const postId = postDoc.ref.id;
       const postURL = `${process.env.NEXT_PUBLIC_USER_PANEL_BASE_URL}/${senderUsername}/posts/${postId}`;
@@ -102,7 +102,7 @@ export default function CollectedDataInformationModal() {
         const postDoc = await getDocServer(commentDoc.data.postDocPath);
         if (!postDoc) continue;
 
-        const postDocData = postDoc.data as PostServerData;
+        const postDocData = postDoc.data as PostServerDataV2;
 
         const postSenderUsername = postDocData.senderUsername;
 

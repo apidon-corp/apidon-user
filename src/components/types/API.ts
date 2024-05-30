@@ -1,5 +1,3 @@
-import { PostItemData } from "./Post";
-
 /**
  * Use when requesting /classification/likeAction API which is in Proivder side.
  */
@@ -69,8 +67,4 @@ export type QuerySettings = {
 
 export type UploadNFTResponse = {
   nftDocPath: string;
-};
-
-export type GetPersonalizedNftFeedResponse = {
-  postItemDatasArray: PostItemData[];
 };

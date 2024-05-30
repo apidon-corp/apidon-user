@@ -14,7 +14,6 @@ import VerifyModal from "../Modals/AuthenticationModal/VerifyModal";
 import PostCreateModal from "../Modals/Post/PostCreateModal";
 import CollectedDataInformationModal from "../Modals/User/CollectedDataInformationModal";
 import DataAnalysisPreferencesModal from "../Modals/User/DataAnalysisPreferencesModal";
-import NotificationModal from "../Modals/User/NotificationModal";
 import ProviderModal from "../Modals/User/Provider/ProviderModal";
 import TradedNFTsModal from "../Modals/User/TradedNFTsModal";
 import Navbar from "../Navbar/Navbar";
@@ -155,7 +154,6 @@ export default function Layout({ children }: Props) {
 
           {verificationModalState.isOpen && <VerifyModal />}
 
-          <NotificationModal />
           <ProviderModal />
           <DataAnalysisPreferencesModal />
           <CollectedDataInformationModal />

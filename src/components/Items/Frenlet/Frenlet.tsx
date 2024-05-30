@@ -1,6 +1,6 @@
 import { FrenletServerData } from "@/components/types/Frenlet";
 import { UserInServer } from "@/components/types/User";
-import { auth } from "@/firebase/clientApp";
+import { auth, firestore } from "@/firebase/clientApp";
 import { useElementOnScreen } from "@/hooks/observeHooks/useElementOnScreen";
 import {
   AlertDialog,
@@ -11,7 +11,6 @@ import {
   AlertDialogOverlay,
   Button,
   Flex,
-  Icon,
   IconButton,
   Image,
   Input,
@@ -22,13 +21,13 @@ import {
   SkeletonCircle,
   Text,
 } from "@chakra-ui/react";
+import { doc, onSnapshot } from "firebase/firestore";
+import moment from "moment";
 import { useRouter } from "next/router";
 import React, { useEffect, useRef, useState } from "react";
-import { FaLongArrowAltRight } from "react-icons/fa";
-import Replet from "./Replet";
-import moment from "moment";
 import { SlOptionsVertical } from "react-icons/sl";
 import LikeArea from "./LikeArea";
+import Replet from "./Replet";
 
 type FrenletProps = {
   frenletData: FrenletServerData;
@@ -36,7 +35,6 @@ type FrenletProps = {
 
 export default function Frenlet({ frenletData }: FrenletProps) {
   const [senderData, setSenderData] = React.useState<UserInServer>();
-  const [receiverData, setReceiverData] = React.useState<UserInServer>();
 
   const router = useRouter();
 
@@ -56,8 +54,6 @@ export default function Frenlet({ frenletData }: FrenletProps) {
   const [frenletDeleteLoading, setFrenletDeleteLoading] = useState(false);
   const [isThisFrenletDeleted, setIsThisFrenletDeleted] = useState(false);
 
-  const intervalRef = useRef<NodeJS.Timeout>();
-
   useEffect(() => {
     initialLoading();
   }, []);
@@ -67,18 +63,38 @@ export default function Frenlet({ frenletData }: FrenletProps) {
   }, [auth, frenletData]);
 
   useEffect(() => {
-    const checkRealtimeUpdates = setInterval(() => {
-      handleGetRealtimeUpdates();
-    }, 5000);
-
-    intervalRef.current = checkRealtimeUpdates;
-
-    return () => clearInterval(intervalRef.current);
-  }, [isVisible]);
-
-  useEffect(() => {
     checkCanChangeOptions();
   }, [auth, frenletData]);
+
+  useEffect(() => {
+    const postDocRef = doc(
+      firestore,
+      `/users/${frenletData.frenletReceiver}/frenlets/frenlets/incoming/${frenletData.frenletDocId}`
+    );
+
+    const unsubscribe = onSnapshot(
+      postDocRef,
+      (snapshot) => {
+        if (!snapshot.exists()) {
+          return console.error(
+            "Frenlet doc not exists from realtime listening."
+          );
+        }
+
+        const frenletDocData = snapshot.data() as FrenletServerData;
+        if (!frenletDocData) {
+          return console.error("Post doc data is undefined.");
+        }
+
+        setFrenletDataFinalLayer(frenletDocData);
+      },
+      (error) => {
+        console.error("Error on realtime listening: \n", error);
+      }
+    );
+
+    return () => unsubscribe();
+  }, [frenletData.frenletDocId]);
 
   const getPersonData = async (username: string) => {
     const currentUserAuthObject = auth.currentUser;
@@ -124,7 +140,6 @@ export default function Frenlet({ frenletData }: FrenletProps) {
     ]);
 
     if (senderData) setSenderData(senderData);
-    if (receiverData) setReceiverData(receiverData);
   };
 
   const checkCanReply = async () => {
@@ -239,60 +254,12 @@ export default function Frenlet({ frenletData }: FrenletProps) {
       ];
 
       // Everythnig is alright.
-      await handleGetRealtimeUpdates(); // To update replies
+
       if (replyInputRef.current) replyInputRef.current.value = "";
       return setSendingReply(false);
     } catch (error) {
       console.error("Error on fetching to sendReply API: \n", error);
       return setSendingReply(false);
-    }
-  };
-
-  const handleGetRealtimeUpdates = async () => {
-    if (!isVisible) return;
-    if (isThisFrenletDeleted) return;
-
-    const currentUserAuthObject = auth.currentUser;
-    if (currentUserAuthObject === null) return;
-
-    // Stopping interval
-    clearInterval(intervalRef.current);
-
-    try {
-      const idToken = await currentUserAuthObject.getIdToken();
-
-      const response = await fetch("/api/frenlet/getRealtimeUpdates", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          authorization: `Bearer ${idToken}`,
-        },
-        body: JSON.stringify({
-          frenletDocPath: `/users/${frenletData.frenletReceiver}/frenlets/frenlets/incoming/${frenletData.frenletDocId}`,
-        }),
-      });
-
-      if (!response.ok) {
-        console.error(
-          "Response from getRealtimeUpdates API is not okay: : \n",
-          await response.text()
-        );
-        return false;
-      }
-
-      const result = await response.json();
-      const updatedFrenletData = result.frenletData as FrenletServerData;
-
-      // Starting interval again...
-      const newInterval = setInterval(() => {
-        handleGetRealtimeUpdates();
-      }, 5000);
-      intervalRef.current = newInterval;
-
-      return setFrenletDataFinalLayer(updatedFrenletData);
-    } catch (error) {
-      console.error("Error on fetching to getRealtimeUpdates API: \n", error);
-      return false;
     }
   };
 
@@ -546,7 +513,6 @@ export default function Frenlet({ frenletData }: FrenletProps) {
             likeCount={frenletDataFinalLayer.likeCount}
             likes={frenletDataFinalLayer.likes}
             frenletDocPath={`/users/${frenletData.frenletReceiver}/frenlets/frenlets/incoming/${frenletData.frenletDocId}`}
-            handleGetRealtimeUpdates={handleGetRealtimeUpdates}
           />
         </Flex>
       )}

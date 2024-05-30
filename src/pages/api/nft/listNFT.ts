@@ -4,7 +4,7 @@ import {
   NftDocDataInServer,
   NftListRequestBody,
 } from "@/components/types/NFT";
-import { PostServerData } from "@/components/types/Post";
+import { PostServerDataV2 } from "@/components/types/Post";
 import { firestore } from "@/firebase/adminApp";
 import { NextApiRequest, NextApiResponse } from "next";
 
@@ -28,7 +28,7 @@ export default async function handler(
     return res.status(422).send("Invalid Prop or Props");
   }
 
-  let postDocData: PostServerData;
+  let postDocData: PostServerDataV2;
   try {
     const postDocSnapshot = await firestore
       .doc(`users/${operationFromUsername}/posts/${postDocId}`)
@@ -37,7 +37,7 @@ export default async function handler(
       throw new Error(
         "Post doc doesn't exists with given postDocId and requester."
       );
-    postDocData = postDocSnapshot.data() as PostServerData;
+    postDocData = postDocSnapshot.data() as PostServerDataV2;
   } catch (error) {
     console.error("Error on getting postDocData while listing nft: \n", error);
     return res.status(500).send("Internal Server Error");

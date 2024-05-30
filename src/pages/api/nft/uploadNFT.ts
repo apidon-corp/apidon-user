@@ -1,6 +1,6 @@
 import getDisplayName from "@/apiUtils";
 import { NFTMetadata, NftDocDataInServer } from "@/components/types/NFT";
-import { PostServerData } from "@/components/types/Post";
+import { PostServerDataV2 } from "@/components/types/Post";
 
 import AsyncLock from "async-lock";
 import { TransactionReceipt } from "ethers";
@@ -189,7 +189,7 @@ export default async function handler(
       return res.status(500).send("Internal Server Error");
     }
 
-    const postDocNftStatusPart: PostServerData["nftStatus"] = {
+    const postDocNftStatusPart: PostServerDataV2["nftStatus"] = {
       convertedToNft: true,
       nftDocPath: createdNftDoc.path,
     };

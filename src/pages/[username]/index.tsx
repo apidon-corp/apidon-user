@@ -1,10 +1,8 @@
 import { authModalStateAtom } from "@/components/atoms/authModalAtom";
 import { currentUserStateAtom } from "@/components/atoms/currentUserAtom";
-import { postsStatusAtom } from "@/components/atoms/postsStatusAtom";
 import UserPageLayout from "@/components/Layout/UserPageLayout";
 import { FrenletServerData } from "@/components/types/Frenlet";
 
-import { PostItemData, PostItemDataV2 } from "@/components/types/Post";
 import { IPagePreviewData, UserInServer } from "@/components/types/User";
 import { firestore } from "@/firebase/adminApp";
 
@@ -19,18 +17,14 @@ import { useRecoilValue, useSetRecoilState } from "recoil";
 
 type Props = {
   userInformation: UserInServer | undefined;
-  postItemDatas: PostItemDataV2[];
 };
 
 export default function UserPage({ userInformation }: Props) {
   const [innerHeight, setInnerHeight] = useState("");
 
-  const setPostStatus = useSetRecoilState(postsStatusAtom);
   const currentUserState = useRecoilValue(currentUserStateAtom);
 
-  const [postsDatasInServer, setPostDatasInServer] = useState<PostItemDataV2[]>(
-    []
-  );
+  const [postDocPaths, setPostDocPaths] = useState<string[]>([]);
 
   const [frenletServerDatas, setFrenletServerDatas] = useState<
     FrenletServerData[]
@@ -57,57 +51,14 @@ export default function UserPage({ userInformation }: Props) {
     }
   }, [currentUserState.isThereCurrentUser, router.asPath]);
 
-  const handleAnonymousUserFeed = async () => {
-    setPostStatus({ loading: true });
-    let response;
-    try {
-      response = await fetch("/api/feed/user/getAnonymousUserFeed", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          authorization: process.env
-            .NEXT_PUBLIC_ANONYMOUS_ENTERANCE_KEY as string,
-        },
-        body: JSON.stringify({
-          username: router.asPath.split("/")[1],
-        }),
-      });
-    } catch (error) {
-      return console.error(
-        `Error while fetching 'getAnonymousUserFeed'-API`,
-        error
-      );
-    }
-
-    if (!response.ok) {
-      return console.error(
-        `Error from 'getAnonymousUserFeedAPI' for ${currentUserState.username} user.`,
-        await response.text()
-      );
-    }
-
-    const postsFromServer: PostItemDataV2[] = (await response.json())
-      .postItemDatas;
-
-    setPostDatasInServer(postsFromServer);
-
-    setPostStatus({ loading: false });
-  };
-
   const handlePersonalizedUserFeed = async () => {
-    setPostStatus({ loading: true });
+    const currentUserAuthObject = auth.currentUser;
+    if (!currentUserAuthObject) return;
 
-    let idToken = "";
     try {
-      idToken = (await auth.currentUser?.getIdToken()) as string;
-    } catch (error) {
-      console.error("Error while getting 'idToken'", error);
-      return false;
-    }
+      const idToken = await currentUserAuthObject.getIdToken();
 
-    let response;
-    try {
-      response = await fetch("/api/feed/user/getPersonalizedUserFeed", {
+      const response = await fetch("/api/feed/user/getPersonalizedUserFeed", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -117,35 +68,32 @@ export default function UserPage({ userInformation }: Props) {
           username: router.asPath.split("/")[1],
         }),
       });
+
+      if (!response.ok) {
+        return console.error(
+          `Error from 'getPersonalizedUserFeed' API for ${currentUserState.username} user.`,
+          await response.text()
+        );
+      }
+
+      const result = await response.json();
+
+      const postDocPaths = result.postDocPaths as string[];
+      const frenlets = result.frenlets as FrenletServerData[];
+      const tags = result.tags as string[];
+
+      setPostDocPaths(postDocPaths);
+
+      frenlets.sort((a, b) => b.ts - a.ts);
+      setFrenletServerDatas(frenlets);
+
+      setTags(tags);
     } catch (error) {
       return console.error(
         `Error while fetching 'getFeed'-API for ${currentUserState.username} user.`,
         error
       );
     }
-
-    if (!response.ok) {
-      return console.error(
-        `Error from 'getFeedAPI' for ${currentUserState.username} user.`,
-        await response.text()
-      );
-    }
-
-    const result = await response.json();
-
-    const postsFromServer = result.postItemDatas as PostItemDataV2[];
-    const frenlets = result.frenlets as FrenletServerData[];
-    const tags = result.tags as string[];
-
-    postsFromServer.sort((a, b) => b.creationTime - a.creationTime);
-    setPostDatasInServer(postsFromServer);
-
-    frenlets.sort((a, b) => b.ts - a.ts);
-    setFrenletServerDatas(frenlets);
-
-    setTags(tags);
-
-    setPostStatus({ loading: false });
   };
 
   if (!userInformation) {
@@ -166,7 +114,7 @@ export default function UserPage({ userInformation }: Props) {
   return (
     <UserPageLayout
       userInformation={userInformation}
-      postItemsDatas={postsDatasInServer}
+      postDocPaths={postDocPaths}
       frenletServerDatas={frenletServerDatas}
       tags={tags}
     />

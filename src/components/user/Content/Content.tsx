@@ -1,5 +1,4 @@
 import { FrenletServerData } from "@/components/types/Frenlet";
-import { PostItemDataV2 } from "@/components/types/Post";
 import { UserInServer } from "@/components/types/User";
 import {
   Tab,
@@ -12,17 +11,17 @@ import Frenlets from "./Frenlets";
 import Posts from "./Posts";
 
 type Props = {
-  postItemsDatas: PostItemDataV2[];
   frenletServerDatas: FrenletServerData[];
   tags: string[];
   userInformation: UserInServer;
+  postDocPaths : string[]
 };
 
 export default function Content({
   frenletServerDatas,
-  postItemsDatas,
   tags,
   userInformation,
+  postDocPaths
 }: Props) {
   return (
     <Tabs isFitted variant="solid-rounded">
@@ -39,7 +38,7 @@ export default function Content({
           />
         </TabPanel>
         <TabPanel id="posts-panel">
-          <Posts postItemsDatas={postItemsDatas} />
+          <Posts postDocPaths={postDocPaths} />
         </TabPanel>
       </TabPanels>
     </Tabs>

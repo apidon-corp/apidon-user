@@ -18,7 +18,7 @@ import {
   SkeletonText,
   Text,
 } from "@chakra-ui/react";
-import { useEffect, useRef, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 
 import {
   AiFillHeart,
@@ -31,37 +31,29 @@ import { BsDot, BsImage } from "react-icons/bs";
 import usePostDelete from "@/hooks/postHooks/usePostDelete";
 import useFollow from "@/hooks/socialHooks/useFollow";
 
-import usePostLike from "@/hooks/postHooks/usePostLike";
-
-import useGetFirebase from "@/hooks/readHooks/useGetFirebase";
+import { auth, firestore } from "@/firebase/clientApp";
+import { doc, onSnapshot } from "firebase/firestore";
 import moment from "moment";
 import { useRouter } from "next/router";
 import { CgProfile } from "react-icons/cg";
 import { IoMdLink } from "react-icons/io";
-import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
+import { useRecoilValue, useSetRecoilState } from "recoil";
 import { authModalStateAtom } from "../atoms/authModalAtom";
 import { currentUserStateAtom } from "../atoms/currentUserAtom";
-import { postsAtViewAtom } from "../atoms/postsAtViewAtom";
 import { OpenPanelName, PostFrontData } from "../types/Post";
-import { auth } from "@/firebase/clientApp";
+import { UserInServer } from "../types/User";
 
 type Props = {
   postFrontData: PostFrontData;
   openPanelNameSetter: React.Dispatch<React.SetStateAction<OpenPanelName>>;
+  setIsPostDeleted: Dispatch<SetStateAction<boolean>>;
 };
 
 export default function PostFront({
   postFrontData,
   openPanelNameSetter,
+  setIsPostDeleted,
 }: Props) {
-  const [postSenderInformation, setPostSenderInformation] = useState({
-    username: postFrontData.senderUsername,
-    fullname: "",
-    profilePhoto: "",
-  });
-
-  const { like } = usePostLike();
-
   const currentUserState = useRecoilValue(currentUserStateAtom);
 
   const router = useRouter();
@@ -75,10 +67,6 @@ export default function PostFront({
   const leastDestructiveRef = useRef<HTMLButtonElement>(null);
   const [showDeletePostDialog, setShowDeletePostDialog] = useState(false);
 
-  const [followOperationLoading, setFollowOperationLoading] = useState(false);
-
-  const [postsAtView, setPostsAtView] = useRecoilState(postsAtViewAtom);
-
   const [taggedDescription, setTaggedDescription] = useState<
     {
       isTagged: boolean;
@@ -86,11 +74,21 @@ export default function PostFront({
     }[]
   >([]);
 
-  const [showFollowButtonOnPost, setShowFollowButtonOnPost] = useState(false);
-
-  const { getDocServer } = useGetFirebase();
-
   const [linkCopied, setLinkCopied] = useState(false);
+
+  const [isLiked, setIsLiked] = useState(false);
+  const [likeLoading, setLikeLoading] = useState(false);
+
+  const [postSenderData, setPostSenderData] = useState<UserInServer>();
+  const [isFollowingThisSender, setIsFollowingThisSender] = useState(false);
+  const [followOperationLoading, setFollowOperationLoading] = useState(false);
+
+  useEffect(() => {
+    const displayName = auth.currentUser?.displayName;
+    if (!displayName) return;
+
+    setIsLiked(postFrontData.likers.includes(displayName));
+  }, []);
 
   useEffect(() => {
     if (linkCopied) {
@@ -101,11 +99,6 @@ export default function PostFront({
   }, [linkCopied]);
 
   useEffect(() => {
-    if (!currentUserState.isThereCurrentUser) return;
-    handleGetPostSenderData(postFrontData.senderUsername);
-  }, [currentUserState.username]);
-
-  useEffect(() => {
     const descriptionContainsTagging = postFrontData.description.includes("@");
     if (!descriptionContainsTagging) return;
 
@@ -113,36 +106,52 @@ export default function PostFront({
   }, []);
 
   useEffect(() => {
-    if (!currentUserState.isThereCurrentUser)
-      return setShowFollowButtonOnPost(false);
+    const senderDocReference = doc(
+      firestore,
+      `/users/${postFrontData.senderUsername}`
+    );
 
-    if (postFrontData.senderUsername === currentUserState.username) {
-      return setShowFollowButtonOnPost(false);
+    const unsubscribe = onSnapshot(
+      senderDocReference,
+      (snapshot) => {
+        if (!snapshot.exists()) return;
+
+        const senderDocData = snapshot.data() as UserInServer;
+        if (!senderDocData) return;
+
+        setPostSenderData(senderDocData);
+      },
+      (error) => {
+        console.error("Error on realtime listening: \n", error);
+      }
+    );
+
+    return () => unsubscribe();
+  }, [postFrontData.senderUsername]);
+
+  useEffect(() => {
+    const displayName = auth.currentUser?.displayName;
+    if (!displayName) return;
+
+    if (displayName === postFrontData.senderUsername) {
+      return setIsFollowingThisSender(true);
     }
 
-    if (postFrontData.currentUserFollowThisSender)
-      return setShowFollowButtonOnPost(false);
+    const followerDocForCurrentUserOnSender = doc(
+      firestore,
+      `/users/${postFrontData.senderUsername}/followers/${displayName}`
+    );
 
-    return setShowFollowButtonOnPost(true);
-  }, [currentUserState, postFrontData, router.asPath]);
+    const unsubscribe = onSnapshot(
+      followerDocForCurrentUserOnSender,
+      (snapshot) => {
+        if (!snapshot.exists()) return;
+        setIsFollowingThisSender(true);
+      }
+    );
 
-  /**
-   * Simply gets postSender's pp and fullname.
-   * Normally, I used hooks for seperately to get pp and fullname.
-   * I thought it was inefficient :) .
-   * @param username
-   * @returns
-   */
-  const handleGetPostSenderData = async (username: string) => {
-    const userDocResult = await getDocServer(`users/${username}`);
-    if (!userDocResult || !userDocResult.isExists) return;
-
-    setPostSenderInformation((prev) => ({
-      ...prev,
-      fullname: userDocResult.data.fullname,
-      profilePhoto: userDocResult.data.profilePhoto,
-    }));
-  };
+    return () => unsubscribe();
+  }, [postFrontData.senderUsername]);
 
   const handleFollowOnPost = async () => {
     if (!currentUserState.isThereCurrentUser) {
@@ -156,52 +165,9 @@ export default function PostFront({
 
     setFollowOperationLoading(true);
 
-    // update other posts to prevent unnecessary follow requests
-    let updatedPostsAtView = postsAtView.map((a) => {
-      if (
-        a.senderUsername === postFrontData.senderUsername &&
-        a.postDocId !== postFrontData.postDocId
-      ) {
-        const updatedPost = { ...a };
-        updatedPost.currentUserFollowThisSender = true;
-        return updatedPost;
-      } else {
-        return a;
-      }
-    });
-
-    setPostsAtView(updatedPostsAtView);
-
     // Follow
     const operationResult = await follow(postFrontData.senderUsername, 1);
-
-    if (!operationResult) {
-      console.log("there is issue in here. We are reverting");
-      const revertedPostsAtView = updatedPostsAtView.map((a) => {
-        if (a.senderUsername === postFrontData.senderUsername) {
-          const updatedPost = { ...a };
-          updatedPost.currentUserFollowThisSender = false;
-          return updatedPost;
-        } else {
-          return a;
-        }
-      });
-      setPostsAtView(revertedPostsAtView);
-      return setFollowOperationLoading(false);
-    }
-
-    // update current post
-    const finalUpdatedPostsAtView = updatedPostsAtView.map((a) => {
-      if (a.postDocId === postFrontData.postDocId) {
-        const updatedPost = { ...a };
-        updatedPost.currentUserFollowThisSender = true;
-        return updatedPost;
-      } else {
-        return a;
-      }
-    });
-
-    setPostsAtView(finalUpdatedPostsAtView);
+    if (!operationResult) return setFollowOperationLoading(false);
 
     setFollowOperationLoading(false);
   };
@@ -239,26 +205,13 @@ export default function PostFront({
       }));
     }
 
-    const likeCountBeforeOperations = postFrontData.likeCount;
-
     const displayName = auth.currentUser?.displayName;
     if (!displayName) return;
 
-    const updatedPostsAtView = postsAtView.map((a) => {
-      if (a.postDocId === postFrontData.postDocId) {
-        const updatedPost = { ...a };
-        updatedPost.currentUserLikedThisPost = true;
-        updatedPost.likeCount = a.likeCount + 1;
-        updatedPost.likes = [
-          { sender: displayName, ts: Date.now() },
-          ...a.likes,
-        ];
-        return updatedPost;
-      } else {
-        return a;
-      }
-    });
-    setPostsAtView(updatedPostsAtView);
+    if (likeLoading) return;
+
+    setIsLiked(true);
+    setLikeLoading(true);
 
     try {
       const idToken = await currentUserAuthObject.getIdToken();
@@ -270,47 +223,24 @@ export default function PostFront({
         },
         body: JSON.stringify({
           action: "like",
-          postDocPath: `users/${postFrontData.senderUsername}/posts/${postFrontData.postDocId}`,
+          postDocPath: `users/${postFrontData.senderUsername}/posts/${postFrontData.id}`,
         }),
       });
 
       if (!response.ok) {
-        const updatedPostsAtView = postsAtView.map((a) => {
-          if (a.postDocId === postFrontData.postDocId) {
-            const updatedPost = { ...a };
-            updatedPost.currentUserLikedThisPost = false;
-            updatedPost.likeCount = likeCountBeforeOperations;
-            updatedPost.likes = a.likes.filter(
-              (like) => like.sender !== displayName
-            );
-            return updatedPost;
-          } else {
-            return a;
-          }
-        });
-        setPostsAtView(updatedPostsAtView);
-
+        setLikeLoading(false);
+        setIsLiked(false);
         return console.error(
           "Response from postLike API is not okay: \n",
           await response.text()
         );
       }
+
+      return setLikeLoading(false);
     } catch (error) {
-      const updatedPostsAtView = postsAtView.map((a) => {
-        if (a.postDocId === postFrontData.postDocId) {
-          const updatedPost = { ...a };
-          updatedPost.currentUserLikedThisPost = false;
-          updatedPost.likeCount = likeCountBeforeOperations;
-          updatedPost.likes = a.likes.filter(
-            (like) => like.sender !== displayName
-          );
-          return updatedPost;
-        } else {
-          return a;
-        }
-      });
-      setPostsAtView(updatedPostsAtView);
-      return console.error("Error on fetching to postLike API: \n", error);
+      setIsLiked(false);
+      console.error("Error on fetching to postLike API: \n", error);
+      return setLikeLoading(false);
     }
   };
 
@@ -324,25 +254,13 @@ export default function PostFront({
       }));
     }
 
-    const likeCountBeforeOperations = postFrontData.likeCount;
-
     const displayName = auth.currentUser?.displayName;
     if (!displayName) return;
 
-    const updatedPostsAtView = postsAtView.map((a) => {
-      if (a.postDocId === postFrontData.postDocId) {
-        const updatedPost = { ...a };
-        updatedPost.currentUserLikedThisPost = false;
-        updatedPost.likeCount = a.likeCount - 1;
-        updatedPost.likes = a.likes.filter(
-          (like) => like.sender !== displayName
-        );
-        return updatedPost;
-      } else {
-        return a;
-      }
-    });
-    setPostsAtView(updatedPostsAtView);
+    if (likeLoading) return;
+
+    setIsLiked(false);
+    setLikeLoading(true);
 
     try {
       const idToken = await currentUserAuthObject.getIdToken();
@@ -354,57 +272,32 @@ export default function PostFront({
         },
         body: JSON.stringify({
           action: "delike",
-          postDocPath: `users/${postFrontData.senderUsername}/posts/${postFrontData.postDocId}`,
+          postDocPath: `users/${postFrontData.senderUsername}/posts/${postFrontData.id}`,
         }),
       });
 
       if (!response.ok) {
-        const updatedPostsAtView = postsAtView.map((a) => {
-          if (a.postDocId === postFrontData.postDocId) {
-            const updatedPost = { ...a };
-            updatedPost.currentUserLikedThisPost = true;
-            updatedPost.likeCount = likeCountBeforeOperations;
-            updatedPost.likes = [
-              { sender: displayName, ts: Date.now() },
-              ...a.likes,
-            ];
-            return updatedPost;
-          } else {
-            return a;
-          }
-        });
-        setPostsAtView(updatedPostsAtView);
-
-        return console.error(
+        console.error(
           "Response from postLike API is not okay: \n",
           await response.text()
         );
+        setIsLiked(true);
+        return setLikeLoading(false);
       }
+
+      return setLikeLoading(false);
     } catch (error) {
-      const updatedPostsAtView = postsAtView.map((a) => {
-        if (a.postDocId === postFrontData.postDocId) {
-          const updatedPost = { ...a };
-          updatedPost.currentUserLikedThisPost = true;
-          updatedPost.likeCount = likeCountBeforeOperations;
-          updatedPost.likes = [
-            { sender: displayName, ts: Date.now() },
-            ...a.likes,
-          ];
-          return updatedPost;
-        } else {
-          return a;
-        }
-      });
-      setPostsAtView(updatedPostsAtView);
-      return console.error("Error on fetching to postLike API: \n", error);
+      console.error("Error on fetching to postLike API: \n", error);
+      setIsLiked(true);
+      return setLikeLoading(false);
     }
   };
 
   const handlePostDelete = async () => {
-    const operationResult = await postDelete(postFrontData.postDocId);
-    if (!operationResult) {
-      return;
-    }
+    const operationResult = await postDelete(postFrontData.id);
+    if (!operationResult) return;
+
+    setIsPostDeleted(true);
     setShowDeletePostDialog(false);
   };
 
@@ -422,12 +315,12 @@ export default function PostFront({
       >
         <Image
           alt=""
-          src={postSenderInformation.profilePhoto}
+          src={postSenderData?.profilePhoto}
           width="50px"
           height="50px"
           rounded="full"
           fallback={
-            postSenderInformation.profilePhoto ? (
+            postSenderData?.profilePhoto ? (
               <SkeletonCircle
                 width="50px"
                 height="50px"
@@ -469,9 +362,9 @@ export default function PostFront({
               cursor="pointer"
               onClick={() => router.push(`/${postFrontData.senderUsername}`)}
             >
-              {postSenderInformation.fullname}
+              {postSenderData?.fullname}
             </Text>
-            {!postSenderInformation.fullname && (
+            {!postSenderData?.fullname && (
               <SkeletonText noOfLines={1} width="50px" />
             )}
 
@@ -489,7 +382,7 @@ export default function PostFront({
             colorScheme="blue"
             size="sm"
             onClick={handleFollowOnPost}
-            hidden={!showFollowButtonOnPost}
+            hidden={isFollowingThisSender}
             isLoading={followOperationLoading}
           >
             Follow
@@ -625,7 +518,7 @@ export default function PostFront({
         <Flex>
           <Flex gap={3} p={2}>
             <Flex id="like-part" gap="1">
-              {postFrontData.currentUserLikedThisPost ? (
+              {isLiked ? (
                 <Icon
                   as={AiFillHeart}
                   color="red"
@@ -672,7 +565,7 @@ export default function PostFront({
               cursor="pointer"
               onClick={() => {
                 navigator.clipboard.writeText(
-                  `${process.env.NEXT_PUBLIC_USER_PANEL_BASE_URL}/${postFrontData.senderUsername}/posts/${postFrontData.postDocId}`
+                  `${process.env.NEXT_PUBLIC_USER_PANEL_BASE_URL}/${postFrontData.senderUsername}/posts/${postFrontData.id}`
                 );
                 setLinkCopied(true);
               }}

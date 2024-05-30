@@ -3,7 +3,8 @@ import {
   FrenletServerData,
   FrenletsServerData,
 } from "@/components/types/Frenlet";
-import { PostItemDataV2 } from "@/components/types/Post";
+import { PostServerDataV2 } from "@/components/types/Post";
+
 import { firestore } from "@/firebase/adminApp";
 import { NextApiRequest, NextApiResponse } from "next";
 
@@ -12,96 +13,23 @@ export const config = {
   maxDuration: 120,
 };
 
-async function getPosts(username: string) {
+async function getPostsDocPaths(username: string) {
   try {
     const postsSnapshot = await firestore
       .collection(`/users/${username}/posts`)
       .get();
 
-    return postsSnapshot.docs;
+    return postsSnapshot.docs
+      .sort(
+        (a, b) =>
+          (b.data() as PostServerDataV2).creationTime -
+          (a.data() as PostServerDataV2).creationTime
+      )
+      .map((d) => d.ref.path);
   } catch (error) {
     console.error(`Error while getting posts for ${username}`);
     return false;
   }
-}
-
-const handleGetFollowStatus = async (
-  operationFromUsername: string,
-  postDoc: FirebaseFirestore.QueryDocumentSnapshot<FirebaseFirestore.DocumentData>
-) => {
-  let followStatus = false;
-  try {
-    followStatus = (
-      await firestore
-        .doc(
-          `users/${operationFromUsername}/followings/${
-            postDoc.data().senderUsername
-          }`
-        )
-        .get()
-    ).exists;
-  } catch (error) {
-    console.error(
-      `Error while creating user (single) feed for ${operationFromUsername}. (We were getting follow status from post: ${postDoc.ref.path})`
-    );
-    return false;
-  }
-
-  return followStatus;
-};
-
-const handleCreatePostItemData = async (
-  postDoc: FirebaseFirestore.QueryDocumentSnapshot<FirebaseFirestore.DocumentData>,
-  operationFromUsername: string
-) => {
-  const likeStatus = (postDoc.data() as PostItemDataV2).likes
-    .map((u) => u.sender)
-    .includes(operationFromUsername);
-
-  // getting following status
-  let followStatus = false;
-
-  const [followResponse] = await Promise.all([
-    handleGetFollowStatus(operationFromUsername, postDoc),
-  ]);
-
-  // undefined is false default.
-  followStatus = followResponse as boolean;
-
-  const newPostItemData: PostItemDataV2 = {
-    senderUsername: postDoc.data().senderUsername,
-
-    description: postDoc.data().description,
-    image: postDoc.data().image,
-
-    likeCount: postDoc.data().likeCount,
-    likes: postDoc.data().likes,
-    currentUserLikedThisPost: likeStatus,
-
-    commentCount: postDoc.data().commentCount,
-    comments: postDoc.data().comments,
-
-    postDocId: postDoc.id,
-
-    nftStatus: postDoc.data().nftStatus,
-
-    currentUserFollowThisSender: followStatus,
-
-    creationTime: postDoc.data().creationTime,
-  };
-
-  return newPostItemData;
-};
-
-async function handlePreparePosts(
-  postDocs: FirebaseFirestore.QueryDocumentSnapshot<FirebaseFirestore.DocumentData>[],
-  requester: string
-) {
-  const postItemDatas = await Promise.all(
-    postDocs.map((postDoc) => handleCreatePostItemData(postDoc, requester))
-  );
-
-  return postItemDatas;
 }
 
 async function getReceviedFrenlets(username: string) {
@@ -179,13 +107,8 @@ export default async function handler(
 
   if (req.method !== "POST") return res.status(405).send("Method not allowed");
 
-  const postsServerDatas = await getPosts(username);
-  if (!postsServerDatas) return res.status(500).send("Internal Server Error");
-
-  const postItemDatas = await handlePreparePosts(
-    postsServerDatas,
-    operationFromUsername
-  );
+  const postDocPaths = await getPostsDocPaths(username);
+  if (!postDocPaths) return res.status(500).send("Internal Server Error");
 
   const [frenlets, tags] = await Promise.all([
     getFrenlets(username),
@@ -195,5 +118,5 @@ export default async function handler(
 
   return res
     .status(200)
-    .json({ postItemDatas: postItemDatas, frenlets: frenlets, tags: tags });
+    .json({ postDocPaths: postDocPaths, frenlets: frenlets, tags: tags });
 }

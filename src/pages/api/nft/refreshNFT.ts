@@ -1,6 +1,6 @@
 import getDisplayName from "@/apiUtils";
 import { NFTMetadata } from "@/components/types/NFT";
-import { PostServerData } from "@/components/types/Post";
+import { PostServerDataV2 } from "@/components/types/Post";
 import AsyncLock from "async-lock";
 import { NextApiRequest, NextApiResponse } from "next";
 import { bucket, firestore } from "../../../firebase/adminApp";
@@ -46,14 +46,14 @@ export default async function handler(
       return res.status(503).send("Firebase Error");
     }
 
-    let pd: PostServerData;
+    let pd: PostServerDataV2;
 
     try {
       pd = (
         await firestore
           .doc(`users/${operationFromUsername}/posts/${postDocId}`)
           .get()
-      ).data() as PostServerData;
+      ).data() as PostServerDataV2;
     } catch (error) {
       console.error(
         "Error while refreshingNFT.(We were on getting new comment and like count.))",

@@ -64,13 +64,16 @@ export const defaultCurrentUserState: CurrentUser = {
   hasProvider: false,
 };
 
-export interface INotificationServerData {
-  notificationTime: number;
-  seen: boolean;
-  sender: string;
+export type NotificationData = {
   cause: "like" | "follow" | "comment" | "frenlet";
-  commentDocPath?: string;
-}
+  sender: string;
+  ts: number;
+};
+
+export type NotificationDocData = {
+  notifications: NotificationData[];
+  lastOpenedTime: number;
+};
 
 /**
  * Interface for link previews in social medias.

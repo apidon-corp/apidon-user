@@ -4,7 +4,7 @@ import {
   NftDocDataInServer,
   SoldNFTsArrayObject,
 } from "@/components/types/NFT";
-import { PostServerData } from "@/components/types/Post";
+import { PostServerDataV2 } from "@/components/types/Post";
 import { fieldValue, firestore } from "@/firebase/adminApp";
 import { NextApiRequest, NextApiResponse } from "next";
 
@@ -29,13 +29,13 @@ export default async function handler(
     return res.status(422).send("Invalid Prop or Props");
   }
 
-  let postDocData: PostServerData;
+  let postDocData: PostServerDataV2;
   try {
     const postDocSnapshot = await firestore.doc(postDocPath).get();
     if (!postDocSnapshot.exists)
       throw new Error(`Doc (${postDocPath} doesn't exist anymore)`);
 
-    postDocData = postDocSnapshot.data() as PostServerData;
+    postDocData = postDocSnapshot.data() as PostServerDataV2;
   } catch (error) {
     console.error("Error while getting postDoc of requested NFT: \n", error);
     return res.status(500).send("Internal Server Error");

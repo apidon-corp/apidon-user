@@ -1,5 +1,4 @@
 import getDisplayName from "@/apiUtils";
-import { PostItemDataV2, PostServerDataV2 } from "@/components/types/Post";
 import { CurrentProvider } from "@/components/types/User";
 import { firestore } from "@/firebase/adminApp";
 import { NextApiRequest, NextApiResponse } from "next";
@@ -128,71 +127,6 @@ async function getPostPredictionsFromProvider(
   }
 }
 
-async function createPostItemData(
-  postDocPath: string,
-  username: string,
-  followings: string[]
-) {
-  try {
-    const postDocSnapshot = await firestore.doc(postDocPath).get();
-    if (!postDocSnapshot.exists) {
-      console.error("Post does not exist.");
-      return false;
-    }
-
-    const postDocData = postDocSnapshot.data() as PostServerDataV2;
-    if (postDocData === undefined) {
-      console.error("Post doc data is undefined.");
-      return false;
-    }
-
-    const postItemData: PostItemDataV2 = {
-      commentCount: postDocData.commentCount,
-      comments: postDocData.comments,
-      creationTime: postDocData.creationTime,
-      currentUserFollowThisSender: followings.includes(
-        postDocData.senderUsername
-      ),
-      currentUserLikedThisPost: postDocData.likes
-        .map((l) => l.sender)
-        .includes(username),
-      description: postDocData.description,
-      image: postDocData.image,
-      likeCount: postDocData.likeCount,
-      likes: postDocData.likes,
-      nftStatus: postDocData.nftStatus,
-      postDocId: postDocData.id,
-      senderUsername: postDocData.senderUsername,
-    };
-
-    return postItemData;
-  } catch (error) {
-    console.error("Error while creating post item data: ", error);
-    return false;
-  }
-}
-
-async function createAllPostItemDatas(
-  postDocPaths: string[],
-  username: string,
-  followings: string[]
-) {
-  try {
-    const postItemDatas = await Promise.all(
-      postDocPaths.map((p) => createPostItemData(p, username, followings))
-    );
-    const postItemDatasFiltered = postItemDatas.filter(
-      (p) => p !== false
-    ) as PostItemDataV2[];
-    return {
-      postItemDatas: postItemDatasFiltered,
-    };
-  } catch (error) {
-    console.error("Error while executing create post item datas: ", error);
-    return false;
-  }
-}
-
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
@@ -219,23 +153,19 @@ export default async function handler(
   if (!getPostPredictionsFromProviderResult)
     return res.status(500).send("Internal Server Error");
 
-  console.log(getPostPredictionsFromProviderResult.postDocPathArray);
-
-  const createAllPostItemDatasResult = await createAllPostItemDatas(
-    getPostPredictionsFromProviderResult.postDocPathArray,
-    username,
-    followingsOfUser
-  );
-  if (!createAllPostItemDatasResult)
-    return res.status(500).send("Internal Server Error");
-
-  console.log("-------------------------------");
-
-  console.log(
-    createAllPostItemDatasResult.postItemDatas.map((p) => p.postDocId)
-  );
-
   return res.status(200).json({
-    postItemDatas: createAllPostItemDatasResult.postItemDatas,
+    postDocPathArray: getPostPredictionsFromProviderResult.postDocPathArray,
   });
+
+  // const createAllPostItemDatasResult = await createAllPostItemDatas(
+  //   getPostPredictionsFromProviderResult.postDocPathArray,
+  //   username,
+  //   followingsOfUser
+  // );
+  // if (!createAllPostItemDatasResult)
+  //   return res.status(500).send("Internal Server Error");
+
+  // return res.status(200).json({
+  //   postItemDatas: createAllPostItemDatasResult.postItemDatas,
+  // });
 }

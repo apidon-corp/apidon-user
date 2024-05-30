@@ -1,5 +1,4 @@
 import { notificationStateAtom } from "@/components/atoms/notificationModalAtom";
-import { INotificationServerData } from "@/components/types/User";
 import useGetFirebase from "@/hooks/readHooks/useGetFirebase";
 
 import { Flex, Icon, Image, SkeletonCircle, Text } from "@chakra-ui/react";
@@ -20,12 +19,19 @@ interface NotificationItemData {
   message: string;
 }
 
+type Props = {
+  cause: string;
+  notificationTime: number;
+  seen: boolean;
+  sender: string;
+};
+
 export default function NotificationItem({
   cause,
   notificationTime,
-  sender,
   seen,
-}: INotificationServerData) {
+  sender,
+}: Props) {
   const [notificationItemData, setNotificationItemData] =
     useState<NotificationItemData>({
       message: "",

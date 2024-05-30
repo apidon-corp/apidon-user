@@ -1,16 +1,16 @@
 import { Flex } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import Posts from "../Post/Posts";
-import { PostItemDataV2 } from "../types/Post";
 
 type Props = {
-  postItemsDatas: PostItemDataV2[];
+  //postItemsDatas: PostItemDataV2[];
+  postDocPathArray: string[];
 };
 
 /**
  * This component are being used for both 'main page' and 'nft page'.
  */
-export default function MainPageLayout({ postItemsDatas }: Props) {
+export default function MainPageLayout({ postDocPathArray }: Props) {
   const [innerHeight, setInnerHeight] = useState("");
 
   useEffect(() => {
@@ -38,7 +38,7 @@ export default function MainPageLayout({ postItemsDatas }: Props) {
           }}
           minHeight={innerHeight}
         >
-          <Posts postsItemDatas={postItemsDatas} />
+          <Posts postDocPathArray={postDocPathArray} />
         </Flex>
 
         <Flex

@@ -1,5 +1,6 @@
 import getDisplayName from "@/apiUtils";
 import { FrenletServerData } from "@/components/types/Frenlet";
+import { NotificationData } from "@/components/types/User";
 import { fieldValue, firestore } from "@/firebase/adminApp";
 import { NextApiRequest, NextApiResponse } from "next";
 
@@ -97,19 +98,20 @@ async function deleteNotification(
   ts: number
 ) {
   try {
-    const notificationDocQuery = await firestore
-      .collection(`/users/${frenletReceiver}/notifications`)
-      .where("cause", "==", "frenlet")
-      .where("notificationTime", "==", ts)
-      .where("sender", "==", frenletSender)
-      .get();
+    const notificationDocRef = firestore.doc(
+      `/users/${frenletReceiver}/notifications/notifications/`
+    );
 
-    if (notificationDocQuery.empty) {
-      console.error("Notification doc not found");
-      return false;
-    }
+    const deletedObject: NotificationData = {
+      cause: "frenlet",
+      sender: frenletSender,
+      ts: ts,
+    };
 
-    await notificationDocQuery.docs[0].ref.delete();
+    await notificationDocRef.update({
+      notifications: fieldValue.arrayRemove(deletedObject),
+    });
+
     return true;
   } catch (error) {
     console.error("Error while deleting notification: \n", error);
