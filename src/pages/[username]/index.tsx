@@ -117,7 +117,6 @@ export default function UserPage({ userInformation }: Props) {
       postDocPaths={postDocPaths}
       frenletServerDatas={frenletServerDatas}
       tags={tags}
-      key={userInformation.username}
     />
   );
 }
