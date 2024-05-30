@@ -88,7 +88,7 @@ export default async function handler(
     const buffer = Buffer.from(JSON.stringify(metadata));
 
     const newMetadataFile = bucket.file(
-      `users/${operationFromUsername}/postsFiles/${postDocId}/nftMetadata`
+      `users/${operationFromUsername}/postFiles/${postDocId}/nftMetadata`
     );
 
     try {

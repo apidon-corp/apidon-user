@@ -4,49 +4,51 @@ import { useState } from "react";
 export default function usePostDelete() {
   const [postDeletionLoading, setPostDeletionLoading] = useState(false);
 
-  /**
-   *
-   * @param postDocId
-   * @returns true if operation is successfull, otherwise false.
-   */
   const postDelete = async (postDocId: string) => {
     setPostDeletionLoading(true);
 
-    let idToken = "";
-    try {
-      idToken = (await auth.currentUser?.getIdToken()) as string;
-    } catch (error) {
-      console.error("Error while post deleting. Couln't be got idToken", error);
+    const currentUserAuthObject = auth.currentUser;
+    if (!currentUserAuthObject) {
       setPostDeletionLoading(false);
       return false;
     }
-    let response: Response;
+
+    const displayName = currentUserAuthObject.displayName;
+    if (!displayName) {
+      setPostDeletionLoading(false);
+      return false;
+    }
+
     try {
-      response = await fetch("/api/post/postDelete", {
+      const idToken = await currentUserAuthObject.getIdToken();
+
+      const response = await fetch("/api/postv2/postDelete", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           authorization: `Bearer ${idToken}`,
         },
-        body: JSON.stringify({ postDocId: postDocId }),
+        body: JSON.stringify({
+          postDocPath: `/users/${displayName}/posts/${postDocId}`,
+        }),
       });
+
+      if (!response.ok) {
+        console.error(
+          "Error while deleting post from 'postDelete' API",
+          await response.text()
+        );
+        setPostDeletionLoading(false);
+        return false;
+      }
+
+      setPostDeletionLoading(false);
+      return true;
     } catch (error) {
       setPostDeletionLoading(false);
       console.error("Error while fecthing to 'postDelete API'", error);
       return false;
     }
-
-    if (!response.ok) {
-      console.error(
-        "Error while deleting post from 'postDelete' API",
-        await response.text()
-      );
-      setPostDeletionLoading(false);
-      return false;
-    }
-
-    setPostDeletionLoading(false);
-    return true;
   };
   return {
     postDelete,

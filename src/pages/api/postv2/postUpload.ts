@@ -50,7 +50,7 @@ async function uploadImage(username: string, image: string) {
   const postDocId = Date.now().toString();
 
   try {
-    const file = bucket.file(`/users/${username}/postFiles/${postDocId}/image`);
+    const file = bucket.file(`users/${username}/postFiles/${postDocId}/image`);
     const buffer = Buffer.from(image.split(",")[1], "base64");
     await file.save(buffer, { metadata: { contentType: "image/jpeg" } });
     await file.makePublic();
