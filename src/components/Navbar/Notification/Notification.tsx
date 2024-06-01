@@ -6,13 +6,14 @@ import {
   Icon,
   Modal,
   ModalBody,
+  ModalCloseButton,
   ModalContent,
+  ModalHeader,
   ModalOverlay,
   Stack,
 } from "@chakra-ui/react";
 import { doc, onSnapshot } from "firebase/firestore";
-import { useEffect, useState } from "react";
-import { AiOutlineClose } from "react-icons/ai";
+import { useEffect, useRef, useState } from "react";
 import { GoDotFill } from "react-icons/go";
 import { IoMdNotificationsOutline } from "react-icons/io";
 
@@ -23,6 +24,12 @@ export const Notification = () => {
   const [lastOpenedTime, setLastOpenedTime] = useState(0);
 
   const [showFlag, setShowFlag] = useState(false);
+
+  const [givenNotifications, setGivenNotifications] = useState<
+    NotificationData[]
+  >([]);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const [getMoreNotifications, setGetMoreNotifications] = useState(false);
 
   useEffect(() => {
     const displayName = auth.currentUser?.displayName;
@@ -86,10 +93,41 @@ export const Notification = () => {
   }, [modalOpen]);
 
   useEffect(() => {
-    if (modalOpen) {
-      handleUpdateNotificationLastOpenedTime();
-    }
+    if (!modalOpen) return;
+    handleUpdateNotificationLastOpenedTime();
   }, [modalOpen]);
+
+  useEffect(() => {
+    if (!getMoreNotifications) return;
+    handleGetMoreNotifications();
+  }, [getMoreNotifications]);
+
+  useEffect(() => {
+    if (modalOpen) {
+      handleInitialNotificationLoading();
+    } else {
+      setGivenNotifications([]);
+    }
+  }, [notifications, modalOpen]);
+
+  useEffect(() => {
+    if (!modalOpen) {
+      if (panelRef.current) {
+        panelRef.current.removeEventListener("scroll", handleScroll);
+      }
+      return;
+    }
+    const panel = panelRef.current;
+    if (panel) {
+      panel.addEventListener("scroll", handleScroll);
+    }
+
+    return () => {
+      if (panel) {
+        panel.removeEventListener("scroll", handleScroll);
+      }
+    };
+  }, [modalOpen, notifications]);
 
   const handleUpdateNotificationLastOpenedTime = async () => {
     const currentUserAuthObject = auth.currentUser;
@@ -123,6 +161,42 @@ export const Notification = () => {
       console.error("Error on fetching to updateLastOpenedTime API: \n", error);
       return false;
     }
+  };
+
+  const handleInitialNotificationLoading = () => {
+    setGetMoreNotifications(true);
+  };
+
+  const handleScroll = (): void => {
+    if (!panelRef.current) return;
+    if (!modalOpen) return;
+
+    const panel = panelRef.current;
+
+    const panelScrollHeight = panel.scrollHeight;
+
+    const panelScrollTop = panel.scrollTop;
+    const panellClientHeight = panel.clientHeight;
+
+    const ratio = (panelScrollTop + panellClientHeight) / panelScrollHeight;
+
+    if (ratio === 1) {
+      if (getMoreNotifications) return;
+      setGetMoreNotifications(true);
+    }
+  };
+
+  const handleGetMoreNotifications = () => {
+    if (!getMoreNotifications) return;
+    if (!modalOpen) return;
+
+    const newNotifications = notifications.slice(
+      givenNotifications.length,
+      givenNotifications.length + 5
+    );
+    setGivenNotifications((prev) => [...prev, ...newNotifications]);
+
+    setGetMoreNotifications(false);
   };
 
   return (
@@ -168,32 +242,12 @@ export const Notification = () => {
             lg: "500px",
           }}
         >
-          <Flex
-            position="sticky"
-            top="0"
-            px={6}
-            align="center"
-            justify="space-between"
-            height="50px"
-            bg="black"
-          >
-            <Flex textColor="white" fontSize="17pt" fontWeight="700" gap={2}>
-              Notifications
-            </Flex>
+          <ModalHeader color="white">Notifications</ModalHeader>
+          <ModalCloseButton color="white" justifyContent="center" />
 
-            <Icon
-              as={AiOutlineClose}
-              color="white"
-              fontSize="15pt"
-              cursor="pointer"
-              onClick={() => {
-                setModalOpen(false);
-              }}
-            />
-          </Flex>
-          <ModalBody>
-            <Stack gap={2}>
-              {notifications
+          <ModalBody display="flex" ref={panelRef}>
+            <Stack gap={4} width="100%">
+              {givenNotifications
                 .sort((a, b) => b.ts - a.ts)
                 .map((n) => (
                   <NotificationItem
@@ -201,6 +255,7 @@ export const Notification = () => {
                     notificationTime={n.ts}
                     seen={lastOpenedTime > n.ts}
                     sender={n.sender}
+                    setModalOpen={setModalOpen}
                     key={`${n.sender}-${n.ts}`}
                   />
                 ))}
