@@ -58,7 +58,11 @@ export const Notification = () => {
         const lastOpenedTimeFetched = notificationDocData.lastOpenedTime;
 
         if (modalOpen) {
-          setNotifications(notificationsFetched.sort((b, a) => b.ts - a.ts));
+          const notificationsSorted = notificationsFetched.toSorted(
+            (a, b) => b.ts - a.ts
+          );
+
+          setNotifications(notificationsSorted);
 
           const unSeenNotifications = notificationsFetched.find(
             (notification) => lastOpenedTime < notification.ts
@@ -72,7 +76,11 @@ export const Notification = () => {
           return;
         }
 
-        setNotifications(notificationsFetched.sort((b, a) => b.ts - a.ts));
+        const notificationsSorted = notificationsFetched.toSorted(
+          (a, b) => b.ts - a.ts
+        );
+
+        setNotifications(notificationsSorted);
         setLastOpenedTime(lastOpenedTimeFetched);
 
         const unSeenNotifications = notificationsFetched.find(
@@ -189,8 +197,11 @@ export const Notification = () => {
   const handleGetMoreNotifications = () => {
     if (!getMoreNotifications) return;
     if (!modalOpen) return;
+    if (notifications.length === 0) return;
 
-    const newNotifications = notifications.slice(
+    const sortedNotifications = notifications.toSorted((a, b) => b.ts - a.ts);
+
+    const newNotifications = sortedNotifications.slice(
       givenNotifications.length,
       givenNotifications.length + 5
     );
@@ -247,18 +258,16 @@ export const Notification = () => {
 
           <ModalBody display="flex" ref={panelRef}>
             <Stack gap={4} width="100%">
-              {givenNotifications
-                .sort((a, b) => b.ts - a.ts)
-                .map((n) => (
-                  <NotificationItem
-                    cause={n.cause}
-                    notificationTime={n.ts}
-                    seen={lastOpenedTime > n.ts}
-                    sender={n.sender}
-                    setModalOpen={setModalOpen}
-                    key={`${n.sender}-${n.ts}`}
-                  />
-                ))}
+              {givenNotifications.map((n) => (
+                <NotificationItem
+                  cause={n.cause}
+                  notificationTime={n.ts}
+                  seen={lastOpenedTime > n.ts}
+                  sender={n.sender}
+                  setModalOpen={setModalOpen}
+                  key={`${n.sender}-${n.ts}`}
+                />
+              ))}
             </Stack>
           </ModalBody>
         </ModalContent>
