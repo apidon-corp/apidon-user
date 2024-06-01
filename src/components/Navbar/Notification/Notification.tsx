@@ -13,7 +13,7 @@ import {
   Stack,
 } from "@chakra-ui/react";
 import { doc, onSnapshot } from "firebase/firestore";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { GoDotFill } from "react-icons/go";
 import { IoMdNotificationsOutline } from "react-icons/io";
 
@@ -24,12 +24,6 @@ export const Notification = () => {
   const [lastOpenedTime, setLastOpenedTime] = useState(0);
 
   const [showFlag, setShowFlag] = useState(false);
-
-  const [givenNotifications, setGivenNotifications] = useState<
-    NotificationData[]
-  >([]);
-  const panelRef = useRef<HTMLDivElement>(null);
-  const [getMoreNotifications, setGetMoreNotifications] = useState(false);
 
   useEffect(() => {
     const displayName = auth.currentUser?.displayName;
@@ -105,38 +99,6 @@ export const Notification = () => {
     handleUpdateNotificationLastOpenedTime();
   }, [modalOpen]);
 
-  useEffect(() => {
-    if (!getMoreNotifications) return;
-    handleGetMoreNotifications();
-  }, [getMoreNotifications]);
-
-  useEffect(() => {
-    if (modalOpen) {
-      handleInitialNotificationLoading();
-    } else {
-      setGivenNotifications([]);
-    }
-  }, [notifications, modalOpen]);
-
-  useEffect(() => {
-    if (!modalOpen) {
-      if (panelRef.current) {
-        panelRef.current.removeEventListener("scroll", handleScroll);
-      }
-      return;
-    }
-    const panel = panelRef.current;
-    if (panel) {
-      panel.addEventListener("scroll", handleScroll);
-    }
-
-    return () => {
-      if (panel) {
-        panel.removeEventListener("scroll", handleScroll);
-      }
-    };
-  }, [modalOpen, notifications]);
-
   const handleUpdateNotificationLastOpenedTime = async () => {
     const currentUserAuthObject = auth.currentUser;
     if (!currentUserAuthObject) return false;
@@ -169,53 +131,6 @@ export const Notification = () => {
       console.error("Error on fetching to updateLastOpenedTime API: \n", error);
       return false;
     }
-  };
-
-  const handleInitialNotificationLoading = () => {
-    if (notifications.length === 0) return;
-
-    const sortedNotifications = notifications.toSorted((a, b) => b.ts - a.ts);
-
-    const newNotifications = sortedNotifications.slice(
-      givenNotifications.length,
-      givenNotifications.length + 5
-    );
-    setGivenNotifications((prev) => [...prev, ...newNotifications]);
-  };
-
-  const handleScroll = (): void => {
-    if (!panelRef.current) return;
-    if (!modalOpen) return;
-
-    const panel = panelRef.current;
-
-    const panelScrollHeight = panel.scrollHeight;
-
-    const panelScrollTop = panel.scrollTop;
-    const panellClientHeight = panel.clientHeight;
-
-    const ratio = (panelScrollTop + panellClientHeight) / panelScrollHeight;
-
-    if (ratio >= 0.8) {
-      if (getMoreNotifications) return;
-      setGetMoreNotifications(true);
-    }
-  };
-
-  const handleGetMoreNotifications = () => {
-    if (!getMoreNotifications) return;
-    if (!modalOpen) return;
-    if (notifications.length === 0) return;
-
-    const sortedNotifications = notifications.toSorted((a, b) => b.ts - a.ts);
-
-    const newNotifications = sortedNotifications.slice(
-      givenNotifications.length,
-      givenNotifications.length + 5
-    );
-    setGivenNotifications((prev) => [...prev, ...newNotifications]);
-
-    setGetMoreNotifications(false);
   };
 
   return (
@@ -264,9 +179,9 @@ export const Notification = () => {
           <ModalHeader color="white">Notifications</ModalHeader>
           <ModalCloseButton color="white" justifyContent="center" />
 
-          <ModalBody display="flex" ref={panelRef}>
+          <ModalBody display="flex">
             <Stack gap={4} width="100%">
-              {givenNotifications.map((n) => (
+              {notifications.map((n) => (
                 <NotificationItem
                   cause={n.cause}
                   notificationTime={n.ts}

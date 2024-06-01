@@ -1,24 +1,10 @@
 import useGetFirebase from "@/hooks/readHooks/useGetFirebase";
 
-import {
-  Box,
-  Flex,
-  Icon,
-  Image,
-  Skeleton,
-  SkeletonText,
-  Text,
-} from "@chakra-ui/react";
+import { Box, Flex, Icon, Image, Skeleton, Text } from "@chakra-ui/react";
 import { formatDistanceToNow } from "date-fns";
 
 import { useRouter } from "next/router";
-import {
-  ChangeEvent,
-  Dispatch,
-  SetStateAction,
-  useEffect,
-  useState,
-} from "react";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { CgProfile } from "react-icons/cg";
 import { GoDotFill } from "react-icons/go";
 
@@ -43,7 +29,6 @@ export default function NotificationItem({
   notificationTime,
   seen,
   sender,
-
   setModalOpen,
 }: Props) {
   const [notificationItemData, setNotificationItemData] =
@@ -59,8 +44,33 @@ export default function NotificationItem({
 
   const { getDocServer } = useGetFirebase();
 
+  const notificationItemRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
-    handleNotificationItemData();
+    const handleIntersection = async (entries: IntersectionObserverEntry[]) => {
+      const entry = entries[0];
+      if (entry.isIntersecting) {
+        // Element is in view, load data
+        handleNotificationItemData();
+      }
+    };
+
+    const observer = new IntersectionObserver(handleIntersection, {
+      root: null, // Defaults to the viewport
+      rootMargin: "0px",
+      threshold: 0.1, // 10% of the element is visible
+    });
+
+    if (notificationItemRef.current) {
+      observer.observe(notificationItemRef.current);
+    }
+
+    return () => {
+      // Clean up observer on component unmount
+      if (notificationItemRef.current) {
+        observer.unobserve(notificationItemRef.current);
+      }
+    };
   }, []);
 
   const handleNotificationItemData = async () => {
@@ -95,6 +105,7 @@ export default function NotificationItem({
       border="1px solid white"
       borderRadius="20px"
       p="5"
+      ref={notificationItemRef}
     >
       <Image
         src={notificationItemData.senderProfilePhoto}
