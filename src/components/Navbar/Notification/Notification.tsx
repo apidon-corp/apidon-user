@@ -58,7 +58,7 @@ export const Notification = () => {
         const lastOpenedTimeFetched = notificationDocData.lastOpenedTime;
 
         if (modalOpen) {
-          setNotifications(notificationsFetched);
+          setNotifications(notificationsFetched.sort((b, a) => b.ts - a.ts));
 
           const unSeenNotifications = notificationsFetched.find(
             (notification) => lastOpenedTime < notification.ts
@@ -72,7 +72,7 @@ export const Notification = () => {
           return;
         }
 
-        setNotifications(notificationsFetched);
+        setNotifications(notificationsFetched.sort((b, a) => b.ts - a.ts));
         setLastOpenedTime(lastOpenedTimeFetched);
 
         const unSeenNotifications = notificationsFetched.find(
