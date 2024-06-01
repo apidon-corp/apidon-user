@@ -172,7 +172,13 @@ export const Notification = () => {
   };
 
   const handleInitialNotificationLoading = () => {
-    setGetMoreNotifications(true);
+    const sortedNotifications = notifications.toSorted((a, b) => b.ts - a.ts);
+
+    const newNotifications = sortedNotifications.slice(
+      givenNotifications.length,
+      givenNotifications.length + 5
+    );
+    setGivenNotifications((prev) => [...prev, ...newNotifications]);
   };
 
   const handleScroll = (): void => {
