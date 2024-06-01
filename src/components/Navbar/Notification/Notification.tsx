@@ -172,6 +172,8 @@ export const Notification = () => {
   };
 
   const handleInitialNotificationLoading = () => {
+    if (notifications.length === 0) return;
+
     const sortedNotifications = notifications.toSorted((a, b) => b.ts - a.ts);
 
     const newNotifications = sortedNotifications.slice(
