@@ -180,7 +180,7 @@ export const Notification = () => {
 
     const ratio = (panelScrollTop + panellClientHeight) / panelScrollHeight;
 
-    if (ratio === 1) {
+    if (ratio >= 0.8) {
       if (getMoreNotifications) return;
       setGetMoreNotifications(true);
     }
