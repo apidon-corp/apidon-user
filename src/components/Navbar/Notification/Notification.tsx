@@ -51,12 +51,14 @@ export const Notification = () => {
         const notificationsFetched = notificationDocData.notifications;
         const lastOpenedTimeFetched = notificationDocData.lastOpenedTime;
 
-        if (modalOpen) {
-          const notificationsSorted = notificationsFetched.toSorted(
-            (a, b) => b.ts - a.ts
-          );
+        if (!notificationsFetched || !lastOpenedTimeFetched) {
+          return;
+        }
 
-          setNotifications(notificationsSorted);
+        if (modalOpen) {
+          notificationsFetched.sort((a, b) => b.ts - a.ts);
+
+          setNotifications(notificationsFetched);
 
           const unSeenNotifications = notificationsFetched.find(
             (notification) => lastOpenedTime < notification.ts
@@ -70,11 +72,9 @@ export const Notification = () => {
           return;
         }
 
-        const notificationsSorted = notificationsFetched.toSorted(
-          (a, b) => b.ts - a.ts
-        );
+        notificationsFetched.sort((a, b) => b.ts - a.ts);
 
-        setNotifications(notificationsSorted);
+        setNotifications(notificationsFetched);
         setLastOpenedTime(lastOpenedTimeFetched);
 
         const unSeenNotifications = notificationsFetched.find(
