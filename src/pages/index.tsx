@@ -75,6 +75,12 @@ export default function Home() {
 }
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
+  if (context.req.headers["serverwarmerkey"]) {
+    return {
+      props: {},
+    };
+  }
+
   const pagePreviewData: IPagePreviewData = {
     title: "Apidon",
     description:

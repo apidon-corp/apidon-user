@@ -1,4 +1,4 @@
-import getDisplayName from "@/apiUtils";
+import getDisplayName, { isWarmingRequest } from "@/apiUtils";
 import { UserInServer } from "@/components/types/User";
 import { firestore } from "@/firebase/adminApp";
 import { NextApiRequest, NextApiResponse } from "next";
@@ -122,6 +122,8 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  const isWarmingRequestResult = isWarmingRequest(req);
+  if (isWarmingRequestResult) return res.status(200).send("OK");
   if (req.method !== "POST") return res.status(405).send("Method not allowed");
 
   const { authorization } = req.headers;

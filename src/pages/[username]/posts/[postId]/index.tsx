@@ -33,6 +33,12 @@ export default function index({ postInformation }: Props) {
 }
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
+  if (context.req.headers["serverwarmerkey"]) {
+    return {
+      props: {},
+    };
+  }
+
   const username = context.query.username;
   const postDocId = context.query.postId;
 

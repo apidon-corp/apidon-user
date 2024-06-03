@@ -1,3 +1,4 @@
+import { NextApiRequest } from "next";
 import { auth } from "./firebase/adminApp";
 
 /**
@@ -29,4 +30,12 @@ export default async function getDisplayName(authorization: string) {
     );
     return "";
   }
+}
+
+export function isWarmingRequest(req: NextApiRequest) {
+  const { serverwarmerkey } = req.headers;
+  if (serverwarmerkey) {
+    return true;
+  }
+  return false;
 }

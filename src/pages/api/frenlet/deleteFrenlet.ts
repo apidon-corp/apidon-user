@@ -1,4 +1,4 @@
-import getDisplayName from "@/apiUtils";
+import getDisplayName, { isWarmingRequest } from "@/apiUtils";
 import { FrenletServerData } from "@/components/types/Frenlet";
 import { NotificationData } from "@/components/types/User";
 import { fieldValue, firestore } from "@/firebase/adminApp";
@@ -155,6 +155,8 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  const isWarmingRequestResult = isWarmingRequest(req);
+  if (isWarmingRequestResult) return res.status(200).send("OK");
   const { authorization } = req.headers;
   const { frenletDocPath } = req.body;
 

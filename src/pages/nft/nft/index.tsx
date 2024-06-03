@@ -34,6 +34,11 @@ export default function Home({ postDocPaths }: Props) {
 }
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
+  if (context.req.headers["serverwarmerkey"]) {
+    return {
+      props: {},
+    };
+  }
   try {
     const authSessionToken = context.req.cookies["firebase-auth.session-token"];
     if (authSessionToken === undefined) {

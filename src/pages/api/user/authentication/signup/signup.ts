@@ -1,3 +1,4 @@
+import { isWarmingRequest } from "@/apiUtils";
 import {
   NotificationDocData,
   PersonalDataInServer,
@@ -10,6 +11,9 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  const isWarmingRequestResult = isWarmingRequest(req);
+  if (isWarmingRequestResult) return res.status(200).send("OK");
+
   const { authorization } = req.headers;
   const {
     referralCode,

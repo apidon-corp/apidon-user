@@ -1,4 +1,4 @@
-import getDisplayName from "@/apiUtils";
+import getDisplayName, { isWarmingRequest } from "@/apiUtils";
 import { NFTMetadata, NftDocDataInServer } from "@/components/types/NFT";
 import { PostServerDataV2 } from "@/components/types/Post";
 
@@ -23,6 +23,9 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  const isWarmingRequestResult = isWarmingRequest(req);
+  if (isWarmingRequestResult) return res.status(200).send("OK");
+
   const { authorization } = req.headers;
   const { postDocId, name, description } = req.body;
 
