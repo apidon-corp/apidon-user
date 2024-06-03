@@ -1,4 +1,4 @@
-import getDisplayName, { handleServerWarm } from "@/apiUtils";
+import getDisplayName, { isWarmingRequest } from "@/apiUtils";
 import { NotificationData, NotificationDocData } from "@/components/types/User";
 import AsyncLock from "async-lock";
 import { NextApiRequest, NextApiResponse } from "next";
@@ -190,7 +190,8 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  handleServerWarm(req, res);
+  const isWarmingRequestResult = isWarmingRequest(req);
+  if (isWarmingRequestResult) return res.status(200).send("OK");
 
   if (req.method !== "POST") return res.status(405).send("Method not allowed");
 

@@ -1,4 +1,4 @@
-import { handleServerWarm } from "@/apiUtils";
+import { isWarmingRequest } from "@/apiUtils";
 import { PostServerDataV2 } from "@/components/types/Post";
 import { firestore } from "@/firebase/adminApp";
 import { NextApiRequest, NextApiResponse } from "next";
@@ -7,7 +7,8 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  handleServerWarm(req, res);
+  const isWarmingRequestResult = isWarmingRequest(req);
+  if (isWarmingRequestResult) return res.status(200).send("OK");
 
   /**
    * To handle cors policy...

@@ -61,8 +61,6 @@ async function executeRequests(roots: string[]) {
     return false;
   }
 
-  console.log(results);
-
   return true;
 }
 

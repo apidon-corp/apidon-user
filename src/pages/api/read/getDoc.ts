@@ -1,4 +1,4 @@
-import getDisplayName, { handleServerWarm } from "@/apiUtils";
+import getDisplayName, { isWarmingRequest } from "@/apiUtils";
 import { GetDocResponse } from "@/components/types/API";
 import { firestore } from "@/firebase/adminApp";
 import { NextApiRequest, NextApiResponse } from "next";
@@ -12,7 +12,8 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  handleServerWarm(req, res);
+  const isWarmingRequestResult = isWarmingRequest(req);
+  if (isWarmingRequestResult) return res.status(200).send("OK");
 
   const { authorization } = req.headers;
   const { docPath } = req.body;

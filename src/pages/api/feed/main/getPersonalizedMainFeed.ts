@@ -1,4 +1,4 @@
-import getDisplayName, { handleServerWarm } from "@/apiUtils";
+import getDisplayName, { isWarmingRequest } from "@/apiUtils";
 import { CurrentProvider } from "@/components/types/User";
 import { firestore } from "@/firebase/adminApp";
 import { NextApiRequest, NextApiResponse } from "next";
@@ -131,7 +131,8 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  handleServerWarm(req, res);
+  const isWarmingRequestResult = isWarmingRequest(req);
+  if (isWarmingRequestResult) return res.status(200).send("OK");
 
   if (req.method !== "POST") return res.status(405).send("Method not allowed");
 
@@ -158,16 +159,4 @@ export default async function handler(
   return res.status(200).json({
     postDocPathArray: getPostPredictionsFromProviderResult.postDocPathArray,
   });
-
-  // const createAllPostItemDatasResult = await createAllPostItemDatas(
-  //   getPostPredictionsFromProviderResult.postDocPathArray,
-  //   username,
-  //   followingsOfUser
-  // );
-  // if (!createAllPostItemDatasResult)
-  //   return res.status(500).send("Internal Server Error");
-
-  // return res.status(200).json({
-  //   postItemDatas: createAllPostItemDatasResult.postItemDatas,
-  // });
 }
