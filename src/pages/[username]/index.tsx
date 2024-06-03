@@ -122,6 +122,12 @@ export default function UserPage({ userInformation }: Props) {
 }
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
+  if (context.req.headers["serverwarmerkey"]) {
+    return {
+      props: {},
+    };
+  }
+
   const username = context.query.username;
   let userInformation: UserInServer | null = null;
 

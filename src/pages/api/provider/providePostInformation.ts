@@ -1,3 +1,4 @@
+import { handleServerWarm } from "@/apiUtils";
 import { PostServerDataV2 } from "@/components/types/Post";
 import { firestore } from "@/firebase/adminApp";
 import { NextApiRequest, NextApiResponse } from "next";
@@ -6,6 +7,8 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  handleServerWarm(req, res);
+
   /**
    * To handle cors policy...
    */

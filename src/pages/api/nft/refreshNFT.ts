@@ -1,4 +1,4 @@
-import getDisplayName from "@/apiUtils";
+import getDisplayName, { handleServerWarm } from "@/apiUtils";
 import { NFTMetadata } from "@/components/types/NFT";
 import { PostServerDataV2 } from "@/components/types/Post";
 import AsyncLock from "async-lock";
@@ -8,7 +8,7 @@ import { bucket, firestore } from "../../../firebase/adminApp";
 const lock = new AsyncLock();
 
 export const config = {
-  runtime: 'nodejs',
+  runtime: "nodejs",
   maxDuration: 60,
 };
 
@@ -16,6 +16,8 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  handleServerWarm(req, res);
+
   const { authorization } = req.headers;
   const { postDocId } = req.body;
 

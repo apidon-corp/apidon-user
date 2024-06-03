@@ -1,4 +1,4 @@
-import getDisplayName from "@/apiUtils";
+import getDisplayName, { handleServerWarm } from "@/apiUtils";
 import { DealAPIBody, InteractedPostObject } from "@/components/types/API";
 import {
   CommentedPostArrayObject,
@@ -22,6 +22,7 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  handleServerWarm(req, res);
   const { authorization } = req.headers;
   const { providerName } = req.body;
 

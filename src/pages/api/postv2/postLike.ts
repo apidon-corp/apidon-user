@@ -1,4 +1,4 @@
-import getDisplayName from "@/apiUtils";
+import getDisplayName, { handleServerWarm } from "@/apiUtils";
 import { PostLikeActionAPIBody } from "@/components/types/API";
 import { LikeDataV2, PostServerDataV2 } from "@/components/types/Post";
 import {
@@ -338,6 +338,7 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  handleServerWarm(req, res);
   if (req.method !== "POST") return res.status(405).send("Method not allowed");
 
   const { authorization } = req.headers;

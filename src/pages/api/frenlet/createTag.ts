@@ -1,4 +1,4 @@
-import getDisplayName from "@/apiUtils";
+import getDisplayName, { handleServerWarm } from "@/apiUtils";
 import { fieldValue, firestore } from "@/firebase/adminApp";
 import { NextApiRequest, NextApiResponse } from "next";
 
@@ -42,6 +42,9 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+
+  handleServerWarm(req, res);
+
   if (req.method !== "POST") return res.status(405).send("Method Not Allowed");
 
   const { authorization } = req.headers;

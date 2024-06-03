@@ -1,4 +1,4 @@
-import getDisplayName from "@/apiUtils";
+import getDisplayName, { handleServerWarm } from "@/apiUtils";
 import {
   GetCollectionResponse,
   GetDocResponse,
@@ -16,6 +16,8 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  handleServerWarm(req, res);
+
   const { authorization } = req.headers;
   const { collectionPath } = req.body;
   const querySettings: QuerySettings | undefined = req.body.querySettings;

@@ -1,3 +1,4 @@
+import { handleServerWarm } from "@/apiUtils";
 import { UserInServer } from "@/components/types/User";
 import { appCheck, auth, firestore } from "@/firebase/adminApp";
 import { NextApiRequest, NextApiResponse } from "next";
@@ -6,6 +7,9 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+
+  handleServerWarm(req, res);
+
   const { authorization } = req.headers;
   const { eu } = req.body;
 

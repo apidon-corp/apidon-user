@@ -1,3 +1,4 @@
+import { handleServerWarm } from "@/apiUtils";
 import {
   NotificationDocData,
   PersonalDataInServer,
@@ -10,6 +11,8 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  handleServerWarm(req, res);
+
   const { authorization } = req.headers;
   const {
     referralCode,

@@ -1,4 +1,4 @@
-import getDisplayName from "@/apiUtils";
+import getDisplayName, { handleServerWarm } from "@/apiUtils";
 import {
   FrenletServerData,
   FrenletsServerData,
@@ -97,6 +97,8 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  handleServerWarm(req, res);
+
   const { authorization } = req.headers;
   const { username } = req.body;
 

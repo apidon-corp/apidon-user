@@ -1,4 +1,4 @@
-import getDisplayName from "@/apiUtils";
+import getDisplayName, { handleServerWarm } from "@/apiUtils";
 import { FrenletServerData } from "@/components/types/Frenlet";
 import { fieldValue, firestore } from "@/firebase/adminApp";
 import AsyncLock from "async-lock";
@@ -164,6 +164,9 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+
+  handleServerWarm(req, res);
+
   const { authorization } = req.headers;
   const { frenletDocPath, action } = req.body;
 

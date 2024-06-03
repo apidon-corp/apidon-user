@@ -1,4 +1,4 @@
-import getDisplayName from "@/apiUtils";
+import getDisplayName, { handleServerWarm } from "@/apiUtils";
 import { NFTMetadata, NftDocDataInServer } from "@/components/types/NFT";
 import { PostServerDataV2 } from "@/components/types/Post";
 
@@ -23,6 +23,8 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  handleServerWarm(req, res);
+
   const { authorization } = req.headers;
   const { postDocId, name, description } = req.body;
 

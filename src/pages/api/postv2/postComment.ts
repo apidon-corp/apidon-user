@@ -1,4 +1,4 @@
-import getDisplayName from "@/apiUtils";
+import getDisplayName, { handleServerWarm } from "@/apiUtils";
 import {
   CommentDataV2,
   CommentInteractionData,
@@ -214,6 +214,9 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+
+  handleServerWarm(req, res);
+
   const { authorization } = req.headers;
   const { message, postDocPath } = req.body;
 
