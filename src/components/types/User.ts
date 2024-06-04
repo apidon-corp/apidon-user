@@ -694,3 +694,10 @@ export type CurrentProvider = {
   startTime: number;
   yield: 0.53;
 };
+
+export type ReferenceDocData = {
+  inProcess: boolean;
+  isUsed: boolean;
+  ts: number;
+  whoUsed: string;
+};
