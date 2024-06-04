@@ -66,8 +66,6 @@ export default function Posts({ postDocPathArray }: Props) {
       (snapshot) => {
         snapshot.docChanges().forEach(async (change) => {
           if (change.type === "added") {
-            console.log(change.doc.data());
-
             const newPostDocPath = `/users/${currentUserDisplayName}/posts/${change.doc.id}`;
 
             const newPostItemData = await getPostFromServer(newPostDocPath);
@@ -191,7 +189,7 @@ export default function Posts({ postDocPathArray }: Props) {
       const postDocSnapshot = await getDoc(postDocRef);
 
       if (!postDocSnapshot.exists()) {
-        console.error("Post doc does not exist.");
+        console.error("Post doc does not exist.", postDocPath);
         return {
           result: false,
           postDocPath: postDocPath,
