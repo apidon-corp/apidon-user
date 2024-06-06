@@ -67,13 +67,6 @@ export default function PostFront({
   const leastDestructiveRef = useRef<HTMLButtonElement>(null);
   const [showDeletePostDialog, setShowDeletePostDialog] = useState(false);
 
-  const [taggedDescription, setTaggedDescription] = useState<
-    {
-      isTagged: boolean;
-      word: string;
-    }[]
-  >([]);
-
   const [linkCopied, setLinkCopied] = useState(false);
 
   const [isLiked, setIsLiked] = useState(false);
@@ -97,13 +90,6 @@ export default function PostFront({
       }, 3000);
     }
   }, [linkCopied]);
-
-  useEffect(() => {
-    const descriptionContainsTagging = postFrontData.description.includes("@");
-    if (!descriptionContainsTagging) return;
-
-    handleTagging();
-  }, []);
 
   useEffect(() => {
     const senderDocReference = doc(
@@ -170,29 +156,6 @@ export default function PostFront({
     if (!operationResult) return setFollowOperationLoading(false);
 
     setFollowOperationLoading(false);
-  };
-
-  const handleTagging = () => {
-    const desArr = postFrontData.description.split(" ");
-
-    let tempTaggedDescription: {
-      isTagged: boolean;
-      word: string;
-    }[] = [];
-    for (const word of desArr) {
-      if (word.startsWith("@")) {
-        tempTaggedDescription.push({
-          isTagged: true,
-          word: word,
-        });
-      } else {
-        tempTaggedDescription.push({
-          isTagged: false,
-          word: word,
-        });
-      }
-    }
-    setTaggedDescription(tempTaggedDescription);
   };
 
   const handleLike = async () => {
@@ -302,16 +265,20 @@ export default function PostFront({
   };
 
   return (
-    <Flex bg="black" direction="column" width="100%" height="100%" p={1}>
+    <Flex
+      bg="black"
+      direction="column"
+      width="100%"
+      height="100%"
+      position="relative"
+    >
       <Flex
         id="postHeader"
         align="center"
         position="relative"
-        gap={1}
-        height="58px"
+        gap={2}
         p={1}
-        bg="gray.900"
-        borderRadius="10px 10px 0px 0px"
+        mb="2"
       >
         <Image
           alt=""
@@ -341,7 +308,7 @@ export default function PostFront({
           cursor="pointer"
           onClick={() => router.push(`/${postFrontData.senderUsername}`)}
         />
-        <Flex direction="column">
+        <Flex id="username-fullname-date" direction="column">
           <Flex align="center">
             <Text
               textColor="white"
@@ -471,52 +438,40 @@ export default function PostFront({
             }
             draggable={false}
             userSelect="none"
+            borderRadius="2em"
           />
         </AspectRatio>
       )}
 
       <Flex
         id="post-footer"
-        direction="column"
-        bg="gray.900"
-        borderRadius="0px 0px 10px 10px"
+        position="absolute"
+        bottom="-2em"
+        width="100%"
+        bg="#151515"
+        borderRadius="2em"
         height="auto"
+        px={4}
+        py={2}
+        gap={1}
+        align="center"
       >
-        <Text
-          px={2}
-          pt="1"
-          fontSize="13pt"
-          fontWeight="medium"
-          wordBreak="break-word"
+        <Flex
+          id="like-comment-shaee-text"
+          direction="column"
+          width="100%"
+          flexFlow="1"
+          gap="0.5"
         >
-          {taggedDescription.length > 0 ? (
-            taggedDescription.map((w, i) => {
-              if (w.isTagged) {
-                return (
-                  <span
-                    key={i}
-                    style={{ color: "#00A2FF", cursor: "pointer" }}
-                    onClick={() => {
-                      router.push(w.word.slice(1, w.word.length + 1));
-                    }}
-                  >
-                    {w.word}{" "}
-                  </span>
-                );
-              } else {
-                return (
-                  <span key={i} style={{ color: "white" }}>
-                    {w.word}
-                  </span>
-                );
-              }
-            })
-          ) : (
-            <span style={{ color: "white" }}>{postFrontData.description}</span>
-          )}
-        </Text>
-        <Flex>
-          <Flex gap={3} p={2}>
+          <Text
+            color="white"
+            fontWeight="600"
+            fontSize="16"
+            wordBreak="break-word"
+          >
+            {postFrontData.description}
+          </Text>
+          <Flex gap={3} width="100%" align="center">
             <Flex id="like-part" gap="1">
               {isLiked ? (
                 <Icon
@@ -584,28 +539,23 @@ export default function PostFront({
               )}
             </Flex>
           </Flex>
+        </Flex>
 
-          <Flex width="100%" position="relative">
-            <Button
-              hidden={!postFrontData.nftStatus.convertedToNft}
-              position="absolute"
-              right="2.5"
-              bottom="2"
-              colorScheme="pink"
-              size="sm"
-              borderRadius="full"
-              px={4}
-              py={2}
-              fontWeight="bold"
-              _hover={{ bg: "pink.500" }}
-              _active={{ bg: "pink.600" }}
-              onClick={() => {
-                openPanelNameSetter("nft");
-              }}
-            >
-              NFT
-            </Button>
-          </Flex>
+        <Flex id="nft-button-area">
+          <Button
+            hidden={!postFrontData.nftStatus.convertedToNft}
+            colorScheme="pink"
+            size="sm"
+            borderRadius="full"
+            fontWeight="bold"
+            _hover={{ bg: "pink.500" }}
+            _active={{ bg: "pink.600" }}
+            onClick={() => {
+              openPanelNameSetter("nft");
+            }}
+          >
+            NFT
+          </Button>
         </Flex>
       </Flex>
     </Flex>
