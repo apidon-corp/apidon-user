@@ -222,7 +222,7 @@ export default function Posts({ postDocPathArray }: Props) {
   };
 
   return (
-    <Stack gap={12} mt="1em" width="100%" px="2">
+    <Stack gap={12} mt="1em" width="100%" px="2" mb={10}>
       {givenPosts.length === 0 ? (
         Array.from({ length: 1 }, (_, index) => <PostSkeleton key={index} />)
       ) : (
