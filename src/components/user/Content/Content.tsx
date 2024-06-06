@@ -31,7 +31,7 @@ export default function Content({
             userInformation={userInformation}
           />
         </TabPanel>
-        <TabPanel id="posts-panel">
+        <TabPanel id="posts-panel" p={0}>
           <Posts postDocPaths={postDocPaths} />
         </TabPanel>
       </TabPanels>
