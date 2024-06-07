@@ -1,6 +1,6 @@
 export type PostCreateForm = {
   description: string;
-  image: string;
+  tempImageLocation: string;
 };
 
 // /**

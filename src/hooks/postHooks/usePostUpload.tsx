@@ -1,6 +1,5 @@
-import { PostCreateForm, PostServerDataV2 } from "@/components/types/Post";
+import { PostCreateForm } from "@/components/types/Post";
 import { auth } from "@/firebase/clientApp";
-import { useState } from "react";
 
 const usePostCreate = () => {
   /**
@@ -9,7 +8,7 @@ const usePostCreate = () => {
    */
   const uploadPost = async (postCreateForm: PostCreateForm) => {
     // This is my third control but, I don't trust states really :/
-    if (!postCreateForm.description && !postCreateForm.image) {
+    if (!postCreateForm.description && !postCreateForm.tempImageLocation) {
       console.log("You Can not create empty post, aborting");
       return false;
     }
@@ -24,7 +23,7 @@ const usePostCreate = () => {
     }
 
     const description = postCreateForm.description;
-    const image = postCreateForm.image;
+    const tempImageLocation = postCreateForm.tempImageLocation;
 
     let response: Response;
     try {
@@ -34,7 +33,7 @@ const usePostCreate = () => {
           "Content-Type": "application/json",
           authorization: `Bearer ${idToken}`,
         },
-        body: JSON.stringify({ description, image }),
+        body: JSON.stringify({ description, tempImageLocation }),
       });
     } catch (error) {
       console.error("Error while fetching to 'postUpload' API", error);

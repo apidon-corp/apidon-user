@@ -1,9 +1,12 @@
+import { auth, storage } from "@/firebase/clientApp";
 import usePostUpload from "@/hooks/postHooks/usePostUpload";
 import {
   AspectRatio,
   Button,
+  CircularProgress,
   Flex,
   Icon,
+  Image,
   Input,
   Modal,
   ModalBody,
@@ -15,24 +18,25 @@ import {
   Text,
   Textarea,
 } from "@chakra-ui/react";
-import { useEffect, useRef, useState } from "react";
+import { ref, uploadBytesResumable } from "firebase/storage";
+import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { BiImageAdd } from "react-icons/bi";
 import { useRecoilState } from "recoil";
 import { postCreateModalStateAtom } from "../../atoms/postCreateModalAtom";
+import { PostCreateForm } from "@/components/types/Post";
 
 export default function PostCreateModal() {
-  const imageInputRef = useRef<HTMLInputElement>(null);
-
   const { uploadPost } = usePostUpload();
 
   const [postCreateModalState, setPostCreatModaleState] = useRecoilState(
     postCreateModalStateAtom
   );
 
-  const [postCreateForm, setPostCreateForm] = useState({
+  const [postCreateForm, setPostCreateForm] = useState<PostCreateForm>({
     description: "",
-    image: "",
+    tempImageLocation: "",
   });
+
   const bigInputRef = useRef<HTMLTextAreaElement>(null);
   const smallInputRef = useRef<HTMLInputElement>(null);
 
@@ -40,33 +44,15 @@ export default function PostCreateModal() {
     "bigInput" | "smallInput"
   >("smallInput");
 
-  const onTextsChanged = (
-    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    setPostCreateForm((prev) => ({
-      ...prev,
-      [event.target.name]: event.target.value,
-    }));
-  };
+  const imageInputRef = useRef<HTMLInputElement>(null);
 
-  const handleSendPost = async () => {
-    // Already button is disabled when empty, but for prevent from any
-    if (!postCreateForm.description && !postCreateForm.image) {
-      return console.log("You Can not create empty post, aborting");
-    }
-    const operationResult = await uploadPost(postCreateForm);
+  const [imageUplaodProgress, setImageUploadProgress] = useState(0);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
-    if (!operationResult) {
-      return;
-    }
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [loading, setLoading] = useState(false);
 
-    setPostCreatModaleState((prev) => ({
-      ...prev,
-      isOpen: false,
-    }));
-
-    setPostCreateForm({ description: "", image: "" });
-  };
+  const [imagePreview, setImagePreview] = useState("");
 
   useEffect(() => {
     if (
@@ -90,6 +76,131 @@ export default function PostCreateModal() {
     }
   }, [postCreateForm.description]);
 
+  useEffect(() => {
+    if (imageFile) {
+      uploadImage();
+    }
+  }, [imageFile]);
+
+  const onTextsChanged = (
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    setPostCreateForm((prev) => ({
+      ...prev,
+      [event.target.name]: event.target.value,
+    }));
+  };
+
+  const handleImageInputChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files) {
+      console.warn("Files are null");
+      setImagePreview("");
+      return;
+    }
+
+    const imageInputFile = files[0];
+
+    if (!imageInputFile) {
+      console.warn("Image is null");
+      setImagePreview("");
+      return;
+    }
+
+    setImageFile(imageInputFile);
+  };
+
+  const handleDeleteButton = () => {
+    setPostCreateForm({ description: "", tempImageLocation: "" });
+    setImagePreview("");
+  };
+
+  const uploadImage = async () => {
+    if (!imageFile) return false;
+
+    const currentUserAuthObject = auth.currentUser;
+    if (!currentUserAuthObject) return false;
+
+    const displayName = currentUserAuthObject.displayName;
+    if (!displayName) return false;
+
+    setUploadingImage(true);
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImagePreview(reader.result as string);
+    };
+    reader.readAsDataURL(imageFile);
+
+    try {
+      const storageRef = ref(
+        storage,
+        `users/${displayName}/postFiles/temp/temp`
+      );
+      const uploadTask = uploadBytesResumable(storageRef, imageFile);
+
+      uploadTask.on(
+        "state_changed",
+        (snapshot) => {
+          const progress =
+            (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          setImageUploadProgress(progress);
+        },
+        (error) => {
+          console.error("Upload error: ", error);
+          setUploadingImage(false);
+          setImageUploadProgress(0);
+
+          setImageFile(null);
+          setPostCreateForm((prev) => ({ ...prev, tempImageLocation: "" }));
+
+          setImagePreview("");
+        },
+        () => {
+          console.log("Image Upload Successfull");
+          setPostCreateForm((prev) => ({
+            ...prev,
+            tempImageLocation: `users/${displayName}/postFiles/temp/temp`,
+          }));
+          setUploadingImage(false);
+          return true;
+        }
+      );
+    } catch (error) {
+      console.error("Error uploading image: ", error);
+      setUploadingImage(false);
+      setImagePreview("");
+      return false;
+    }
+  };
+
+  const handleSendPost = async () => {
+    if (!postCreateForm.description && !postCreateForm.tempImageLocation)
+      return;
+    if (imageFile && !postCreateForm.tempImageLocation) return;
+
+    setLoading(true);
+
+    const operationResult = await uploadPost(postCreateForm);
+
+    if (!operationResult) {
+      setLoading(false);
+      return;
+    }
+
+    setLoading(false);
+    setPostCreateForm({ description: "", tempImageLocation: "" });
+    setImageFile(null);
+    setImageUploadProgress(0);
+    setUploadingImage(false);
+    setImagePreview("");
+
+    setPostCreatModaleState((prev) => ({
+      ...prev,
+      isOpen: false,
+    }));
+  };
+
   return (
     <Modal
       id="post-create-modal"
@@ -101,7 +212,8 @@ export default function PostCreateModal() {
       }}
       isOpen={postCreateModalState.isOpen}
       onClose={() => {
-        setPostCreateForm({ description: "", image: "" });
+        if (loading) return;
+        setPostCreateForm({ description: "", tempImageLocation: "" });
         setPostCreatModaleState({ isOpen: false });
       }}
       autoFocus={false}
@@ -119,70 +231,93 @@ export default function PostCreateModal() {
         <ModalCloseButton color="white" />
 
         <ModalBody display="flex">
-          <Flex direction="column" width="100%" gap="5">
-            <Text as="b" fontSize="14pt" textColor="white">
-              Photo
-            </Text>
+          <Flex id="overall-flex" direction="column" width="100%" gap={5}>
+            <Flex id="image-area" width="100%" direction="column" gap="3">
+              <Text as="b" fontSize="14pt" textColor="white">
+                Photo
+              </Text>
+              {imagePreview && (
+                <Flex direction="column" width="100%" gap="5">
+                  <Flex id="image-flex" width="100%" position="relative">
+                    {uploadingImage && (
+                      <Flex
+                        id="progress-flex"
+                        position="absolute"
+                        width="100%"
+                        height="100%"
+                        justify="center"
+                        align="center"
+                        zIndex={100}
+                      >
+                        <CircularProgress
+                          color="green.500"
+                          value={imageUplaodProgress}
+                          size="100"
+                          isIndeterminate={
+                            imageUplaodProgress === 0 ||
+                            imageUplaodProgress === 100
+                          }
+                        />
+                      </Flex>
+                    )}
+                    <Flex
+                      width="100%"
+                      bg={uploadingImage ? "gray" : "unset"}
+                      opacity={uploadingImage ? "0.4" : "unset"}
+                    >
+                      <Image borderRadius="10px" src={imagePreview} />
+                    </Flex>
+                  </Flex>
 
-            <AspectRatio ratio={1}>
-              <img
-                style={{
-                  borderRadius: "10px",
-                }}
-                alt=""
-                src={postCreateForm.image}
-              />
-            </AspectRatio>
+                  <Button
+                    variant="outline"
+                    onClick={handleDeleteButton}
+                    colorScheme="red"
+                  >
+                    Delete Photo
+                  </Button>
+                </Flex>
+              )}
 
-            <Button
-              variant="outline"
-              onClick={() => {
-                setPostCreateForm((prev) => ({
-                  ...prev,
-                  image: "",
-                }));
-              }}
-              mt={2}
-              colorScheme="red"
-            >
-              Delete Photo
-            </Button>
-
-            <AspectRatio
-              id="image-upload-placeholder"
-              width="100%"
-              borderRadius="4"
-              bg="black"
-              ratio={4 / 3}
-            >
-              <>
-                <Button
+              {!imagePreview && (
+                <AspectRatio
+                  id="image-upload-placeholder"
                   width="100%"
-                  height="100%"
-                  onClick={() => imageInputRef.current?.click()}
+                  borderRadius="4"
                   bg="black"
-                  borderWidth={3}
-                  borderColor="white"
-                  textColor="white"
-                  fontSize="50pt"
-                  fontWeight={700}
-                  _hover={{
-                    textColor: "black",
-                    bg: "white",
-                  }}
+                  ratio={4 / 3}
                 >
-                  <Icon as={BiImageAdd} />
-                </Button>
-                <Input
-                  ref={imageInputRef}
-                  type="file"
-                  accept="image/*"
-                  hidden
-                />
-              </>
-            </AspectRatio>
+                  <>
+                    <Button
+                      width="100%"
+                      height="100%"
+                      onClick={() => imageInputRef.current?.click()}
+                      bg="black"
+                      borderWidth={3}
+                      borderColor="white"
+                      textColor="white"
+                      fontSize="50pt"
+                      fontWeight={700}
+                      _hover={{
+                        textColor: "black",
+                        bg: "white",
+                      }}
+                    >
+                      <Icon as={BiImageAdd} />
+                    </Button>
+                    <Input
+                      ref={imageInputRef}
+                      onChange={handleImageInputChange}
+                      type="file"
+                      accept="image/*"
+                      hidden
+                    />
+                  </>
+                </AspectRatio>
+              )}
+            </Flex>
 
-            <Flex direction="column" mt={1} gap="1">
+            <Flex id="description-area" width="100%" direction="column" gap="3">
               <Text as="b" fontSize="14pt" textColor="white">
                 Description
               </Text>
@@ -213,15 +348,27 @@ export default function PostCreateModal() {
           <Button
             variant="outline"
             colorScheme="blue"
+            size="md"
             mr={3}
             onClick={() => {
               setPostCreatModaleState({ isOpen: false });
-              setPostCreateForm({ description: "", image: "" });
+              setPostCreateForm({ description: "", tempImageLocation: "" });
             }}
+            isDisabled={loading}
           >
             Cancel
           </Button>
-          <Button colorScheme="blue" onClick={handleSendPost}>
+          <Button
+            colorScheme="blue"
+            size="md"
+            onClick={handleSendPost}
+            isDisabled={
+              (postCreateForm.description.length === 0 &&
+                postCreateForm.tempImageLocation.length === 0) ||
+              uploadingImage
+            }
+            isLoading={loading}
+          >
             Post
           </Button>
         </ModalFooter>

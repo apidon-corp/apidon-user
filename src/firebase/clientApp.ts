@@ -1,6 +1,7 @@
 import { getApp, getApps, initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getAnalytics } from "firebase/analytics";
+import { getStorage } from "firebase/storage";
 
 import {
   AppCheck,
@@ -22,7 +23,8 @@ const firebaseConfig = {
 // Initialize Firebase for Server Side Rendering
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const auth = getAuth(app);
-const firestore = getFirestore(app)
+const firestore = getFirestore(app);
+const storage = getStorage(app);
 
 let appCheck: AppCheck;
 if (typeof window !== "undefined") {
@@ -36,4 +38,4 @@ if (typeof window !== "undefined") {
   });
 }
 
-export { auth, appCheck, firestore };
+export { auth, appCheck, firestore, storage };

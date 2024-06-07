@@ -427,12 +427,17 @@ export default function PostFront({
       </Flex>
 
       {postFrontData.image && (
-        <AspectRatio ratio={1} width="100%">
+        <Flex id="image-flex" width="100%">
           <Image
-            alt=""
             src={postFrontData.image}
             fallback={
-              <Flex bg="gray.700">
+              <Flex
+                bg="gray.700"
+                width="100%"
+                height="27em"
+                align="center"
+                justify="center"
+              >
                 <Icon as={BsImage} fontSize="8xl" color="white" />
               </Flex>
             }
@@ -440,7 +445,7 @@ export default function PostFront({
             userSelect="none"
             borderRadius="2em"
           />
-        </AspectRatio>
+        </Flex>
       )}
 
       <Flex

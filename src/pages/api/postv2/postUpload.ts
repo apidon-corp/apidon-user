@@ -46,22 +46,28 @@ function createPostServerData(description: string, username: string) {
   return newPostServerData;
 }
 
-async function uploadImage(username: string, image: string) {
+async function changeLocationOfTempImage(
+  username: string,
+  tempImageLocation: string
+) {
   const postDocId = Date.now().toString();
 
   try {
-    const file = bucket.file(`users/${username}/postFiles/${postDocId}/image`);
-    const buffer = Buffer.from(image.split(",")[1], "base64");
-    await file.save(buffer, { metadata: { contentType: "image/jpeg" } });
-    await file.makePublic();
-    const postImagePublicURL = file.publicUrl();
+    const tempFile = bucket.file(tempImageLocation);
+    await tempFile.move(`users/${username}/postFiles/${postDocId}/image`);
+
+    const newFile = bucket.file(
+      `users/${username}/postFiles/${postDocId}/image`
+    );
+    await newFile.makePublic();
+    const postImagePublicURL = newFile.publicUrl();
 
     return {
       postDocId: postDocId,
       postImagePublicURL: postImagePublicURL,
     };
   } catch (error) {
-    console.error("Error on uploading image to Firebase Storage.");
+    console.error("Error on using temp image on Firebase Storage: \n", error);
     return false;
   }
 }
@@ -190,18 +196,21 @@ export default async function handler(
   if (req.method !== "POST") return res.status(405).send("Method not allowed");
 
   const { authorization } = req.headers;
-  const { description, image } = req.body;
+  const { description, tempImageLocation } = req.body;
 
   const username = await handleAuthorization(authorization);
   if (!username) return res.status(401).send("Unauthorized");
 
-  const checkPropsResult = checkProps(description, image);
+  const checkPropsResult = checkProps(description, tempImageLocation);
   if (!checkPropsResult) return res.status(422).send("Invalid Request");
 
   let postServerData = createPostServerData(description, username);
 
-  if (image) {
-    const imageUploadResult = await uploadImage(username, image);
+  if (tempImageLocation) {
+    const imageUploadResult = await changeLocationOfTempImage(
+      username,
+      tempImageLocation
+    );
     if (!imageUploadResult)
       return res.status(500).send("Internal Server Error");
 
