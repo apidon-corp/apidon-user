@@ -66,6 +66,7 @@ export const defaultCurrentUserState: CurrentUser = {
 
 export type NotificationData = {
   cause: "like" | "follow" | "comment" | "frenlet";
+  postDocPath? : string,
   sender: string;
   ts: number;
 };

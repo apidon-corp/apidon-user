@@ -184,6 +184,7 @@ export const Notification = () => {
               {notifications.map((n) => (
                 <NotificationItem
                   cause={n.cause}
+                  postDocPath={n.postDocPath}
                   notificationTime={n.ts}
                   seen={lastOpenedTime > n.ts}
                   sender={n.sender}

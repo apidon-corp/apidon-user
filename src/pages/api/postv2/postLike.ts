@@ -134,16 +134,11 @@ async function updateNotification(
   username: string,
   postSender: string,
   ts: number,
-  action: "like" | "delike"
+  action: "like" | "delike",
+  postDocPath?: string
 ) {
   // There is no need to send notification to the post sender
   if (username === postSender) return true;
-
-  const notificationData: NotificationData = {
-    cause: "like",
-    ts: ts,
-    sender: username,
-  };
 
   try {
     const notificationDoc = firestore.doc(
@@ -151,6 +146,20 @@ async function updateNotification(
     );
 
     if (action === "like") {
+      if (!postDocPath) {
+        console.error(
+          "postDocPath is undefined when creating notification object."
+        );
+        return false;
+      }
+
+      const notificationData: NotificationData = {
+        cause: "like",
+        postDocPath: postDocPath,
+        ts: ts,
+        sender: username,
+      };
+
       await notificationDoc.update({
         notifications: fieldValue.arrayUnion(notificationData),
       });
@@ -274,7 +283,8 @@ async function like(
   postDocPath: string,
   alreadyLiked: boolean,
   username: string,
-  postSender: string
+  postSender: string,
+  postId: string
 ) {
   if (alreadyLiked) return false;
 
@@ -293,7 +303,13 @@ async function like(
     changeLikeCount(postDocPath, "like"),
     changeLikesArray(postDocPath, "like", likeObject),
     updatePostInteractions(username, likeObject, postDocPath, "like"),
-    updateNotification(username, postSender, likeObject.ts, "like"),
+    updateNotification(
+      username,
+      postSender,
+      likeObject.ts,
+      "like",
+      postDocPath
+    ),
     getProviderData(username),
   ]);
 
@@ -388,7 +404,8 @@ export default async function handler(
           postDocPath,
           likeStatus.alreadyLiked,
           username,
-          likeStatus.postDocData.senderUsername
+          likeStatus.postDocData.senderUsername,
+          likeStatus.postDocData.id
         );
         if (!likeResult) return res.status(500).send("Internal Server Error");
         return res.status(200).send("OK");
