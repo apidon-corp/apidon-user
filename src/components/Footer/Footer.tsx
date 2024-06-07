@@ -2,13 +2,7 @@ import { Flex, Text } from "@chakra-ui/react";
 
 export default function Footer() {
   return (
-    <Flex
-      direction="column"
-      align="center"
-      justify="center"
-      border="1px solid red"
-      my={5}
-    >
+    <Flex direction="column" align="center" justify="center" my={5}>
       <Text as="b" textColor="gray.300" fontSize="15pt">
         apidon
       </Text>
