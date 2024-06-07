@@ -18,6 +18,7 @@ interface NotificationItemData {
 
 type Props = {
   cause: string;
+  postDocPath?: string;
   notificationTime: number;
   seen: boolean;
   sender: string;
@@ -26,6 +27,7 @@ type Props = {
 
 export default function NotificationItem({
   cause,
+  postDocPath,
   notificationTime,
   seen,
   sender,
@@ -159,7 +161,25 @@ export default function NotificationItem({
           cursor="pointer"
           onClick={() => {
             setModalOpen(false);
-            router.push(`/${notificationItemData.senderUsername}`);
+
+            if (postDocPath) {
+              let cleanPostDocPath = postDocPath;
+
+              if (postDocPath[0] === "/") {
+                cleanPostDocPath = postDocPath.slice(1);
+              }
+
+              const words = cleanPostDocPath.split("/");
+
+              const postSenderUsername = words[1];
+              const postId = words[3];
+
+              const postRoute = `/${postSenderUsername}/posts/${postId}`;
+
+              router.push(postRoute);
+            } else {
+              router.push(`/${notificationItemData.senderUsername}`);
+            }
           }}
         >
           <Text

@@ -164,15 +164,28 @@ async function sendNotification(
 
     if (action === -1) {
       const notificationDocSnapshot = await notificationDocRef.get();
-      if (!notificationDocSnapshot.exists) return false;
+      if (!notificationDocSnapshot.exists) {
+        console.error("Notification doc does not exist");
+        return false;
+      }
 
       const notificationDocData =
         notificationDocSnapshot.data() as NotificationDocData;
 
-      const deletedNotificationObject = notificationDocData.notifications.find(
-        (notification) => notification.sender === operationFrom
+      if (!notificationDocData) {
+        console.error("NotificationDocData is undefined");
+        return false;
+      }
+
+      const notifications = notificationDocData.notifications;
+
+      const deletedNotificationObject = notifications.find(
+        (a) => a.cause === "follow" && a.sender === operationFrom
       );
-      if (!deletedNotificationObject) return false;
+      if (!deletedNotificationObject) {
+        console.error("Deleted object is undefined");
+        return false;
+      }
 
       await notificationDocRef.update({
         notifications: fieldValue.arrayRemove(deletedNotificationObject),

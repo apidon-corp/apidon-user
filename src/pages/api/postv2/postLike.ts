@@ -5,6 +5,7 @@ import {
   ICurrentProviderData,
   NotificationData,
   LikedPostArrayObject,
+  NotificationDocData,
 } from "@/components/types/User";
 import { fieldValue, firestore } from "@/firebase/adminApp";
 import AsyncLock from "async-lock";
@@ -133,16 +134,11 @@ async function updateNotification(
   username: string,
   postSender: string,
   ts: number,
-  action: "like" | "delike"
+  action: "like" | "delike",
+  postDocPath?: string
 ) {
   // There is no need to send notification to the post sender
   if (username === postSender) return true;
-
-  const notificationData: NotificationData = {
-    cause: "like",
-    ts: ts,
-    sender: username,
-  };
 
   try {
     const notificationDoc = firestore.doc(
@@ -150,6 +146,20 @@ async function updateNotification(
     );
 
     if (action === "like") {
+      if (!postDocPath) {
+        console.error(
+          "postDocPath is undefined when creating notification object."
+        );
+        return false;
+      }
+
+      const notificationData: NotificationData = {
+        cause: "like",
+        postDocPath: postDocPath,
+        ts: ts,
+        sender: username,
+      };
+
       await notificationDoc.update({
         notifications: fieldValue.arrayUnion(notificationData),
       });
@@ -158,15 +168,41 @@ async function updateNotification(
     }
 
     if (action === "delike") {
+      const notificationDocSnapshot = await notificationDoc.get();
+      if (!notificationDocSnapshot.exists) {
+        console.error("NotificationDoc doesn't exist");
+        return false;
+      }
+
+      const notificationDocData =
+        notificationDocSnapshot.data() as NotificationDocData;
+      if (!notificationDocData) {
+        console.error("NotificationDocData is undefined");
+        return false;
+      }
+
+      const notificationsArray = notificationDocData.notifications;
+
+      const deletedObject = notificationsArray.find(
+        (a) => a.cause === "like" && a.sender === username && a.ts === ts
+      );
+      if (!deletedObject) {
+        console.error("Deleted object is undefined");
+        return false;
+      }
+
       await notificationDoc.update({
-        notifications: fieldValue.arrayRemove(notificationData),
+        notifications: fieldValue.arrayRemove(deletedObject),
       });
 
       return true;
     }
 
     return true;
-  } catch (error) {}
+  } catch (error) {
+    console.error("Error while updating notification");
+    return false;
+  }
 }
 
 async function getProviderData(username: string) {
@@ -247,7 +283,8 @@ async function like(
   postDocPath: string,
   alreadyLiked: boolean,
   username: string,
-  postSender: string
+  postSender: string,
+  postId: string
 ) {
   if (alreadyLiked) return false;
 
@@ -266,7 +303,13 @@ async function like(
     changeLikeCount(postDocPath, "like"),
     changeLikesArray(postDocPath, "like", likeObject),
     updatePostInteractions(username, likeObject, postDocPath, "like"),
-    updateNotification(username, postSender, likeObject.ts, "like"),
+    updateNotification(
+      username,
+      postSender,
+      likeObject.ts,
+      "like",
+      postDocPath
+    ),
     getProviderData(username),
   ]);
 
@@ -361,7 +404,8 @@ export default async function handler(
           postDocPath,
           likeStatus.alreadyLiked,
           username,
-          likeStatus.postDocData.senderUsername
+          likeStatus.postDocData.senderUsername,
+          likeStatus.postDocData.id
         );
         if (!likeResult) return res.status(500).send("Internal Server Error");
         return res.status(200).send("OK");
