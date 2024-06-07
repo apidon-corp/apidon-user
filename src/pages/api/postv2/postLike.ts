@@ -5,6 +5,7 @@ import {
   ICurrentProviderData,
   NotificationData,
   LikedPostArrayObject,
+  NotificationDocData,
 } from "@/components/types/User";
 import { fieldValue, firestore } from "@/firebase/adminApp";
 import AsyncLock from "async-lock";
@@ -158,15 +159,41 @@ async function updateNotification(
     }
 
     if (action === "delike") {
+      const notificationDocSnapshot = await notificationDoc.get();
+      if (!notificationDocSnapshot.exists) {
+        console.error("NotificationDoc doesn't exist");
+        return false;
+      }
+
+      const notificationDocData =
+        notificationDocSnapshot.data() as NotificationDocData;
+      if (!notificationDocData) {
+        console.error("NotificationDocData is undefined");
+        return false;
+      }
+
+      const notificationsArray = notificationDocData.notifications;
+
+      const deletedObject = notificationsArray.find(
+        (a) => a.cause === "like" && a.sender === username && a.ts === ts
+      );
+      if (!deletedObject) {
+        console.error("Deleted object is undefined");
+        return false;
+      }
+
       await notificationDoc.update({
-        notifications: fieldValue.arrayRemove(notificationData),
+        notifications: fieldValue.arrayRemove(deletedObject),
       });
 
       return true;
     }
 
     return true;
-  } catch (error) {}
+  } catch (error) {
+    console.error("Error while updating notification");
+    return false;
+  }
 }
 
 async function getProviderData(username: string) {

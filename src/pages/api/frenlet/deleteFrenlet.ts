@@ -1,6 +1,6 @@
 import getDisplayName, { isWarmingRequest } from "@/apiUtils";
 import { FrenletServerData } from "@/components/types/Frenlet";
-import { NotificationData } from "@/components/types/User";
+import { NotificationData, NotificationDocData } from "@/components/types/User";
 import { fieldValue, firestore } from "@/firebase/adminApp";
 import { NextApiRequest, NextApiResponse } from "next";
 
@@ -102,11 +102,28 @@ async function deleteNotification(
       `/users/${frenletReceiver}/notifications/notifications/`
     );
 
-    const deletedObject: NotificationData = {
-      cause: "frenlet",
-      sender: frenletSender,
-      ts: ts,
-    };
+    const notificationDocSnapshot = await notificationDocRef.get();
+    if (!notificationDocSnapshot.exists) {
+      console.error("NotificationDoc doesn't exist");
+      return false;
+    }
+
+    const notificationDocData =
+      notificationDocSnapshot.data() as NotificationDocData;
+    if (!notificationDocData) {
+      console.error("NotificationDocData is undefined");
+      return false;
+    }
+
+    const notificationsArray = notificationDocData.notifications;
+
+    const deletedObject = notificationsArray.find(
+      (a) => a.cause === "frenlet" && a.sender === frenletSender && a.ts === ts
+    );
+    if (!deletedObject) {
+      console.error("Deleted object is undefined");
+      return false;
+    }
 
     await notificationDocRef.update({
       notifications: fieldValue.arrayRemove(deletedObject),
