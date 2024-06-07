@@ -12,12 +12,7 @@ type Props = {
 export default function index({ postInformation }: Props) {
   if (!postInformation) {
     return (
-      <Flex
-        justify="center"
-        align="center"
-        width="100%"
-        minHeight={innerHeight}
-      >
+      <Flex justify="center" align="center" width="100%">
         <Text as="b" textColor="white" fontSize="20pt">
           Post couldn&apos;t be found.
         </Text>
@@ -25,7 +20,7 @@ export default function index({ postInformation }: Props) {
     );
   } else {
     return (
-      <Flex width="100%" height="100%" justify="center" align="center">
+      <Flex width="100%" justify="center" align="center">
         <PostPageLayout postDocServerData={postInformation} />
       </Flex>
     );

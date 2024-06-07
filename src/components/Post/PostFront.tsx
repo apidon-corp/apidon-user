@@ -448,7 +448,7 @@ export default function PostFront({
         position="absolute"
         bottom="-2em"
         width="100%"
-        bg="#151515"
+        bg="#202020"
         borderRadius="2em"
         height="auto"
         px={4}

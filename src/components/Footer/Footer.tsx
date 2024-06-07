@@ -3,12 +3,11 @@ import { Flex, Text } from "@chakra-ui/react";
 export default function Footer() {
   return (
     <Flex
-      justify="center"
-      align="center"
       direction="column"
-      width="100%"
-      mb={3}
-      mt={3}
+      align="center"
+      justify="center"
+      border="1px solid red"
+      my={5}
     >
       <Text as="b" textColor="gray.300" fontSize="15pt">
         apidon
@@ -25,7 +24,6 @@ export default function Footer() {
       <Flex
         align="center"
         gap={1}
-        justify="center"
         cursor="pointer"
         onClick={() => {
           window.open("https://github.com/aboveStars/apidon-user", "blank");

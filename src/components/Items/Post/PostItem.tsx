@@ -55,7 +55,7 @@ export default function PostItem({ postServerData }: Props) {
   return (
     <>
       {!isPostDeleted && (
-        <Flex width="100%" height="100%">
+        <Flex width="100%">
           <PostFront
             postFrontData={{
               ...postServerDataFinalLayer,
