@@ -115,6 +115,7 @@ async function sendNotification(
 
     const notificationObject: NotificationData = {
       cause: "comment",
+      postDocPath: postDocPath,
       ts: ts,
       sender: username,
     };
