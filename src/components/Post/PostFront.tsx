@@ -430,7 +430,7 @@ export default function PostFront({
         <Flex id="image-flex" width="100%">
           <Image
             src={postFrontData.image}
-            width="100%"
+            maxHeight="70vh"
             fallback={
               <Flex
                 bg="gray.700"
@@ -445,6 +445,7 @@ export default function PostFront({
             draggable={false}
             userSelect="none"
             borderRadius="2em"
+            
           />
         </Flex>
       )}
