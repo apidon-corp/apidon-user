@@ -430,7 +430,7 @@ export default function PostFront({
         <Flex id="image-flex" width="100%">
           <Image
             src={postFrontData.image}
-            maxHeight="70vh"
+            maxHeight="80vh"
             fallback={
               <Flex
                 bg="gray.700"
