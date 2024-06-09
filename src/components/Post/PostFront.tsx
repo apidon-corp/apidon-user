@@ -445,15 +445,14 @@ export default function PostFront({
             draggable={false}
             userSelect="none"
             borderRadius="2em"
-            
           />
         </Flex>
       )}
 
       <Flex
         id="post-footer"
-        position="absolute"
-        bottom="-2em"
+        position={postFrontData.image.length > 0 ? "absolute" : "unset"}
+        bottom={postFrontData.image.length > 0 ? "-2em" : "unset"}
         width="100%"
         bg="#202020"
         borderRadius="2em"
