@@ -283,6 +283,13 @@ export default async function handler(
       ...notificationsDocData,
     });
 
+    // Creating postInteractions doc to "personal" collection and empty data in it
+    batch.set(firestore.doc(`users/${username}/personal/postInteractions`), {
+      commentedPostsArray: [],
+      likedPostsArray: [],
+      uploadedPostsArray: [],
+    });
+
     // Commiting and pushing changes :)
     await batch.commit();
   } catch (error) {
